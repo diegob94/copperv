@@ -1,2 +1,7 @@
-riscv-gnu-toolchain/
-
+work/
+*.o
+*.E
+*.D
+*.swp
+__pycache__/
+sim/include/monitor_utils_h.v

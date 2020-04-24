@@ -1,0 +1,286 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Wed Jul 15 15:29:48 2020
+[*]
+[dumpfile] "/media/diegob/riscv/riscv/work/tb.lxt"
+[dumpfile_mtime] "Wed Jul 15 15:29:47 2020"
+[dumpfile_size] 77520
+[savefile] "/media/diegob/riscv/riscv/scripts/tb.gtkw"
+[timestart] 247700
+[size] 1366 711
+[pos] -1 -1
+*-16.980307 475000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb.
+[treeopen] tb.chk.u_alu_checker.
+[treeopen] tb.dut.
+[treeopen] tb.dut.alu.
+[treeopen] tb.u_mem.
+[sst_width] 239
+[signals_width] 288
+[sst_expanded] 1
+[sst_vpaned_height] 204
+@28
+tb.dut.clk[0]
+tb.dut.rst[0]
+tb.dut.inst_valid[0]
+tb.dut.inst_fetch[0]
+@22
+tb.dut.pc[31:0]
+@28
+tb.dut.pc_en[0]
+@22
+tb.dut.inst[31:0]
+@2022
+^1 /media/diegob/riscv/riscv/work/inst_type.gtkfilter
+tb.dut.inst_type[3:0]
+@28
+tb.dut.control.take_branch[0]
+@2024
+^2 /media/diegob/riscv/riscv/work/pc_next_sel.gtkfilter
+tb.dut.pc_next_sel[1:0]
+@22
+tb.dut.imm[31:0]
+@2024
+^3 /media/diegob/riscv/riscv/work/state.gtkfilter
+tb.dut.control.state[2:0]
+[color] 7
+^3 /media/diegob/riscv/riscv/work/state.gtkfilter
+tb.dut.control.state_next[2:0]
+@28
+tb.dut.control.state_change[0]
+tb.dut.control.state_change_next[0]
+@2024
+^4 /media/diegob/riscv/riscv/work/funct.gtkfilter
+tb.dut.funct[4:0]
+@22
+tb.dut.regfile.rs1[4:0]
+tb.dut.regfile.rs1_dout[31:0]
+@28
+tb.dut.regfile.rs1_en[0]
+@22
+tb.dut.regfile.rs2_dout[31:0]
+@28
+tb.dut.rs2_en[0]
+tb.dut.rd_en[0]
+@22
+tb.dut.regfile.rd_din[31:0]
+@28
+tb.dut.rd_din_sel[1:0]
+tb.dut.alu_din1_sel[1:0]
+@22
+tb.dut.alu.alu_din1[31:0]
+@28
+tb.dut.alu_din2_sel[1:0]
+@22
+tb.dut.alu.alu_din2[31:0]
+@2024
+^5 /media/diegob/riscv/riscv/work/alu_op.gtkfilter
+tb.dut.alu.alu_op[3:0]
+@24
+tb.dut.alu.alu_dout[31:0]
+@28
+tb.dut.alu.alu_comp[2:0]
+@22
+tb.dut.idec.rd[4:0]
+tb.dut.idec.rs1[4:0]
+tb.dut.idec.rs2[4:0]
+@28
+tb.dut.load_data[0]
+tb.dut.store_data[0]
+@c00200
+-imem
+@c00022
+tb.ir_addr[31:0]
+@28
+(0)tb.ir_addr[31:0]
+(1)tb.ir_addr[31:0]
+(2)tb.ir_addr[31:0]
+(3)tb.ir_addr[31:0]
+(4)tb.ir_addr[31:0]
+(5)tb.ir_addr[31:0]
+(6)tb.ir_addr[31:0]
+(7)tb.ir_addr[31:0]
+(8)tb.ir_addr[31:0]
+(9)tb.ir_addr[31:0]
+(10)tb.ir_addr[31:0]
+(11)tb.ir_addr[31:0]
+(12)tb.ir_addr[31:0]
+(13)tb.ir_addr[31:0]
+(14)tb.ir_addr[31:0]
+(15)tb.ir_addr[31:0]
+(16)tb.ir_addr[31:0]
+(17)tb.ir_addr[31:0]
+(18)tb.ir_addr[31:0]
+(19)tb.ir_addr[31:0]
+(20)tb.ir_addr[31:0]
+(21)tb.ir_addr[31:0]
+(22)tb.ir_addr[31:0]
+(23)tb.ir_addr[31:0]
+(24)tb.ir_addr[31:0]
+(25)tb.ir_addr[31:0]
+(26)tb.ir_addr[31:0]
+(27)tb.ir_addr[31:0]
+(28)tb.ir_addr[31:0]
+(29)tb.ir_addr[31:0]
+(30)tb.ir_addr[31:0]
+(31)tb.ir_addr[31:0]
+@1401200
+-group_end
+@28
+tb.ir_addr_ready[0]
+tb.ir_addr_valid[0]
+@22
+tb.ir_data[31:0]
+@28
+tb.ir_data_ready[0]
+tb.ir_data_valid[0]
+@1401200
+-imem
+@800200
+-dmem
+@28
+tb.dut.dw_resp_valid[0]
+tb.dut.dw_resp_ready[0]
+tb.dut.dw_resp[0]
+tb.dut.dw_data_addr_ready[0]
+tb.dut.dw_data_addr_valid[0]
+@22
+tb.dut.dw_data[31:0]
+tb.dut.dw_addr[31:0]
+@28
+tb.dut.dw_strobe[3:0]
+tb.dut.dr_addr_ready[0]
+tb.dut.dr_addr_valid[0]
+@c00022
+tb.dut.dr_addr[31:0]
+@28
+(0)tb.dut.dr_addr[31:0]
+(1)tb.dut.dr_addr[31:0]
+(2)tb.dut.dr_addr[31:0]
+(3)tb.dut.dr_addr[31:0]
+(4)tb.dut.dr_addr[31:0]
+(5)tb.dut.dr_addr[31:0]
+(6)tb.dut.dr_addr[31:0]
+(7)tb.dut.dr_addr[31:0]
+(8)tb.dut.dr_addr[31:0]
+(9)tb.dut.dr_addr[31:0]
+(10)tb.dut.dr_addr[31:0]
+(11)tb.dut.dr_addr[31:0]
+(12)tb.dut.dr_addr[31:0]
+(13)tb.dut.dr_addr[31:0]
+(14)tb.dut.dr_addr[31:0]
+(15)tb.dut.dr_addr[31:0]
+(16)tb.dut.dr_addr[31:0]
+(17)tb.dut.dr_addr[31:0]
+(18)tb.dut.dr_addr[31:0]
+(19)tb.dut.dr_addr[31:0]
+(20)tb.dut.dr_addr[31:0]
+(21)tb.dut.dr_addr[31:0]
+(22)tb.dut.dr_addr[31:0]
+(23)tb.dut.dr_addr[31:0]
+(24)tb.dut.dr_addr[31:0]
+(25)tb.dut.dr_addr[31:0]
+(26)tb.dut.dr_addr[31:0]
+(27)tb.dut.dr_addr[31:0]
+(28)tb.dut.dr_addr[31:0]
+(29)tb.dut.dr_addr[31:0]
+(30)tb.dut.dr_addr[31:0]
+(31)tb.dut.dr_addr[31:0]
+@1401200
+-group_end
+@28
+tb.dut.dr_data_ready[0]
+tb.dut.dr_data_valid[0]
+@22
+tb.dut.dr_data[31:0]
+@1000200
+-dmem
+@c00200
+-comp
+@22
+tb.dut.alu.comp.a[31:0]
+tb.dut.alu.comp.a_s[31:0]
+tb.dut.alu.comp.b[31:0]
+tb.dut.alu.comp.b_s[31:0]
+@28
+tb.dut.alu.comp.eq[0]
+tb.dut.alu.comp.equ[0]
+tb.dut.alu.comp.gt[0]
+tb.dut.alu.comp.gtu[0]
+tb.dut.alu.comp.lt[0]
+tb.dut.alu.comp.ltu[0]
+@1401200
+-comp
+@c00200
+-fake_memory
+@22
+tb.u_mem.u_mem_1.r_addr[31:0]
+@28
+tb.u_mem.u_mem_1.r_addr_ready[0]
+tb.u_mem.u_mem_1.r_addr_valid[0]
+@22
+tb.u_mem.u_mem_1.r_data[31:0]
+@28
+tb.u_mem.u_mem_1.r_data_ready[0]
+tb.u_mem.u_mem_1.r_data_valid[0]
+@22
+tb.u_mem.u_mem_1.w_addr[31:0]
+tb.u_mem.u_mem_1.w_data[31:0]
+@28
+tb.u_mem.u_mem_1.w_strobe[3:0]
+tb.u_mem.u_mem_1.w_data_addr_ready[0]
+tb.u_mem.u_mem_1.w_data_addr_valid[0]
+tb.u_mem.u_mem_1.w_resp[0]
+tb.u_mem.u_mem_1.w_resp_ready[0]
+tb.u_mem.u_mem_1.w_resp_valid[0]
+@1401200
+-fake_memory
+@29
+tb.chk.u_alu_checker.add.antecedent_expr[0]
+@28
+tb.chk.u_alu_checker.add.consequent_expr[0]
+tb.dut.read_offset[1:0]
+@22
+tb.dut.read_data_byte[31:0]
+tb.dut.read_data_hword[31:0]
+@c00022
+tb.dut.read_addr[31:0]
+@28
+(0)tb.dut.read_addr[31:0]
+(1)tb.dut.read_addr[31:0]
+(2)tb.dut.read_addr[31:0]
+(3)tb.dut.read_addr[31:0]
+(4)tb.dut.read_addr[31:0]
+(5)tb.dut.read_addr[31:0]
+(6)tb.dut.read_addr[31:0]
+(7)tb.dut.read_addr[31:0]
+(8)tb.dut.read_addr[31:0]
+(9)tb.dut.read_addr[31:0]
+(10)tb.dut.read_addr[31:0]
+(11)tb.dut.read_addr[31:0]
+(12)tb.dut.read_addr[31:0]
+(13)tb.dut.read_addr[31:0]
+(14)tb.dut.read_addr[31:0]
+(15)tb.dut.read_addr[31:0]
+(16)tb.dut.read_addr[31:0]
+(17)tb.dut.read_addr[31:0]
+(18)tb.dut.read_addr[31:0]
+(19)tb.dut.read_addr[31:0]
+(20)tb.dut.read_addr[31:0]
+(21)tb.dut.read_addr[31:0]
+(22)tb.dut.read_addr[31:0]
+(23)tb.dut.read_addr[31:0]
+(24)tb.dut.read_addr[31:0]
+(25)tb.dut.read_addr[31:0]
+(26)tb.dut.read_addr[31:0]
+(27)tb.dut.read_addr[31:0]
+(28)tb.dut.read_addr[31:0]
+(29)tb.dut.read_addr[31:0]
+(30)tb.dut.read_addr[31:0]
+(31)tb.dut.read_addr[31:0]
+@1401200
+-group_end
+@22
+tb.dut.ext_read_data[31:0]
+[pattern_trace] 1
+[pattern_trace] 0
