@@ -2,30 +2,42 @@
 SCRIPTS = ../scripts
 RTL = ../rtl
 SIM = ../sim
-LINKER_SCRIPT = ../sim/alfa_test/test.ld
+LINKER_SCRIPT = ../sim/tests/test.ld
 TOOLCHAIN = ~/riscv/toolchain/bin/riscv32-unknown-elf-
 CC = $(TOOLCHAIN)gcc
-CFLAGS = -Wl,-T,$(LINKER_SCRIPT) -nostdlib
+LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
+CFLAGS = -march=rv32i
 all: sim
 
-fw.elf: $(SIM)/tests/test_0.S
-	@echo CC $(CC)
-	$(CC) $(CFLAGS) $< -o $@
+VERILOG_SOURCES = $(RTL)/copperv.v $(SIM)/testbench.v
+SOURCES = $(SIM)/tests/test_0.S
+OBJS = $(SOURCES:.S=.o)
+DISS = $(SOURCES:.S=.D)
+
+%.o: %.S
+	$(CC) $(CFLAGS) -c $< -o $@
+	$(TOOLCHAIN)objcopy -O elf32-littleriscv -R .riscv.attributes $@
+
+fw.elf: $(OBJS) $(DISS) $(LINKER_SCRIPT)
+	$(CC) $(LFLAGS) $< -o $@
 
 fw.hex: fw.elf
 	$(TOOLCHAIN)objcopy -O verilog $< $@
 
 fw.D: fw.elf
-	$(TOOLCHAIN)objdump -D $< > $@
+	$(TOOLCHAIN)objdump -D -Mno-aliases $< > $@
+
+%.D: %.o
+	$(TOOLCHAIN)objdump -D -Mno-aliases $< > $@
 
 fw.hex_dump: fw.hex
 	$(SCRIPTS)/hex_dump.py $< -o $@
 
-sim.vvp: fw.hex fw.D fw.hex_dump
-	iverilog -o $@ $(RTL)/copperv.v $(SIM)/testbench.v
+sim.vvp: $(VERILOG_SOURCES)
+	iverilog -o $@ $(VERILOG_SOURCES)
 
-sim: sim.vvp
-	vvp $<
+sim: sim.vvp fw.hex fw.D fw.hex_dump
+	vvp $< +FW_FILE=fw.hex 
 
 clean:
-	rm -fv *.vvp *.D *.hex *.elf *.hex_dump
+	rm -fv *.vvp *.D *.hex *.elf *.hex_dump $(OBJS) $(DISS)

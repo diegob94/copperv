@@ -1,9 +1,5 @@
 #!/usr/bin/zsh
 
-declare -a pargs
-declare -A paargs
-zparseopts -K -D -apargs -Apaargs n
-
 info(){
     echo INFO: $@
 }
@@ -37,10 +33,6 @@ TEMP_DIR=tmp
 
 info "Installing toolchain at: $INSTALL_PATH"
 
-if (( ${pargs[(I)-n]} )); then
-    info Dry run, aborting
-    exit
-fi
 create_dir $INSTALL_PATH
 create_dir $TEMP_DIR
 
@@ -58,6 +50,6 @@ fi
 
 pushd riscv-gnu-toolchain
 
-./configure --prefix=$INSTALL_PATH --with-abi=ilp32 --with-arch=rv32i
+./configure --prefix=$INSTALL_PATH --with-arch=rv32i
 make -j$(nproc)
 

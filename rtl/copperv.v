@@ -1,5 +1,7 @@
 module copperv #(
-    parameter bus_width = 32
+    parameter bus_width = 32,
+    parameter pc_width = 32,
+    parameter pc_init = 0
 ) (
     input clk,
     input rst,
@@ -28,5 +30,13 @@ module copperv #(
     output [bus_width-1:0] i_wdata,
     output [bus_width-1:0] i_waddr
 );
-
+reg [pc_width-1:0] pc;
+reg [pc_width-1:0] pc_next;
+always @(posedge clk) begin
+    if (rst) begin
+        pc <= pc_init;
+    end else begin
+        pc <= pc_next;
+    end
+end
 endmodule

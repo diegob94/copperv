@@ -1,3 +1,4 @@
 toolchain/
 work/
 util/
+*.o
