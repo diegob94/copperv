@@ -9,7 +9,7 @@ LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding
 CFLAGS = -march=rv32i
 all: sim
 
-VERILOG_SOURCES = $(RTL)/copperv.v $(SIM)/testbench.v
+VERILOG_SOURCES = $(wildcard $(RTL)/*.v) $(wildcard $(SIM)/*.v)
 SOURCES = $(SIM)/tests/test_0.S
 OBJS = $(SOURCES:.S=.o)
 DISS = $(SOURCES:.S=.D)

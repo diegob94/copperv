@@ -30,13 +30,17 @@ module copperv #(
     output [bus_width-1:0] i_wdata,
     output [bus_width-1:0] i_waddr
 );
+reg inst_req;
 reg [pc_width-1:0] pc;
 reg [pc_width-1:0] pc_next;
 always @(posedge clk) begin
-    if (rst) begin
+    if (!rst) begin
         pc <= pc_init;
     end else begin
         pc <= pc_next;
     end
+end
+always @(*) begin
+    pc_next = pc + 4;
 end
 endmodule

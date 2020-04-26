@@ -7,7 +7,7 @@
 
 module tb();
 parameter bus_width = 32;
-parameter timeout = 100000;
+parameter timeout = `PERIOD*50;
 reg clk;
 reg rst;
 wire d_rdata_valid;
@@ -35,10 +35,10 @@ wire [bus_width-1:0] i_raddr;
 wire [bus_width-1:0] i_wdata;
 wire [bus_width-1:0] i_waddr;
 initial begin
-    rst = 1;
-    clk = 0;
-    #(`PERIOD*100);
     rst = 0;
+    clk = 0;
+    #(`PERIOD*10);
+    rst = 1;
 end
 initial begin
     #timeout;
@@ -106,40 +106,15 @@ native_memory d_mem(
     .wdata(d_wdata),
     .waddr(d_waddr)
 );
+monitor mon(
+    .clk(clk)
+);
 endmodule
 
-module native_memory #(
-    parameter address_width = 8,
-    parameter length = (2**address_width),
-    parameter bus_width = 32,
-    parameter instruction_memory = 0
-) (
-    input clk,
-    input rst,
-    output rdata_valid,
-    input raddr_ready,
-    output wdata_ready,
-    output waddr_ready,
-    output [bus_width-1:0] rdata,
-    input rdata_ready,
-    output raddr_valid,
-    input wdata_valid,
-    input waddr_valid,
-    input [bus_width-1:0] raddr,
-    input [bus_width-1:0] wdata,
-    input [bus_width-1:0] waddr
+module monitor(
+    input clk
 );
-reg [7:0] memory [length - 1:0];
-`STRING fw_file;
 initial begin
-    $display("%t: %m memory length: %0d", $time, length);
-    if (instruction_memory == `TRUE) begin
-        if ($value$plusargs("FW_FILE=%s", fw_file)) begin
-            $readmemh(fw_file, memory, 0, length - 1);
-        end else begin
-            $display("%t: Error: No firmware given. Example: vvp sim.vvp +FW_FILE=fw.hex", $time);
-            $finish;
-        end
-    end
+    $monitor("%t: PC: %d", $time, tb.dut.pc);
 end
 endmodule
