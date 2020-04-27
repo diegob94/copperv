@@ -4,6 +4,7 @@
 `define PERIOD 10
 `define TRUE 1
 `define FALSE 0
+`define CPU_INST tb.dut
 
 module tb();
 parameter bus_width = 32;
@@ -38,11 +39,12 @@ initial begin
     rst = 0;
     clk = 0;
     #(`PERIOD*10);
+    $display($time, ": Reset finished");
     rst = 1;
 end
 initial begin
     #timeout;
-    $display("%t: Failed: Timeout", $time);
+    $display($time, ": Failed: Timeout");
     $finish;
 end
 always #(`PERIOD/2) clk <= !clk;
@@ -106,15 +108,36 @@ native_memory d_mem(
     .wdata(d_wdata),
     .waddr(d_waddr)
 );
-monitor mon(
-    .clk(clk)
+monitor_cpu mon(
+    .clk(clk),
+    .rst(rst)
 );
 endmodule
 
-module monitor(
-    input clk
+module  monitor_cpu #(
+    parameter inst_width = 32
+) (
+    input clk,
+    input rst
 );
-initial begin
-    $monitor("%t: PC: %d", $time, tb.dut.pc);
+reg [inst_width-1:0] raddr_queue;
+always @(posedge clk) begin
+    if (rst) begin
+        $display($time, ": PC: %d", `CPU_INST.pc);
+        if(`CPU_INST.i_raddr_valid) begin
+            $display($time, ": INST_FETCH: addr 0x%08X", `CPU_INST.i_raddr);
+            raddr_queue = `CPU_INST.i_raddr;
+        end
+        if(`CPU_INST.i_rdata_valid && `CPU_INST.i_rdata_ready)
+            $display($time, ": INST_RECV: addr 0x%08X data 0x%08X", raddr_queue, `CPU_INST.i_rdata);
+        if(`CPU_INST.inst_valid)
+            $display($time, ": DECODER: inst 0x%08X opcode 0x%02X imm 0x%08X funct 0x%01X type_int_imm 0x%01X type_int 0x%01X type_branch 0x%01X", `CPU_INST.inst, `CPU_INST.idec.opcode, `CPU_INST.idec.imm, `CPU_INST.idec.funct, `CPU_INST.idec.type_int_imm, `CPU_INST.idec.type_int, `CPU_INST.idec.type_branch);
+        if(`CPU_INST.i_raddr_valid && `CPU_INST.i_raddr_ready)
+            $display($time, ": BUS: i_raddr tran: 0x%08X", `CPU_INST.i_raddr);
+        if(`CPU_INST.i_rdata_valid && `CPU_INST.i_rdata_ready)
+            $display($time, ": BUS: i_rdata tran: 0x%08X", `CPU_INST.i_rdata);
+    end
 end
+//always @(posedge `CPU_INST.i_rdata_valid)
+//    $display($time, ": i_rdata_valid asserted");
 endmodule

@@ -2,3 +2,4 @@ toolchain/
 work/
 util/
 *.o
+*.swp

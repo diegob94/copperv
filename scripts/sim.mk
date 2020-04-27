@@ -5,6 +5,7 @@ SIM = ../sim
 LINKER_SCRIPT = ../sim/tests/test.ld
 TOOLCHAIN = ~/riscv/toolchain/bin/riscv32-unknown-elf-
 CC = $(TOOLCHAIN)gcc
+#ICARUSFLAGS = -g2012
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
 CFLAGS = -march=rv32i
 all: sim
@@ -34,7 +35,7 @@ fw.hex_dump: fw.hex
 	$(SCRIPTS)/hex_dump.py $< -o $@
 
 sim.vvp: $(VERILOG_SOURCES)
-	iverilog -o $@ $(VERILOG_SOURCES)
+	iverilog $(ICARUSFLAGS) -o $@ $(VERILOG_SOURCES)
 
 sim: sim.vvp fw.hex fw.D fw.hex_dump
 	vvp $< +FW_FILE=fw.hex 

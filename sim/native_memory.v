@@ -6,23 +6,23 @@ module native_memory #(
 ) (
     input clk,
     input rst,
-    output rdata_valid,
-    input raddr_ready,
-    output wdata_ready,
-    output waddr_ready,
-    output [bus_width-1:0] rdata,
+    input raddr_valid,
     input rdata_ready,
-    output raddr_valid,
     input wdata_valid,
     input waddr_valid,
     input [bus_width-1:0] raddr,
     input [bus_width-1:0] wdata,
-    input [bus_width-1:0] waddr
+    input [bus_width-1:0] waddr,
+    output raddr_ready,
+    output rdata_valid,
+    output wdata_ready,
+    output waddr_ready,
+    output [bus_width-1:0] rdata
 );
 reg [7:0] memory [length - 1:0];
 `STRING fw_file;
 initial begin
-    $display("%t: %m memory length: %0d", $time, length);
+    $display("%t: %m length: %0d", $time, length);
     if (instruction_memory == `TRUE) begin
         if ($value$plusargs("FW_FILE=%s", fw_file)) begin
             $readmemh(fw_file, memory, 0, length - 1);
@@ -30,6 +30,31 @@ initial begin
             $display("%t: Error: No firmware given. Example: vvp sim.vvp +FW_FILE=fw.hex", $time);
             $finish;
         end
+    end
+end
+assign raddr_ready = 1;
+reg rdata_valid;
+reg rdata;
+reg read_addr_tran;
+reg read_data_tran;
+always @(*) begin
+    read_addr_tran = raddr_valid && raddr_ready;
+    read_data_tran = rdata_valid && rdata_ready;
+end
+always @(posedge clk) begin
+    if(!rst) begin
+        rdata <= 0;
+        rdata_valid <= 0;
+    end else if(read_addr_tran) begin
+        rdata <= {
+                memory[raddr+3],
+                memory[raddr+2],
+                memory[raddr+1],
+                memory[raddr+0]
+        };
+        rdata_valid <= 1;
+    end else if(read_data_tran) begin
+        rdata_valid <= 0;
     end
 end
 endmodule
