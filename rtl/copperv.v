@@ -6,7 +6,9 @@ module copperv #(
     parameter pc_init = 0,
     parameter inst_width = 32,
     parameter opcode_width = 7,
-    parameter imm_width = 32
+    parameter imm_width = 32,
+    parameter reg_width = 5,
+    parameter funct_width = 4
 ) (
     input clk,
     input rst,
@@ -35,14 +37,24 @@ module copperv #(
     output [bus_width-1:0] i_wdata,
     output [bus_width-1:0] i_waddr
 );
+// idecoder begin
+wire [imm_width-1:0] imm;
+wire [opcode_width-1:0] opcode;
+wire [funct_width-1:0] funct;
+wire [reg_width-1:0] rd;
+wire [reg_width-1:0] rs1;
+wire [reg_width-1:0] rs2;
+wire type_int_imm;
+wire type_imm;
+wire type_int_reg;
+wire type_branch;
+// idecoder end
 reg inst_fetch;
 reg [pc_width-1:0] pc;
 reg [pc_width-1:0] pc_next;
 reg [inst_width-1:0] inst;
 reg inst_valid;
 reg i_rdata_tran;
-wire [opcode_width-1:0] opcode;
-wire [imm_width-1:0] imm;
 assign i_rdata_ready = 1;
 always @(posedge clk) begin
     if (!rst) begin
@@ -72,60 +84,33 @@ end
 idecoder #(
     .inst_width(inst_width),
     .opcode_width(opcode_width),
-    .imm_width(imm_width)
+    .imm_width(imm_width),
+    .reg_width(reg_width),
+    .funct_width(funct_width)
 ) idec (
     .inst(inst),
-    .opcode(opcode)
+    .opcode(opcode),
+    .imm(imm),
+    .type_imm(type_imm),
+    .type_int_imm(type_int_imm),
+    .type_int_reg(type_int_reg),
+    .type_branch(type_branch),
+    .rd(rd),
+    .rs1(rs1),
+    .rs2(rs2),
+    .funct(funct)
 );
 endmodule
 
-module idecoder #(
-    parameter inst_width = 32,
-    parameter opcode_width = 7,
-    parameter imm_width = 32
+module regfile #(
+    parameter reg_width = 5,
+    parameter reg_lenght = 2**reg_width,
+    parameter data_width = 32
 ) (
-    input [inst_width-1:0] inst,
-    output [opcode_width-1:0] opcode,
-    output [imm_width-1:0] imm,
-    output type_int_imm,
-    output type_int,
-    output type_branch
+    input clk,
+    input [data_width-1:0] din,
+    input [reg_width-1:0] addr,
+    output [data_width-1:0] dout
 );
-reg [imm_width-1:0] imm;
-reg [opcode_width-1:0] opcode;
-reg [4-1:0] funct;
-reg type_int_imm;
-reg type_int;
-reg type_branch;
-always @(*) begin
-    opcode = inst[6:0];
-    funct = {1'b0, inst[14:12]};
-    imm = 0;
-    type_int_imm = 0;
-    type_int = 0;
-    type_branch = 0;
-    case (opcode)
-        {6'h0D, 2'b11}: imm = {inst[31:12], 12'b0};
-        {6'h04, 2'b11}: begin
-            type_int_imm = 1;
-            imm = {{21{inst[31]}}, inst[30:20]};
-        end
-        {6'h0C, 2'b11}: begin
-            type_int = 1;
-            funct[3] = inst[31:25] == 7'd32 ? 1 : 0;
-        end
-        {6'h18, 2'b11}: begin
-            type_branch = 1;
-            imm = {{19{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
-        end
-    endcase
-/*
-    if (int_imm) begin
-        case (funct3)
-            2'b00: 
-        endcase
-    end
-*/
-end
-endmodule
 
+endmodule

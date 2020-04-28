@@ -130,8 +130,21 @@ always @(posedge clk) begin
         end
         if(`CPU_INST.i_rdata_valid && `CPU_INST.i_rdata_ready)
             $display($time, ": INST_RECV: addr 0x%08X data 0x%08X", raddr_queue, `CPU_INST.i_rdata);
-        if(`CPU_INST.inst_valid)
-            $display($time, ": DECODER: inst 0x%08X opcode 0x%02X imm 0x%08X funct 0x%01X type_int_imm 0x%01X type_int 0x%01X type_branch 0x%01X", `CPU_INST.inst, `CPU_INST.idec.opcode, `CPU_INST.idec.imm, `CPU_INST.idec.funct, `CPU_INST.idec.type_int_imm, `CPU_INST.idec.type_int, `CPU_INST.idec.type_branch);
+        if(`CPU_INST.inst_valid) begin
+            $write($time, ": DECODER:");
+            $write(" inst 0x%08X", `CPU_INST.inst);
+            $write(" opcode 0x%02X", `CPU_INST.idec.opcode);
+            $write(" funct 0x%01X", `CPU_INST.idec.funct);
+            $write(" imm 0x%08X", `CPU_INST.idec.imm);
+            $write(" rd 0x%02X", `CPU_INST.idec.rd);
+            $write(" rs1 0x%02X", `CPU_INST.idec.rs1);
+            $write(" rs2 0x%02X", `CPU_INST.idec.rs2);
+            $write(" type_imm 0x%01X", `CPU_INST.idec.type_imm);
+            $write(" type_int_imm 0x%01X", `CPU_INST.idec.type_int_imm);
+            $write(" type_int_reg 0x%01X", `CPU_INST.idec.type_int_reg);
+            $write(" type_branch 0x%01X", `CPU_INST.idec.type_branch);
+            $write("\n");
+        end
         if(`CPU_INST.i_raddr_valid && `CPU_INST.i_raddr_ready)
             $display($time, ": BUS: i_raddr tran: 0x%08X", `CPU_INST.i_raddr);
         if(`CPU_INST.i_rdata_valid && `CPU_INST.i_rdata_ready)
