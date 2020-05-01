@@ -7,6 +7,7 @@ module copperv #(
     parameter inst_width = 32,
     parameter opcode_width = 7,
     parameter imm_width = 32,
+    parameter data_width = 32,
     parameter reg_width = 5,
     parameter funct_width = 4
 ) (
@@ -49,6 +50,14 @@ wire type_imm;
 wire type_int_reg;
 wire type_branch;
 // idecoder end
+// register_file begin
+reg rd_en;
+reg rs1_en;
+reg rs2_en;
+reg [data_width-1:0] rd_din;
+wire [data_width-1:0] rs1_dout;
+wire [data_width-1:0] rs2_dout;
+// register_file end
 reg inst_fetch;
 reg [pc_width-1:0] pc;
 reg [pc_width-1:0] pc_next;
@@ -100,17 +109,32 @@ idecoder #(
     .rs2(rs2),
     .funct(funct)
 );
-endmodule
-
-module regfile #(
-    parameter reg_width = 5,
-    parameter reg_lenght = 2**reg_width,
-    parameter data_width = 32
-) (
-    input clk,
-    input [data_width-1:0] din,
-    input [reg_width-1:0] addr,
-    output [data_width-1:0] dout
+always @(*) begin
+    rd_en = 0;
+    rs1_en = 0;
+    rs2_en = 0;
+    rd_din = 0;
+    if(inst_valid) begin
+        if(type_imm) begin
+            rd_en = 1;
+            rd_din = imm;
+        end
+    end
+end
+register_file #(
+    .reg_width(reg_width),
+    .data_width(data_width)
+) regfile (
+    .clk(clk),
+    .rd_en(rd_en),
+    .rs1_en(rs1_en),
+    .rs2_en(rs2_en),
+    .rd(rd),
+    .rs1(rs1),
+    .rs2(rs2),
+    .rd_din(rd_din),
+    .rs1_dout(rs1_dout),
+    .rs2_dout(rs2_dout)
 );
-
 endmodule
+

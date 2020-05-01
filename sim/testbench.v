@@ -149,6 +149,8 @@ always @(posedge clk) begin
             $display($time, ": BUS: i_raddr tran: 0x%08X", `CPU_INST.i_raddr);
         if(`CPU_INST.i_rdata_valid && `CPU_INST.i_rdata_ready)
             $display($time, ": BUS: i_rdata tran: 0x%08X", `CPU_INST.i_rdata);
+        if(`CPU_INST.rd_en)
+            $display($time, ": REGFILE: addr 0x%08X data 0x%08X", `CPU_INST.rd, `CPU_INST.rd_din);
     end
 end
 //always @(posedge `CPU_INST.i_rdata_valid)
