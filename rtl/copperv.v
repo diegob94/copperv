@@ -63,8 +63,8 @@ reg [data_width-1:0] alu_din1;
 reg [data_width-1:0] alu_din2;
 wire [data_width-1:0] alu_dout;
 // arith_logic_unit end
-reg [data_width-1:0] exreg;
-reg exreg_en;
+reg rs_valid;
+reg rd_valid;
 reg inst_fetch;
 reg [pc_width-1:0] pc;
 reg [pc_width-1:0] pc_next;
@@ -121,7 +121,6 @@ always @(*) begin
     rs1_en = 0;
     rs2_en = 0;
     rd_din = 0;
-    exreg_en = 0;
     if(inst_valid) begin
         if(type_imm) begin
             rd_en = 1;
@@ -130,14 +129,13 @@ always @(*) begin
             rs1_en = 1;
             alu_din1 = rs1_dout;
             alu_din2 = imm;
-            exreg_en = 1;
+            rd_en = rd_valid;
         end
     end
 end
 always @(posedge clk) begin
-    if(exreg_en) begin
-        exreg <= alu_dout;
-    end
+    rs_valid <= inst_valid;
+    rd_valid <= rs_valid;
 end
 register_file #(
     .reg_width(reg_width),

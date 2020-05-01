@@ -164,19 +164,23 @@ always @(posedge clk) begin
             $display($time, ": REGFILE: rd addr 0x%08X data 0x%08X", `CPU_INST.rd, `CPU_INST.rd_din);
     end
 end
+reg rs1_queue;
 always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.rs1_en) begin
+            rs1_queue = `CPU_INST.rs1;
             @(posedge clk);
-            $display($time, ": REGFILE: rs1 addr 0x%08X data 0x%08X", `CPU_INST.rs1, `CPU_INST.rs1_dout);
+            $display($time, ": REGFILE: rs1 addr 0x%08X data 0x%08X", rs1_queue, `CPU_INST.rs1_dout);
         end
     end
 end
+reg rs2_queue;
 always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.rs2_en) begin
+            rs2_queue = `CPU_INST.rs2;
             @(posedge clk);
-            $display($time, ": REGFILE: rs2 addr 0x%08X data 0x%08X", `CPU_INST.rs2, `CPU_INST.rs2_dout);
+            $display($time, ": REGFILE: rs2 addr 0x%08X data 0x%08X", rs2_queue, `CPU_INST.rs2_dout);
         end
     end
 end
