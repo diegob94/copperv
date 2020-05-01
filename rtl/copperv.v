@@ -9,7 +9,8 @@ module copperv #(
     parameter imm_width = 32,
     parameter data_width = 32,
     parameter reg_width = 5,
-    parameter funct_width = 4
+    parameter funct_width = 4,
+    parameter rd_din_sel_width = 1
 ) (
     input clk,
     input rst,
@@ -65,7 +66,7 @@ wire [data_width-1:0] alu_dout;
 // arith_logic_unit end
 reg rs_valid;
 reg rd_valid;
-reg inst_fetch;
+wire inst_fetch;
 reg [pc_width-1:0] pc;
 reg [pc_width-1:0] pc_next;
 reg [inst_width-1:0] inst;
@@ -75,7 +76,6 @@ assign i_rdata_ready = 1;
 always @(posedge clk) begin
     if (!rst) begin
         pc <= pc_init;
-        inst_fetch <= 1;
     end else begin
         pc <= pc_next;
     end
@@ -116,26 +116,12 @@ idecoder #(
     .rs2(rs2),
     .funct(funct)
 );
+parameter RD_DIN_SEL_IMM = 0;
 always @(*) begin
-    rd_en = 0;
-    rs1_en = 0;
-    rs2_en = 0;
     rd_din = 0;
-    if(inst_valid) begin
-        if(type_imm) begin
-            rd_en = 1;
-            rd_din = imm;
-        end else if(type_int_imm) begin
-            rs1_en = 1;
-            alu_din1 = rs1_dout;
-            alu_din2 = imm;
-            rd_en = rd_valid;
-        end
-    end
-end
-always @(posedge clk) begin
-    rs_valid <= inst_valid;
-    rd_valid <= rs_valid;
+    case (rd_din_sel)
+        RD_DIN_SEL_IMM: rd_din = imm;
+    endcase
 end
 register_file #(
     .reg_width(reg_width),
@@ -160,6 +146,17 @@ arith_logic_unit #(
     .alu_din2(alu_din2),
     .funct(funct),
     .alu_dout(alu_dout)
+);
+control_unit #(
+    .rd_din_sel_width(rd_din_sel_width)
+) control (
+    .clk(clk),
+    .rst(rst),
+    .inst_fetch(inst_fetch),
+    .rd_en(rd_en),
+    .rs1_en(rs1_en),
+    .rs2_en(rs2_en),
+    .rd_din_sel(rd_din_sel)
 );
 endmodule
 

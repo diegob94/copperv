@@ -1,14 +1,17 @@
+.PHONY: all sim gui clean
+all: sim
 
 SCRIPTS = ../scripts
 RTL = ../rtl
 SIM = ../sim
 LINKER_SCRIPT = ../sim/tests/test.ld
 TOOLCHAIN = ../util/toolchain/bin/riscv32-unknown-elf-
+STD_OVL = ../util/std_ovl
 CC = $(TOOLCHAIN)gcc
-#ICARUSFLAGS = -g2012
+ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL)
+VVPFLAGS = -lxt2
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
 CFLAGS = -march=rv32i
-all: sim
 
 VERILOG_SOURCES = $(wildcard $(RTL)/*.v) $(wildcard $(SIM)/*.v)
 SOURCES = $(SIM)/tests/test_0.S
@@ -38,7 +41,10 @@ sim.vvp: $(VERILOG_SOURCES)
 	iverilog $(ICARUSFLAGS) -o $@ $(VERILOG_SOURCES)
 
 sim: sim.vvp fw.hex fw.D fw.hex_dump
-	vvp $< +FW_FILE=fw.hex 
+	vvp $< +FW_FILE=fw.hex $(VVPFLAGS)
+
+gui: sim
+	gtkwave tb.lxt --rcvar 'splash_disable on' -A
 
 clean:
 	rm -fv *.vvp *.D *.hex *.elf *.hex_dump $(OBJS) $(DISS)
