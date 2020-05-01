@@ -45,7 +45,7 @@ end
 initial begin
     #timeout;
     $display($time, ": Failed: Timeout");
-    $finish;
+    finish_sim;
 end
 always #(`PERIOD/2) clk <= !clk;
 copperv dut(
@@ -112,6 +112,17 @@ monitor_cpu mon(
     .clk(clk),
     .rst(rst)
 );
+task finish_sim;
+integer i;
+begin
+    $display($time, ": REGFILE DUMP BEGIN");
+    for(i = 0; i < 32; i = i + 1) begin
+        $display($time, ": 0x%02X: 0x%08X", i, `CPU_INST.regfile.memory[i]);
+    end
+    $display($time, ": REGFILE DUMP END");
+    $finish;
+end
+endtask
 endmodule
 
 module  monitor_cpu #(
@@ -150,7 +161,23 @@ always @(posedge clk) begin
         if(`CPU_INST.i_rdata_valid && `CPU_INST.i_rdata_ready)
             $display($time, ": BUS: i_rdata tran: 0x%08X", `CPU_INST.i_rdata);
         if(`CPU_INST.rd_en)
-            $display($time, ": REGFILE: addr 0x%08X data 0x%08X", `CPU_INST.rd, `CPU_INST.rd_din);
+            $display($time, ": REGFILE: rd addr 0x%08X data 0x%08X", `CPU_INST.rd, `CPU_INST.rd_din);
+    end
+end
+always @(posedge clk) begin
+    if (rst) begin
+        if(`CPU_INST.rs1_en) begin
+            @(posedge clk);
+            $display($time, ": REGFILE: rs1 addr 0x%08X data 0x%08X", `CPU_INST.rs1, `CPU_INST.rs1_dout);
+        end
+    end
+end
+always @(posedge clk) begin
+    if (rst) begin
+        if(`CPU_INST.rs2_en) begin
+            @(posedge clk);
+            $display($time, ": REGFILE: rs2 addr 0x%08X data 0x%08X", `CPU_INST.rs2, `CPU_INST.rs2_dout);
+        end
     end
 end
 //always @(posedge `CPU_INST.i_rdata_valid)

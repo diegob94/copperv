@@ -58,6 +58,13 @@ reg [data_width-1:0] rd_din;
 wire [data_width-1:0] rs1_dout;
 wire [data_width-1:0] rs2_dout;
 // register_file end
+// arith_logic_unit begin
+reg [data_width-1:0] alu_din1;
+reg [data_width-1:0] alu_din2;
+wire [data_width-1:0] alu_dout;
+// arith_logic_unit end
+reg [data_width-1:0] exreg;
+reg exreg_en;
 reg inst_fetch;
 reg [pc_width-1:0] pc;
 reg [pc_width-1:0] pc_next;
@@ -114,11 +121,22 @@ always @(*) begin
     rs1_en = 0;
     rs2_en = 0;
     rd_din = 0;
+    exreg_en = 0;
     if(inst_valid) begin
         if(type_imm) begin
             rd_en = 1;
             rd_din = imm;
+        end else if(type_int_imm) begin
+            rs1_en = 1;
+            alu_din1 = rs1_dout;
+            alu_din2 = imm;
+            exreg_en = 1;
         end
+    end
+end
+always @(posedge clk) begin
+    if(exreg_en) begin
+        exreg <= alu_dout;
     end
 end
 register_file #(
@@ -135,6 +153,15 @@ register_file #(
     .rd_din(rd_din),
     .rs1_dout(rs1_dout),
     .rs2_dout(rs2_dout)
+);
+arith_logic_unit #(
+    .data_width(data_width),
+    .funct_width(funct_width)
+) alu (
+    .alu_din1(alu_din1),
+    .alu_din2(alu_din2),
+    .funct(funct),
+    .alu_dout(alu_dout)
 );
 endmodule
 

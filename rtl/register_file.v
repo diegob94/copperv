@@ -21,10 +21,10 @@ always @(posedge clk) begin
     if(rd_en) begin
         memory[rd] <= rd_din;
     end else if(rs1_en && rs2_en) begin
-        rs1_dout <= memory[rs1];
-        rs2_dout <= memory[rs2];
+        rs1_dout <= rs1 == 0 ? 0 : memory[rs1];
+        rs2_dout <= rs2 == 0 ? 0 : memory[rs2];
     end else if(rs1_en) begin
-        rs1_dout <= memory[rs1];
+        rs1_dout <= rs1 == 0 ? 0 : memory[rs1];
     end 
 end
 endmodule
