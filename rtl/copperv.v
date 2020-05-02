@@ -60,6 +60,7 @@ reg [`INST_WIDTH-1:0] inst;
 reg inst_valid;
 reg i_rdata_tran;
 wire [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
+
 assign i_rdata_ready = 1;
 always @(posedge clk) begin
     if (!rst) begin
@@ -122,6 +123,7 @@ arith_logic_unit alu (
 control_unit control (
     .clk(clk),
     .rst(rst),
+    .inst_valid(inst_valid),
     .inst_type(inst_type),
     .inst_fetch(inst_fetch),
     .rd_en(rd_en),

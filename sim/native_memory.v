@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`include "testbench_h.v"
 `include "copperv_h.v"
 
 module native_memory #(

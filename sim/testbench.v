@@ -1,11 +1,6 @@
 `timescale 1ns/1ps
+`include "testbench_h.v"
 `include "copperv_h.v"
-
-`define STRING reg [1023:0]
-`define PERIOD 10
-`define TRUE 1
-`define FALSE 0
-`define CPU_INST tb.dut
 
 module tb();
 parameter bus_width = 32;

@@ -9,7 +9,7 @@ TOOLCHAIN = ../util/toolchain/bin/riscv32-unknown-elf-
 STD_OVL = ../util/std_ovl
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A 
 CC = $(TOOLCHAIN)gcc
-ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -Wall
+ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale
 VVPFLAGS = -lxt2
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
 CFLAGS = -march=rv32i

@@ -5,6 +5,7 @@ module control_unit (
     input clk,
     input rst,
     input [`INST_TYPE_WIDTH-1:0] inst_type,
+    input inst_valid,
     output inst_fetch,
     output rd_en,
     output rs1_en,
@@ -20,7 +21,7 @@ reg rs2_en;
 reg [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
 always @(posedge clk) begin
     if(!rst)
-        state <= `FETCH_S;
+        state <= `RESET_S;
     else
         state <= state_next;
 end
@@ -28,8 +29,12 @@ end
 always @(*) begin
     state_next = `FETCH_S;
     case (state)
+        `RESET_S: begin
+            state_next = `FETCH_S;
+        end
         `FETCH_S: begin
-            state_next = `LOAD_S;
+            if (inst_valid)
+                state_next = `LOAD_S;
         end
         `LOAD_S: begin
         end
@@ -47,7 +52,7 @@ always @(*) begin
     rs2_en = 0;
     case (state)
         `FETCH_S: begin
-            inst_fetch = 1;
+            inst_fetch = 1 && !inst_valid;
         end
         `LOAD_S: begin
             case (inst_type)
