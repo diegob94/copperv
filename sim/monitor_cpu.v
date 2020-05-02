@@ -23,10 +23,7 @@ always @(posedge clk) begin
             $write(" rd 0x%02X", `CPU_INST.idec.rd);
             $write(" rs1 0x%02X", `CPU_INST.idec.rs1);
             $write(" rs2 0x%02X", `CPU_INST.idec.rs2);
-            $write(" type_imm 0x%01X", `CPU_INST.idec.type_imm);
-            $write(" type_int_imm 0x%01X", `CPU_INST.idec.type_int_imm);
-            $write(" type_int_reg 0x%01X", `CPU_INST.idec.type_int_reg);
-            $write(" type_branch 0x%01X", `CPU_INST.idec.type_branch);
+            $write(" inst_type %0s", inst_type(`CPU_INST.idec.inst_type));
             $write("\n");
         end
         if(`CPU_INST.i_raddr_valid && `CPU_INST.i_raddr_ready)
@@ -59,25 +56,46 @@ always @(posedge clk) begin
 end
 always @(posedge clk) begin
     if (rst) begin
-        $display($time, ": CONTROL: state %0s next %0s", control_state(`CPU_INST.control.state), control_state(`CPU_INST.control.state_next));
+        $display($time, ": CONTROL: state %8s next %8s", control_state(`CPU_INST.control.state), control_state(`CPU_INST.control.state_next));
     end
 end
-parameter state_width = 2;
+
 function `STRING control_state;
-input [state_width-1:0] s;
+input [`STATE_WIDTH-1:0] s;
 begin
     case (s)
-        `CPU_INST.control.FETCH_S:
+        `FETCH_S:
             control_state = "FETCH";
-        `CPU_INST.control.LOAD_S:
+        `LOAD_S:
             control_state = "LOAD";
-        `CPU_INST.control.EXEC_S:
+        `EXEC_S:
             control_state = "EXEC";
-        `CPU_INST.control.MEM_S:
+        `MEM_S:
             control_state = "MEM";
+        default:
+            control_state = "UNKNOWN";
     endcase
 end
 endfunction
+
+function `STRING inst_type;
+input [`INST_TYPE_WIDTH-1:0] s;
+begin
+    case (s)
+        `INST_TYPE_IMM:
+            inst_type = "IMM";
+        `INST_TYPE_INT_IMM:
+            inst_type = "INT_IMM";
+        `INST_TYPE_INT_REG:
+            inst_type = "INT_REG";
+        `INST_TYPE_BRANCH:
+            inst_type = "BRANCH";
+        default:
+            inst_type = "UNKNOWN";
+    endcase
+end
+endfunction
+
 //always @(posedge `CPU_INST.i_rdata_valid)
 //    $display($time, ": i_rdata_valid asserted");
 endmodule

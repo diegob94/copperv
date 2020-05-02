@@ -46,15 +46,12 @@ wire [funct_width-1:0] funct;
 wire [reg_width-1:0] rd;
 wire [reg_width-1:0] rs1;
 wire [reg_width-1:0] rs2;
-wire type_int_imm;
-wire type_imm;
-wire type_int_reg;
-wire type_branch;
+wire [`INST_TYPE_WIDTH-1:0] inst_type;
 // idecoder end
 // register_file begin
-reg rd_en;
-reg rs1_en;
-reg rs2_en;
+wire rd_en;
+wire rs1_en;
+wire rs2_en;
 reg [data_width-1:0] rd_din;
 wire [data_width-1:0] rs1_dout;
 wire [data_width-1:0] rs2_dout;
@@ -64,14 +61,13 @@ reg [data_width-1:0] alu_din1;
 reg [data_width-1:0] alu_din2;
 wire [data_width-1:0] alu_dout;
 // arith_logic_unit end
-reg rs_valid;
-reg rd_valid;
 wire inst_fetch;
 reg [pc_width-1:0] pc;
 reg [pc_width-1:0] pc_next;
 reg [inst_width-1:0] inst;
 reg inst_valid;
 reg i_rdata_tran;
+wire [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
 assign i_rdata_ready = 1;
 always @(posedge clk) begin
     if (!rst) begin
@@ -107,10 +103,7 @@ idecoder #(
     .inst(inst),
     .opcode(opcode),
     .imm(imm),
-    .type_imm(type_imm),
-    .type_int_imm(type_int_imm),
-    .type_int_reg(type_int_reg),
-    .type_branch(type_branch),
+    .inst_type(inst_type),
     .rd(rd),
     .rs1(rs1),
     .rs2(rs2),
@@ -152,6 +145,7 @@ control_unit #(
 ) control (
     .clk(clk),
     .rst(rst),
+    .inst_type(inst_type),
     .inst_fetch(inst_fetch),
     .rd_en(rd_en),
     .rs1_en(rs1_en),

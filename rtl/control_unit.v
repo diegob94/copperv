@@ -3,19 +3,15 @@ module control_unit #(
 ) (
     input clk,
     input rst,
+    input [`INST_TYPE_WIDTH-1:0] inst_type,
     output inst_fetch,
     output rd_en,
     output rs1_en,
     output rs2_en,
     output [rd_din_sel_width-1:0] rd_din_sel
 );
-parameter state_width = 2;
-parameter FETCH_S = 0;
-parameter LOAD_S = 1;
-parameter EXEC_S = 2;
-parameter MEM_S = 3;
-reg [state_width-1:0] state;
-reg [state_width-1:0] state_next;
+reg [`STATE_WIDTH-1:0] state;
+reg [`STATE_WIDTH-1:0] state_next;
 reg inst_fetch;
 reg rd_en;
 reg rs1_en;
@@ -23,22 +19,22 @@ reg rs2_en;
 reg [rd_din_sel_width-1:0] rd_din_sel;
 always @(posedge clk) begin
     if(!rst)
-        state <= FETCH_S;
+        state <= `FETCH_S;
     else
         state <= state_next;
 end
 // Next state logic
 always @(*) begin
-    state_next = FETCH_S;
+    state_next = `FETCH_S;
     case (state)
-        FETCH_S: begin
-            state_next = LOAD_S;
+        `FETCH_S: begin
+            state_next = `LOAD_S;
         end
-        LOAD_S: begin
+        `LOAD_S: begin
         end
-        EXEC_S: begin
+        `EXEC_S: begin
         end
-        MEM_S: begin
+        `MEM_S: begin
         end
     endcase
 end
@@ -49,21 +45,23 @@ always @(*) begin
     rs1_en = 0;
     rs2_en = 0;
     case (state)
-        FETCH_S: begin
+        `FETCH_S: begin
             inst_fetch = 1;
         end
-        LOAD_S: begin
-            if(type_imm) begin
-                rd_en = 1;
-                rd_din_sel = copperv.RD_DIN_SEL_IMM;
-            end else if(type_int_imm) begin
-                rs1_en = 1;
-                rd_en = rd_valid;
-            end
+        `LOAD_S: begin
+            case (inst_type)
+                `INST_TYPE_IMM: begin
+                    rd_en = 1;
+                    rd_din_sel = copperv.RD_DIN_SEL_IMM;
+                end
+                `INST_TYPE_INT_IMM: begin
+                    rs1_en = 1;
+                end
+            endcase
         end
-        EXEC_S: begin
+        `EXEC_S: begin
         end
-        MEM_S: begin
+        `MEM_S: begin
         end
     endcase
 end
