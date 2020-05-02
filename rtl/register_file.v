@@ -1,22 +1,23 @@
+`timescale 1ns/1ps
+`include "copperv_h.v"
+
 module register_file #(
-    parameter reg_width = 5,
-    parameter reg_length = 2**reg_width,
-    parameter data_width = 32
+    parameter reg_length = 2**`REG_WIDTH
 ) (
     input clk,
     input rd_en,
     input rs1_en,
     input rs2_en,
-    input [reg_width-1:0] rd,
-    input [reg_width-1:0] rs1,
-    input [reg_width-1:0] rs2,
-    input [data_width-1:0] rd_din,
-    output [data_width-1:0] rs1_dout,
-    output [data_width-1:0] rs2_dout
+    input [`REG_WIDTH-1:0] rd,
+    input [`REG_WIDTH-1:0] rs1,
+    input [`REG_WIDTH-1:0] rs2,
+    input [`DATA_WIDTH-1:0] rd_din,
+    output [`DATA_WIDTH-1:0] rs1_dout,
+    output [`DATA_WIDTH-1:0] rs2_dout
 );
-reg [data_width-1:0] rs1_dout;
-reg [data_width-1:0] rs2_dout;
-reg [data_width-1:0] memory [reg_length-1:0];
+reg [`DATA_WIDTH-1:0] rs1_dout;
+reg [`DATA_WIDTH-1:0] rs2_dout;
+reg [`DATA_WIDTH-1:0] memory [reg_length-1:0];
 always @(posedge clk) begin
     if(rd_en) begin
         memory[rd] <= rd_din;

@@ -1,7 +1,9 @@
+`timescale 1ns/1ps
+`include "copperv_h.v"
+
 module native_memory #(
     parameter address_width = 8,
     parameter length = (2**address_width),
-    parameter bus_width = 32,
     parameter instruction_memory = 0
 ) (
     input clk,
@@ -10,14 +12,14 @@ module native_memory #(
     input rdata_ready,
     input wdata_valid,
     input waddr_valid,
-    input [bus_width-1:0] raddr,
-    input [bus_width-1:0] wdata,
-    input [bus_width-1:0] waddr,
+    input [`BUS_WIDTH-1:0] raddr,
+    input [`BUS_WIDTH-1:0] wdata,
+    input [`BUS_WIDTH-1:0] waddr,
     output raddr_ready,
     output rdata_valid,
     output wdata_ready,
     output waddr_ready,
-    output [bus_width-1:0] rdata
+    output [`BUS_WIDTH-1:0] rdata
 );
 reg [7:0] memory [length - 1:0];
 `STRING fw_file;
@@ -34,7 +36,7 @@ initial begin
 end
 assign raddr_ready = 1;
 reg rdata_valid;
-reg rdata;
+reg [`BUS_WIDTH-1:0] rdata;
 reg read_addr_tran;
 reg read_data_tran;
 always @(*) begin

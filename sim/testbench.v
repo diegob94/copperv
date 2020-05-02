@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`include "copperv_h.v"
 
 `define STRING reg [1023:0]
 `define PERIOD 10
@@ -116,6 +117,7 @@ checker_cpu chk(
     .clk(clk),
     .rst(rst)
 );
+
 initial begin
     $dumpfile("tb.lxt");
     $dumpvars(0, tb);

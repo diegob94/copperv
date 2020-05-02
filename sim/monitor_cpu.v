@@ -1,3 +1,6 @@
+`timescale 1ns/1ps
+`include "copperv_h.v"
+
 module  monitor_cpu #(
     parameter inst_width = 32
 ) (

@@ -1,16 +1,8 @@
-`default_nettype none
+`timescale 1ns/1ps
+`include "copperv_h.v"
 
 module copperv #(
-    parameter bus_width = 32,
-    parameter pc_width = 32,
-    parameter pc_init = 0,
-    parameter inst_width = 32,
-    parameter opcode_width = 7,
-    parameter imm_width = 32,
-    parameter data_width = 32,
-    parameter reg_width = 5,
-    parameter funct_width = 4,
-    parameter rd_din_sel_width = 1
+    parameter pc_init = 0
 ) (
     input clk,
     input rst,
@@ -18,53 +10,53 @@ module copperv #(
     input d_raddr_ready,
     input d_wdata_ready,
     input d_waddr_ready,
-    input [bus_width-1:0] d_rdata,
+    input [`BUS_WIDTH-1:0] d_rdata,
     input i_rdata_valid,
     input i_raddr_ready,
     input i_wdata_ready,
     input i_waddr_ready,
-    input [bus_width-1:0] i_rdata,
+    input [`BUS_WIDTH-1:0] i_rdata,
     output d_rdata_ready,
     output d_raddr_valid,
     output d_wdata_valid,
     output d_waddr_valid,
-    output [bus_width-1:0] d_raddr,
-    output [bus_width-1:0] d_wdata,
-    output [bus_width-1:0] d_waddr,
+    output [`BUS_WIDTH-1:0] d_raddr,
+    output [`BUS_WIDTH-1:0] d_wdata,
+    output [`BUS_WIDTH-1:0] d_waddr,
     output i_rdata_ready,
     output i_raddr_valid,
     output i_wdata_valid,
     output i_waddr_valid,
-    output [bus_width-1:0] i_raddr,
-    output [bus_width-1:0] i_wdata,
-    output [bus_width-1:0] i_waddr
+    output [`BUS_WIDTH-1:0] i_raddr,
+    output [`BUS_WIDTH-1:0] i_wdata,
+    output [`BUS_WIDTH-1:0] i_waddr
 );
 // idecoder begin
-wire [imm_width-1:0] imm;
-wire [opcode_width-1:0] opcode;
-wire [funct_width-1:0] funct;
-wire [reg_width-1:0] rd;
-wire [reg_width-1:0] rs1;
-wire [reg_width-1:0] rs2;
+wire [`IMM_WIDTH-1:0] imm;
+wire [`OPCODE_WIDTH-1:0] opcode;
+wire [`FUNCT_WIDTH-1:0] funct;
+wire [`REG_WIDTH-1:0] rd;
+wire [`REG_WIDTH-1:0] rs1;
+wire [`REG_WIDTH-1:0] rs2;
 wire [`INST_TYPE_WIDTH-1:0] inst_type;
 // idecoder end
 // register_file begin
 wire rd_en;
 wire rs1_en;
 wire rs2_en;
-reg [data_width-1:0] rd_din;
-wire [data_width-1:0] rs1_dout;
-wire [data_width-1:0] rs2_dout;
+reg [`DATA_WIDTH-1:0] rd_din;
+wire [`DATA_WIDTH-1:0] rs1_dout;
+wire [`DATA_WIDTH-1:0] rs2_dout;
 // register_file end
 // arith_logic_unit begin
-reg [data_width-1:0] alu_din1;
-reg [data_width-1:0] alu_din2;
-wire [data_width-1:0] alu_dout;
+reg [`DATA_WIDTH-1:0] alu_din1;
+reg [`DATA_WIDTH-1:0] alu_din2;
+wire [`DATA_WIDTH-1:0] alu_dout;
 // arith_logic_unit end
 wire inst_fetch;
-reg [pc_width-1:0] pc;
-reg [pc_width-1:0] pc_next;
-reg [inst_width-1:0] inst;
+reg [`PC_WIDTH-1:0] pc;
+reg [`PC_WIDTH-1:0] pc_next;
+reg [`INST_WIDTH-1:0] inst;
 reg inst_valid;
 reg i_rdata_tran;
 wire [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
@@ -93,13 +85,7 @@ always @(posedge clk) begin
         inst_valid <= 0;
     end
 end
-idecoder #(
-    .inst_width(inst_width),
-    .opcode_width(opcode_width),
-    .imm_width(imm_width),
-    .reg_width(reg_width),
-    .funct_width(funct_width)
-) idec (
+idecoder idec (
     .inst(inst),
     .opcode(opcode),
     .imm(imm),
@@ -109,17 +95,13 @@ idecoder #(
     .rs2(rs2),
     .funct(funct)
 );
-parameter RD_DIN_SEL_IMM = 0;
 always @(*) begin
     rd_din = 0;
     case (rd_din_sel)
-        RD_DIN_SEL_IMM: rd_din = imm;
+        `RD_DIN_SEL_IMM: rd_din = imm;
     endcase
 end
-register_file #(
-    .reg_width(reg_width),
-    .data_width(data_width)
-) regfile (
+register_file regfile (
     .clk(clk),
     .rd_en(rd_en),
     .rs1_en(rs1_en),
@@ -131,18 +113,13 @@ register_file #(
     .rs1_dout(rs1_dout),
     .rs2_dout(rs2_dout)
 );
-arith_logic_unit #(
-    .data_width(data_width),
-    .funct_width(funct_width)
-) alu (
+arith_logic_unit alu (
     .alu_din1(alu_din1),
     .alu_din2(alu_din2),
     .funct(funct),
     .alu_dout(alu_dout)
 );
-control_unit #(
-    .rd_din_sel_width(rd_din_sel_width)
-) control (
+control_unit control (
     .clk(clk),
     .rst(rst),
     .inst_type(inst_type),

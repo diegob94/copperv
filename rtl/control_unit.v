@@ -1,6 +1,7 @@
-module control_unit #(
-    parameter rd_din_sel_width = 1
-) (
+`timescale 1ns/1ps
+`include "copperv_h.v"
+
+module control_unit ( 
     input clk,
     input rst,
     input [`INST_TYPE_WIDTH-1:0] inst_type,
@@ -8,7 +9,7 @@ module control_unit #(
     output rd_en,
     output rs1_en,
     output rs2_en,
-    output [rd_din_sel_width-1:0] rd_din_sel
+    output [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel
 );
 reg [`STATE_WIDTH-1:0] state;
 reg [`STATE_WIDTH-1:0] state_next;
@@ -16,7 +17,7 @@ reg inst_fetch;
 reg rd_en;
 reg rs1_en;
 reg rs2_en;
-reg [rd_din_sel_width-1:0] rd_din_sel;
+reg [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
 always @(posedge clk) begin
     if(!rst)
         state <= `FETCH_S;
@@ -52,7 +53,7 @@ always @(*) begin
             case (inst_type)
                 `INST_TYPE_IMM: begin
                     rd_en = 1;
-                    rd_din_sel = copperv.RD_DIN_SEL_IMM;
+                    rd_din_sel = `RD_DIN_SEL_IMM;
                 end
                 `INST_TYPE_INT_IMM: begin
                     rs1_en = 1;

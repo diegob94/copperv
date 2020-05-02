@@ -9,12 +9,14 @@ TOOLCHAIN = ../util/toolchain/bin/riscv32-unknown-elf-
 STD_OVL = ../util/std_ovl
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A 
 CC = $(TOOLCHAIN)gcc
-ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -Wall
+ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -Wall
 VVPFLAGS = -lxt2
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
 CFLAGS = -march=rv32i
 
-VERILOG_SOURCES = $(wildcard $(RTL)/*.v) $(wildcard $(SIM)/*.v)
+RTL_SOURCES = $(wildcard $(RTL)/*.v)
+SIM_SOURCES = $(wildcard $(SIM)/*.v)
+VERILOG_SOURCES = $(RTL_SOURCES) $(SIM_SOURCES)
 SOURCES = $(SIM)/tests/test_0.S
 OBJS = $(SOURCES:.S=.o)
 DISS = $(SOURCES:.S=.D)
@@ -39,7 +41,10 @@ fw.hex_dump: fw.hex
 	$(SCRIPTS)/hex_dump.py $< -o $@
 
 sim.vvp: $(VERILOG_SOURCES)
-	iverilog $(ICARUSFLAGS) -o $@ $(VERILOG_SOURCES)
+	iverilog $(ICARUSFLAGS) -o $@ $^
+
+design.rtl: $(RTL_SOURCES)
+	iverilog $(ICARUSFLAGS) -o $@ $^ -E
 
 sim: sim.vvp fw.hex fw.D fw.hex_dump
 	vvp $< +FW_FILE=fw.hex $(VVPFLAGS)

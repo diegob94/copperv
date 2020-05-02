@@ -1,26 +1,23 @@
-module idecoder #(
-    parameter inst_width = 32,
-    parameter opcode_width = 7,
-    parameter imm_width = 32,
-    parameter reg_width = 5,
-    parameter funct_width = 4
-) (
-    input [inst_width-1:0] inst,
-    output [opcode_width-1:0] opcode,
-    output [imm_width-1:0] imm,
+`timescale 1ns/1ps
+`include "copperv_h.v"
+
+module idecoder (
+    input [`INST_WIDTH-1:0] inst,
+    output [`OPCODE_WIDTH-1:0] opcode,
+    output [`IMM_WIDTH-1:0] imm,
     output [`INST_TYPE_WIDTH-1:0] inst_type,
-    output [reg_width-1:0] rd,
-    output [reg_width-1:0] rs1,
-    output [reg_width-1:0] rs2,
-    output [funct_width-1:0] funct
+    output [`REG_WIDTH-1:0] rd,
+    output [`REG_WIDTH-1:0] rs1,
+    output [`REG_WIDTH-1:0] rs2,
+    output [`FUNCT_WIDTH-1:0] funct
 );
 reg [`INST_TYPE_WIDTH-1:0] inst_type;
-reg [imm_width-1:0] imm;
-reg [opcode_width-1:0] opcode;
-reg [funct_width-1:0] funct;
-reg [reg_width-1:0] rd;
-reg [reg_width-1:0] rs1;
-reg [reg_width-1:0] rs2;
+reg [`IMM_WIDTH-1:0] imm;
+reg [`OPCODE_WIDTH-1:0] opcode;
+reg [`FUNCT_WIDTH-1:0] funct;
+reg [`REG_WIDTH-1:0] rd;
+reg [`REG_WIDTH-1:0] rs1;
+reg [`REG_WIDTH-1:0] rs2;
 always @(*) begin
     opcode = inst[6:0];
     imm = 0;

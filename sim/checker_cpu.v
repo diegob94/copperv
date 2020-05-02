@@ -1,3 +1,6 @@
+`timescale 1ns/1ps
+`include "copperv_h.v"
+
 `define OVL_ASSERT_ON
 `define OVL_INIT_MSG
 `include "std_ovl_defines.h"
