@@ -15,7 +15,7 @@ LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding
 CFLAGS = -march=rv32i
 
 RTL_SOURCES = $(wildcard $(RTL)/*.v)
-SIM_SOURCES = $(wildcard $(SIM)/*.v)
+SIM_SOURCES = $(wildcard $(SIM)/*.v) $(wildcard $(SIM)/*.sv)
 VERILOG_SOURCES = $(RTL_SOURCES) $(SIM_SOURCES)
 SOURCES = $(SIM)/tests/test_0.S
 OBJS = $(SOURCES:.S=.o)

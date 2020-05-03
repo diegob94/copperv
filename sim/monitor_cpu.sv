@@ -2,13 +2,11 @@
 `include "testbench_h.v"
 `include "copperv_h.v"
 
-module  monitor_cpu #(
-    parameter inst_width = 32
-) (
+module  monitor_cpu (
     input clk,
     input rst
 );
-reg [inst_width-1:0] raddr_queue[$];
+reg [`INST_WIDTH-1:0] raddr_queue[$];
 always @(posedge clk) begin
     if (rst) begin
         $display($time, ": PC: %d", `CPU_INST.pc);
@@ -38,7 +36,7 @@ always @(posedge clk) begin
             $display($time, ": REGFILE_WRITE: rd addr 0x%08X data 0x%08X", `CPU_INST.rd, `CPU_INST.rd_din);
     end
 end
-reg rs1_queue;
+reg [`REG_WIDTH-1:0] rs1_queue;
 always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.rs1_en) begin
@@ -48,7 +46,7 @@ always @(posedge clk) begin
         end
     end
 end
-reg rs2_queue;
+reg [`REG_WIDTH-1:0] rs2_queue;
 always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.rs2_en) begin

@@ -44,7 +44,10 @@ always @(*) begin
             state_next = `STATE_IDLE;
         end
         `STATE_LOAD: begin
-            state_next = `STATE_EXEC;
+            case (inst_type)
+                `INST_TYPE_IMM: state_next = `STATE_FETCH;
+                default: state_next = `STATE_EXEC;
+            endcase
         end
         `STATE_EXEC: begin
             state_next = `STATE_FETCH;
