@@ -4,7 +4,7 @@
 
 module tb();
 parameter bus_width = 32;
-parameter timeout = `PERIOD*50;
+parameter timeout = `PERIOD*100;
 reg clk;
 reg rst;
 wire d_rdata_valid;
@@ -118,7 +118,7 @@ initial begin
     $dumpvars(0, tb);
 end
 
-task finish_sim;
+task regfile_dump;
 integer i;
 begin
     $display($time, ": REGFILE DUMP BEGIN");
@@ -126,8 +126,15 @@ begin
         $display($time, ": 0x%02X: 0x%08X", i, `CPU_INST.regfile.memory[i]);
     end
     $display($time, ": REGFILE DUMP END");
+end
+endtask
+
+task finish_sim;
+begin
+    regfile_dump;
     $finish;
 end
 endtask
+
 endmodule
 

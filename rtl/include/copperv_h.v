@@ -6,9 +6,15 @@
 `define BUS_WIDTH          32
 `define RD_DIN_SEL_WIDTH   1
 `define RD_DIN_SEL_IMM     0
+`define RD_DIN_SEL_ALU     1
 `define PC_NEXT_SEL_WIDTH  1
 `define PC_NEXT_SEL_STALL  0
 `define PC_NEXT_SEL_INCR   1
+`define ALU_DIN1_SEL_WIDTH 1
+`define ALU_DIN1_SEL_RS1   1
+`define ALU_DIN2_SEL_WIDTH 2
+`define ALU_DIN2_SEL_IMM   1
+`define ALU_DIN2_SEL_RS2   2
 
 // regfile
 `define REG_WIDTH          5

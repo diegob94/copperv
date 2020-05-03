@@ -59,8 +59,12 @@ reg [`PC_WIDTH-1:0] pc_next;
 reg [`INST_WIDTH-1:0] inst;
 reg inst_valid;
 reg i_rdata_tran;
+// datapath begin
 wire [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
 wire [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel;
+wire [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel;
+wire [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel;
+// datapath end
 
 assign i_rdata_ready = 1;
 always @(posedge clk) begin
@@ -100,6 +104,20 @@ always @(*) begin
     rd_din = 0;
     case (rd_din_sel)
         `RD_DIN_SEL_IMM: rd_din = imm;
+        `RD_DIN_SEL_ALU: rd_din = alu_dout;
+    endcase
+end
+always @(*) begin
+    alu_din1 = 0;
+    case (alu_din1_sel)
+        `ALU_DIN1_SEL_RS1: alu_din1 = rs1_dout;
+    endcase
+end
+always @(*) begin
+    alu_din2 = 0;
+    case (alu_din2_sel)
+        `ALU_DIN2_SEL_RS2: alu_din2 = rs2_dout;
+        `ALU_DIN2_SEL_IMM: alu_din2 = imm;
     endcase
 end
 always @(*) begin
@@ -137,7 +155,9 @@ control_unit control (
     .rs1_en(rs1_en),
     .rs2_en(rs2_en),
     .rd_din_sel(rd_din_sel),
-    .pc_next_sel(pc_next_sel)
+    .pc_next_sel(pc_next_sel),
+    .alu_din1_sel(alu_din1_sel),
+    .alu_din2_sel(alu_din2_sel)
 );
 endmodule
 

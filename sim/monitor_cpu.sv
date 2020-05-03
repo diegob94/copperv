@@ -32,8 +32,15 @@ always @(posedge clk) begin
             $display($time, ": BUS: i_raddr tran: 0x%08X", `CPU_INST.i_raddr);
         if(`CPU_INST.i_rdata_valid && `CPU_INST.i_rdata_ready)
             $display($time, ": BUS: i_rdata tran: 0x%08X", `CPU_INST.i_rdata);
-        if(`CPU_INST.rd_en)
+    end
+end
+always @(posedge clk) begin
+    if (rst) begin
+        if(`CPU_INST.rd_en) begin
             $display($time, ": REGFILE_WRITE: rd addr 0x%08X data 0x%08X", `CPU_INST.rd, `CPU_INST.rd_din);
+            @(posedge clk);
+            tb.regfile_dump;
+        end
     end
 end
 reg [`REG_WIDTH-1:0] rs1_queue;
@@ -59,6 +66,12 @@ end
 always @(posedge clk) begin
     if (rst) begin
         $display($time, ": CONTROL: state %8s next %8s", state(`CPU_INST.control.state), state(`CPU_INST.control.state_next));
+    end
+end
+always @(posedge clk) begin
+    if (rst) begin
+        if (`CPU_INST.alu_din1_sel != 0 || `CPU_INST.alu_din2_sel != 0)
+            $display($time, ": ALU: din1 0x%08X din2 0x%08X dout 0x%08X funct 0x%01X", `CPU_INST.alu_din1, `CPU_INST.alu_din2, `CPU_INST.alu_dout, `CPU_INST.funct);
     end
 end
 

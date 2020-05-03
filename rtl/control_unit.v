@@ -11,7 +11,9 @@ module control_unit (
     output rs1_en,
     output rs2_en,
     output [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel,
-    output [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel
+    output [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel,
+    output [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel,
+    output [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel
 );
 reg [`STATE_WIDTH-1:0] state;
 reg [`STATE_WIDTH-1:0] state_next;
@@ -21,6 +23,8 @@ reg rs1_en;
 reg rs2_en;
 reg [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
 reg [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel;
+reg [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel;
+reg [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel;
 always @(posedge clk) begin
     if(!rst)
         state <= `STATE_RESET;
@@ -63,6 +67,8 @@ always @(*) begin
     rs1_en = 0;
     rs2_en = 0;
     rd_din_sel = 0;
+    alu_din1_sel = 0;
+    alu_din2_sel = 0;
     case (state)
         `STATE_RESET: begin
             pc_next_sel = `PC_NEXT_SEL_STALL;
@@ -86,6 +92,14 @@ always @(*) begin
             endcase
         end
         `STATE_EXEC: begin
+            case (inst_type)
+                `INST_TYPE_INT_IMM: begin
+                    rd_en = 1;
+                    rd_din_sel = `RD_DIN_SEL_ALU;
+                    alu_din1_sel = `ALU_DIN1_SEL_RS1;
+                    alu_din2_sel = `ALU_DIN2_SEL_IMM;
+                end
+            endcase
         end
         `STATE_MEM: begin
         end
