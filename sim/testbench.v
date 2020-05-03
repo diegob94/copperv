@@ -109,8 +109,8 @@ monitor_cpu mon(
     .rst(rst)
 );
 checker_cpu chk(
-    .clk(clk),
-    .rst(rst)
+    .clock(clk),
+    .reset(rst)
 );
 
 initial begin

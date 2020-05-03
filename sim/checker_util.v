@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 `include "testbench_h.v"
 
-module edge_detector(
+module edges(
     input clock,
     input reset,
     input signal,
@@ -45,9 +45,13 @@ module flag #(
     input reset,
     input up,
     input down,
-    output reg flag
+    output flag,
+    output flag_rose,
+    output flag_fell,
+    output flag_changed
 );
 reg flag_reg;
+reg flag;
 always @(*) begin
     flag = flag_reg;
     if(async_up == `TRUE)
@@ -62,5 +66,13 @@ always @(posedge clock)
         flag_reg <= 1;
     else if(down)
         flag_reg <= 0;
+edges flag_edges (
+    .clock(clock),
+    .reset(reset),
+    .signal(flag),
+    .fell(flag_fell),
+    .rose(flag_rose),
+    .changed(flag_changed)
+);
 endmodule
 

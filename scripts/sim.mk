@@ -1,4 +1,4 @@
-.PHONY: all sim gui clean
+.PHONY: all gui clean
 all: sim
 
 SCRIPTS = ../scripts
@@ -9,7 +9,7 @@ TOOLCHAIN = ../util/toolchain/bin/riscv32-unknown-elf-
 STD_OVL = ../util/std_ovl
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A 
 CC = $(TOOLCHAIN)gcc
-ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale
+ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale -g2012
 VVPFLAGS = -lxt2
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
 CFLAGS = -march=rv32i
@@ -40,12 +40,16 @@ fw.D: fw.elf
 fw.hex_dump: fw.hex
 	$(SCRIPTS)/hex_dump.py $< -o $@
 
-sim.vvp: $(VERILOG_SOURCES)
-	iverilog $(ICARUSFLAGS) -o $@ $^
+sim.vvp: $(VERILOG_SOURCES) $(SIM)/include/magic_numbers_h.v 
+	iverilog $(ICARUSFLAGS) -o $@ $(VERILOG_SOURCES)
 
 design.rtl: $(RTL_SOURCES)
 	iverilog $(ICARUSFLAGS) -o $@ $^ -E
 
+$(SIM)/include/magic_numbers_h.v: $(RTL)/include/copperv_h.v
+	$(SCRIPTS)/magic_numbers.py -monitor $@ $<
+
+.PHONY: sim
 sim: sim.vvp fw.hex fw.D fw.hex_dump
 	vvp $< +FW_FILE=fw.hex $(VVPFLAGS)
 

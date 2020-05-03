@@ -60,6 +60,7 @@ reg [`INST_WIDTH-1:0] inst;
 reg inst_valid;
 reg i_rdata_tran;
 wire [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
+wire [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel;
 
 assign i_rdata_ready = 1;
 always @(posedge clk) begin
@@ -72,7 +73,6 @@ end
 assign i_raddr_valid = inst_fetch;
 assign i_raddr = pc;
 always @(*) begin
-    pc_next = pc + 4;
     i_rdata_tran = i_rdata_valid && i_rdata_ready;
 end
 always @(posedge clk) begin
@@ -102,6 +102,13 @@ always @(*) begin
         `RD_DIN_SEL_IMM: rd_din = imm;
     endcase
 end
+always @(*) begin
+    pc_next = 0;
+    case (pc_next_sel)
+        `PC_NEXT_SEL_STALL: pc_next = pc;
+        `PC_NEXT_SEL_INCR: pc_next = pc + 4;
+    endcase
+end
 register_file regfile (
     .clk(clk),
     .rd_en(rd_en),
@@ -129,7 +136,8 @@ control_unit control (
     .rd_en(rd_en),
     .rs1_en(rs1_en),
     .rs2_en(rs2_en),
-    .rd_din_sel(rd_din_sel)
+    .rd_din_sel(rd_din_sel),
+    .pc_next_sel(pc_next_sel)
 );
 endmodule
 

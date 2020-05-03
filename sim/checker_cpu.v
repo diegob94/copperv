@@ -9,16 +9,52 @@
 module  checker_cpu #(
     parameter inst_width = 32
 ) (
-    input clk,
-    input rst
+    input clock,
+    input reset
 );
 parameter severity_level = `OVL_FATAL;
+parameter msg_prefix = {"CHECKER_CPU: "};
+wor [`OVL_FIRE_WIDTH-1:0] fire;
+wire reset_rose;
+wire first_i_raddr_tran;
+edges reset_edge (
+    .clock(clock),
+    .reset(reset),
+    .signal(reset),
+    .rose(reset_rose)
+);
+flag #(
+    .async_up(`TRUE),
+    .async_down(`TRUE)
+) u_first_i_addr_tran (
+    .clock(clock),
+    .reset(reset),
+    .up(reset_rose),
+    .down(`CPU_INST.i_raddr_valid && `CPU_INST.i_raddr_ready),
+    .flag_fell(first_i_raddr_tran)
+);
+ovl_implication #(
+    .severity_level(severity_level),
+    .property_type(`OVL_ASSERT),
+    .msg({msg_prefix,"First i_raddr transaction is not pc_init after reset"}),
+    .coverage_level(`OVL_COVER_NONE),
+    .clock_edge(`OVL_POSEDGE),
+    .reset_polarity(`OVL_ACTIVE_LOW),
+    .gating_type(`OVL_GATE_NONE)
+) first_i_raddr_tran_check (
+    .clock(clock),
+    .reset(reset),
+    .enable(1'b1),
+    .antecedent_expr(first_i_raddr_tran), 
+    .consequent_expr(`CPU_INST.pc == `CPU_INST.pc_init),
+    .fire(fire)
+);
 bus_channel_checker #(
     .severity_level(severity_level),
     .channel_name("i_raddr")
 ) i_raddr_checker (
-    .clock(clk),
-    .reset(rst),
+    .clock(clock),
+    .reset(reset),
     .ready(`CPU_INST.i_raddr_ready),
     .valid(`CPU_INST.i_raddr_valid)
 );
@@ -26,8 +62,8 @@ bus_channel_checker #(
     .severity_level(severity_level),
     .channel_name("i_rdata")
 ) i_rdata_checker (
-    .clock(clk),
-    .reset(rst),
+    .clock(clock),
+    .reset(reset),
     .ready(`CPU_INST.i_rdata_ready),
     .valid(`CPU_INST.i_rdata_valid)
 );
@@ -44,27 +80,11 @@ parameter severity_level = `OVL_ERROR;
 parameter channel_name = "UNKNOWN";
 parameter msg_prefix = {"BUS: ",channel_name,": "};
 wire reset_rose;
-edge_detector reset_edge (
+edges reset_edge (
     .clock(clock),
     .reset(reset),
     .signal(reset),
     .rose(reset_rose)
-);
-ovl_next #(
-    .severity_level(severity_level),
-    .property_type(`OVL_ASSERT),
-    .msg({msg_prefix,"valid not deasserted after transaction"}),
-    .coverage_level(`OVL_COVER_NONE),
-    .clock_edge(`OVL_POSEDGE),
-    .reset_polarity(`OVL_ACTIVE_LOW),
-    .gating_type(`OVL_GATE_NONE)
-) transaction_done (
-    .clock(clock),
-    .reset(reset),
-    .enable(1'b1),
-    .start_event(valid && ready), 
-    .test_expr(!valid),
-    .fire(fire)
 );
 ovl_implication #(
     .severity_level(severity_level),
