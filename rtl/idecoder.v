@@ -41,7 +41,9 @@ always @(*) begin
         end
         {6'h0C, 2'b11}: begin // Reg-reg
             inst_type = `INST_TYPE_INT_REG;
+            rs1 = inst[19:15];
             rs2 = inst[24:20];
+            rd = inst[11:7];
             funct = {inst[31:25] == 7'd32 ? 1'b1 : 1'b0, inst[14:12]};
         end
         {6'h18, 2'b11}: begin

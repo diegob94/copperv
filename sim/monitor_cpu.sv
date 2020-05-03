@@ -6,10 +6,11 @@ module  monitor_cpu (
     input clk,
     input rst
 );
+`include "magic_numbers_h.v"
+`include "reg_name_h.v"
 reg [`INST_WIDTH-1:0] raddr_queue[$];
 always @(posedge clk) begin
     if (rst) begin
-        $display($time, ": PC: %d", `CPU_INST.pc);
         if(`CPU_INST.i_raddr_valid) begin
             $display($time, ": INST_FETCH: addr 0x%08X", `CPU_INST.i_raddr);
             raddr_queue.push_front(`CPU_INST.i_raddr);
@@ -22,9 +23,9 @@ always @(posedge clk) begin
             $write(" opcode 0x%02X", `CPU_INST.idec.opcode);
             $write(" funct 0x%01X", `CPU_INST.idec.funct);
             $write(" imm 0x%08X", `CPU_INST.idec.imm);
-            $write(" rd 0x%02X", `CPU_INST.idec.rd);
-            $write(" rs1 0x%02X", `CPU_INST.idec.rs1);
-            $write(" rs2 0x%02X", `CPU_INST.idec.rs2);
+            $write(" rd 0x%02X %0s", `CPU_INST.idec.rd, reg_name(`CPU_INST.idec.rd));
+            $write(" rs1 0x%02X %0s", `CPU_INST.idec.rs1, reg_name(`CPU_INST.idec.rs1));
+            $write(" rs2 0x%02X %0s", `CPU_INST.idec.rs2, reg_name(`CPU_INST.idec.rs2));
             $write(" inst_type %0s", inst_type(`CPU_INST.idec.inst_type));
             $write("\n");
         end
@@ -34,12 +35,17 @@ always @(posedge clk) begin
             $display($time, ": BUS: i_rdata tran: 0x%08X", `CPU_INST.i_rdata);
     end
 end
+always @(`CPU_INST.pc, posedge `CPU_INST.rst) begin
+    if (rst) begin
+        $display($time, ": PC: %d", `CPU_INST.pc);
+    end
+end
 always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.rd_en) begin
-            $display($time, ": REGFILE_WRITE: rd addr 0x%08X data 0x%08X", `CPU_INST.rd, `CPU_INST.rd_din);
             @(posedge clk);
-            tb.regfile_dump;
+            $display($time, ": REGFILE: write rd addr 0x%08X %0s data 0x%08X", `CPU_INST.rd, reg_name(`CPU_INST.rd), `CPU_INST.rd_din);
+            //tb.regfile_dump;
         end
     end
 end
@@ -49,7 +55,7 @@ always @(posedge clk) begin
         if(`CPU_INST.rs1_en) begin
             rs1_queue = `CPU_INST.rs1;
             @(posedge clk);
-            $display($time, ": REGFILE_READ: rs1 addr 0x%08X data 0x%08X", rs1_queue, `CPU_INST.rs1_dout);
+            $display($time, ": REGFILE: read rs1 addr 0x%08X %0s data 0x%08X", rs1_queue, reg_name(rs1_queue), `CPU_INST.rs1_dout);
         end
     end
 end
@@ -59,7 +65,7 @@ always @(posedge clk) begin
         if(`CPU_INST.rs2_en) begin
             rs2_queue = `CPU_INST.rs2;
             @(posedge clk);
-            $display($time, ": REGFILE_READ: rs2 addr 0x%08X data 0x%08X", rs2_queue, `CPU_INST.rs2_dout);
+            $display($time, ": REGFILE: read rs2 addr 0x%08X %0s data 0x%08X", rs2_queue, reg_name(rs2_queue), `CPU_INST.rs2_dout);
         end
     end
 end
@@ -75,7 +81,16 @@ always @(posedge clk) begin
     end
 end
 
-`include "magic_numbers_h.v"
+task regfile_dump;
+integer i;
+begin
+    $display($time, ": REGFILE DUMP BEGIN");
+    for(i = 0; i < 2**`REG_WIDTH; i = i + 1) begin
+        $display($time, ": 0x%02X %6s: 0x%08X", i[`REG_WIDTH-1:0], reg_name(i), `CPU_INST.regfile.memory[i]);
+    end
+    $display($time, ": REGFILE DUMP END");
+end
+endtask
 
 //always @(posedge `CPU_INST.i_rdata_valid)
 //    $display($time, ": i_rdata_valid asserted");

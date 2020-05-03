@@ -89,6 +89,10 @@ always @(*) begin
                 `INST_TYPE_INT_IMM: begin
                     rs1_en = 1;
                 end
+                `INST_TYPE_INT_REG: begin
+                    rs1_en = 1;
+                    rs2_en = 1;
+                end
             endcase
         end
         `STATE_EXEC: begin
@@ -98,6 +102,12 @@ always @(*) begin
                     rd_din_sel = `RD_DIN_SEL_ALU;
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
                     alu_din2_sel = `ALU_DIN2_SEL_IMM;
+                end
+                `INST_TYPE_INT_REG: begin
+                    rd_en = 1;
+                    rd_din_sel = `RD_DIN_SEL_ALU;
+                    alu_din1_sel = `ALU_DIN1_SEL_RS1;
+                    alu_din2_sel = `ALU_DIN2_SEL_RS2;
                 end
             endcase
         end

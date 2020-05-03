@@ -118,20 +118,9 @@ initial begin
     $dumpvars(0, tb);
 end
 
-task regfile_dump;
-integer i;
-begin
-    $display($time, ": REGFILE DUMP BEGIN");
-    for(i = 0; i < 32; i = i + 1) begin
-        $display($time, ": 0x%02X: 0x%08X", i, `CPU_INST.regfile.memory[i]);
-    end
-    $display($time, ": REGFILE DUMP END");
-end
-endtask
-
 task finish_sim;
 begin
-    regfile_dump;
+    mon.regfile_dump;
     $finish;
 end
 endtask

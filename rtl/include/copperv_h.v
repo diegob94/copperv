@@ -21,6 +21,7 @@
 
 // alu
 `define FUNCT_ADD          0
+`define FUNCT_SUB          8
 
 // idecoder
 `define INST_WIDTH         32
