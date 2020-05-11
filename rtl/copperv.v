@@ -52,25 +52,29 @@ wire [`DATA_WIDTH-1:0] rs2_dout;
 reg [`DATA_WIDTH-1:0] alu_din1;
 reg [`DATA_WIDTH-1:0] alu_din2;
 wire [`DATA_WIDTH-1:0] alu_dout;
+wire alu_comp;
 // arith_logic_unit end
+// datapath begin
 wire inst_fetch;
+reg pc_en;
 reg [`PC_WIDTH-1:0] pc;
 reg [`PC_WIDTH-1:0] pc_next;
 reg [`INST_WIDTH-1:0] inst;
 reg inst_valid;
 reg i_rdata_tran;
-// datapath begin
 wire [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
 wire [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel;
 wire [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel;
 wire [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel;
+wire rcomp_en;
+reg rcomp;
 // datapath end
 
 assign i_rdata_ready = 1;
 always @(posedge clk) begin
     if (!rst) begin
         pc <= pc_init;
-    end else begin
+    end else if(pc_en) begin
         pc <= pc_next;
     end
 end
@@ -90,16 +94,6 @@ always @(posedge clk) begin
         inst_valid <= 0;
     end
 end
-idecoder idec (
-    .inst(inst),
-    .opcode(opcode),
-    .imm(imm),
-    .inst_type(inst_type),
-    .rd(rd),
-    .rs1(rs1),
-    .rs2(rs2),
-    .funct(funct)
-);
 always @(*) begin
     rd_din = 0;
     case (rd_din_sel)
@@ -122,11 +116,28 @@ always @(*) begin
 end
 always @(*) begin
     pc_next = 0;
+    pc_en = 1;
     case (pc_next_sel)
-        `PC_NEXT_SEL_STALL: pc_next = pc;
+        `PC_NEXT_SEL_STALL: pc_en = 0;
         `PC_NEXT_SEL_INCR: pc_next = pc + 4;
+        `PC_NEXT_SEL_BRANCH: pc_next = pc + imm;
     endcase
 end
+always @(posedge clk)
+    if(!rst)
+        rcomp <= 0;
+    else if(rcomp_en)
+        rcomp <= alu_comp;
+idecoder idec (
+    .inst(inst),
+    .opcode(opcode),
+    .imm(imm),
+    .inst_type(inst_type),
+    .rd(rd),
+    .rs1(rs1),
+    .rs2(rs2),
+    .funct(funct)
+);
 register_file regfile (
     .clk(clk),
     .rd_en(rd_en),
@@ -143,12 +154,15 @@ arith_logic_unit alu (
     .alu_din1(alu_din1),
     .alu_din2(alu_din2),
     .funct(funct),
-    .alu_dout(alu_dout)
+    .alu_dout(alu_dout),
+    .alu_comp(alu_comp)
 );
 control_unit control (
     .clk(clk),
     .rst(rst),
     .inst_valid(inst_valid),
+    .rcomp(rcomp),
+    .funct(funct),
     .inst_type(inst_type),
     .inst_fetch(inst_fetch),
     .rd_en(rd_en),
@@ -157,7 +171,8 @@ control_unit control (
     .rd_din_sel(rd_din_sel),
     .pc_next_sel(pc_next_sel),
     .alu_din1_sel(alu_din1_sel),
-    .alu_din2_sel(alu_din2_sel)
+    .alu_din2_sel(alu_din2_sel),
+    .rcomp_en(rcomp_en)
 );
 endmodule
 

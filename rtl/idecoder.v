@@ -37,18 +37,28 @@ always @(*) begin
             imm = {{21{inst[31]}}, inst[30:20]};
             rd = inst[11:7];
             rs1 = inst[19:15];
-            funct = {1'b0, inst[14:12]};
+            case (inst[14:12])
+                3'd0: funct = `FUNCT_ADD;
+            endcase
         end
         {6'h0C, 2'b11}: begin // Reg-reg
             inst_type = `INST_TYPE_INT_REG;
             rs1 = inst[19:15];
             rs2 = inst[24:20];
             rd = inst[11:7];
-            funct = {inst[31:25] == 7'd32 ? 1'b1 : 1'b0, inst[14:12]};
+            case ({inst[31:25], inst[14:12]})
+                {7'd0, 3'd0}: funct = `FUNCT_ADD;
+                {7'd32,3'd0}: funct = `FUNCT_SUB;
+            endcase
         end
         {6'h18, 2'b11}: begin
             inst_type = `INST_TYPE_BRANCH;
             imm = {{19{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
+            rs1 = inst[19:15];
+            rs2 = inst[24:20];
+            case (inst[14:12])
+                3'd0: funct = `FUNCT_EQ;
+            endcase
         end
     endcase
 end

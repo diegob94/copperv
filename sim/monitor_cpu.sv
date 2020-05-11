@@ -21,12 +21,12 @@ always @(posedge clk) begin
             $write($time, ": DECODER:");
             $write(" inst 0x%08X", `CPU_INST.inst);
             $write(" opcode 0x%02X", `CPU_INST.idec.opcode);
-            $write(" funct 0x%01X", `CPU_INST.idec.funct);
+            $write(" funct 0x%01X/%0s", `CPU_INST.idec.funct, funct(`CPU_INST.idec.funct));
             $write(" imm 0x%08X", `CPU_INST.idec.imm);
-            $write(" rd 0x%02X %0s", `CPU_INST.idec.rd, reg_name(`CPU_INST.idec.rd));
-            $write(" rs1 0x%02X %0s", `CPU_INST.idec.rs1, reg_name(`CPU_INST.idec.rs1));
-            $write(" rs2 0x%02X %0s", `CPU_INST.idec.rs2, reg_name(`CPU_INST.idec.rs2));
-            $write(" inst_type %0s", inst_type(`CPU_INST.idec.inst_type));
+            $write(" rd 0x%02X/%0s", `CPU_INST.idec.rd, reg_name(`CPU_INST.idec.rd));
+            $write(" rs1 0x%02X/%0s", `CPU_INST.idec.rs1, reg_name(`CPU_INST.idec.rs1));
+            $write(" rs2 0x%02X/%0s", `CPU_INST.idec.rs2, reg_name(`CPU_INST.idec.rs2));
+            $write(" inst_type 0x%01X/%0s", `CPU_INST.idec.inst_type, inst_type(`CPU_INST.idec.inst_type));
             $write("\n");
         end
         if(`CPU_INST.i_raddr_valid && `CPU_INST.i_raddr_ready)
@@ -37,7 +37,7 @@ always @(posedge clk) begin
 end
 always @(`CPU_INST.pc, posedge `CPU_INST.rst) begin
     if (rst) begin
-        $display($time, ": PC: %d", `CPU_INST.pc);
+        $display($time, ": PC: 0x%08X", `CPU_INST.pc);
     end
 end
 always @(posedge clk) begin
@@ -77,7 +77,7 @@ end
 always @(posedge clk) begin
     if (rst) begin
         if (`CPU_INST.alu_din1_sel != 0 || `CPU_INST.alu_din2_sel != 0)
-            $display($time, ": ALU: din1 0x%08X din2 0x%08X dout 0x%08X funct 0x%01X", `CPU_INST.alu_din1, `CPU_INST.alu_din2, `CPU_INST.alu_dout, `CPU_INST.funct);
+            $display($time, ": ALU: din1 0x%08X din2 0x%08X dout 0x%08X comp 0x%01X funct 0x%01X/%0s", `CPU_INST.alu_din1, `CPU_INST.alu_din2, `CPU_INST.alu_dout, `CPU_INST.alu_comp, `CPU_INST.funct, funct(`CPU_INST.funct));
     end
 end
 

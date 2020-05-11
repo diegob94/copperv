@@ -34,6 +34,8 @@ entry_template = """
 parse_this = [
     dict(name = 'state'),
     dict(name = 'inst_type'),
+    dict(name = 'funct'),
+    dict(name = 'pc_next_sel'),
 ]
 for parse in parse_this:
     parse['regex'] = re.compile(f'({parse["name"].upper()}_(\w+))\s+(\d+)')
