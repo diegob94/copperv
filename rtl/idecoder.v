@@ -60,6 +60,17 @@ always @(*) begin
                 3'd0: funct = `FUNCT_EQ;
             endcase
         end
+        {6'h08, 2'b11}: begin
+            inst_type = `INST_TYPE_STORE;
+            imm = {{19{inst[31]}}, inst[30:25], inst[11:7]};
+            rs1 = inst[19:15];
+            rs2 = inst[24:20];
+            case (inst[14:12])
+                3'd2: funct = `FUNCT_MEM_WORD;
+                3'd1: funct = `FUNCT_MEM_HWORD;
+                3'd0: funct = `FUNCT_MEM_BYTE;
+            endcase
+        end
     endcase
 end
 endmodule

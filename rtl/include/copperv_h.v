@@ -21,21 +21,26 @@
 `define REG_WIDTH          5
 
 // alu
+`define FUNCT_WIDTH        4
 `define FUNCT_ADD          0
 `define FUNCT_SUB          1
 `define FUNCT_EQ           2
 `define FUNCT_NEQ          3
+`define FUNCT_MEM_BYTE     4
+`define FUNCT_MEM_HWORD    5
+`define FUNCT_MEM_WORD     6
 
 // idecoder
 `define INST_WIDTH         32
 `define OPCODE_WIDTH       7
 `define IMM_WIDTH          32
-`define FUNCT_WIDTH        4
-`define INST_TYPE_WIDTH    2
+`define INST_TYPE_WIDTH    3
 `define INST_TYPE_IMM      0
 `define INST_TYPE_INT_IMM  1
 `define INST_TYPE_INT_REG  2
 `define INST_TYPE_BRANCH   3
+`define INST_TYPE_STORE    4
+`define INST_TYPE_LOAD     5
 
 // control_unit
 `define STATE_WIDTH        3
