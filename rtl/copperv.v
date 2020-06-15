@@ -35,6 +35,7 @@ module copperv #(
 wire [`IMM_WIDTH-1:0] imm;
 wire [`OPCODE_WIDTH-1:0] opcode;
 wire [`FUNCT_WIDTH-1:0] funct;
+wire [`ALU_OP_WIDTH-1:0] alu_op;
 wire [`REG_WIDTH-1:0] rd;
 wire [`REG_WIDTH-1:0] rs1;
 wire [`REG_WIDTH-1:0] rs2;
@@ -153,7 +154,7 @@ register_file regfile (
 arith_logic_unit alu (
     .alu_din1(alu_din1),
     .alu_din2(alu_din2),
-    .funct(funct),
+    .alu_op(alu_op),
     .alu_dout(alu_dout),
     .alu_comp(alu_comp)
 );
@@ -172,7 +173,8 @@ control_unit control (
     .pc_next_sel(pc_next_sel),
     .alu_din1_sel(alu_din1_sel),
     .alu_din2_sel(alu_din2_sel),
-    .rcomp_en(rcomp_en)
+    .rcomp_en(rcomp_en),
+    .alu_op(alu_op)
 );
 endmodule
 

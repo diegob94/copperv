@@ -67,6 +67,12 @@ bus_channel_checker #(
     .ready(`CPU_INST.i_rdata_ready),
     .valid(`CPU_INST.i_rdata_valid)
 );
+alu_checker #(
+    .severity_level(severity_level)
+) u_alu_checker (
+    .clock(clock),
+    .reset(reset)
+);
 endmodule
 
 module bus_channel_checker(
@@ -100,6 +106,33 @@ ovl_implication #(
     .enable(1'b1),
     .antecedent_expr(reset_rose), 
     .consequent_expr(!valid),
+    .fire(fire)
+);
+endmodule
+
+module alu_checker(
+    input clock,
+    input reset,
+    output wor [`OVL_FIRE_WIDTH-1:0] fire
+);
+parameter severity_level = `OVL_ERROR;
+parameter msg_prefix = {"ALU: "};
+wire alu_active;
+assign alu_active = `CPU_INST.alu_din1_sel != 0 || `CPU_INST.alu_din2_sel != 0;
+ovl_implication #(
+    .severity_level(severity_level),
+    .property_type(`OVL_ASSERT),
+    .msg({msg_prefix,"add op wrong result"}),
+    .coverage_level(`OVL_COVER_NONE),
+    .clock_edge(`OVL_POSEDGE),
+    .reset_polarity(`OVL_ACTIVE_LOW),
+    .gating_type(`OVL_GATE_NONE)
+) add (
+    .clock(clock),
+    .reset(reset),
+    .enable(1'b1),
+    .antecedent_expr(alu_active && `CPU_INST.alu.alu_op == `ALU_OP_ADD), 
+    .consequent_expr(`CPU_INST.alu.alu_dout == `CPU_INST.alu.alu_din1 + `CPU_INST.alu.alu_din2),
     .fire(fire)
 );
 endmodule

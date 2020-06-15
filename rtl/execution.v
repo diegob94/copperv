@@ -4,7 +4,7 @@
 module arith_logic_unit (
     input [`DATA_WIDTH-1:0] alu_din1,
     input [`DATA_WIDTH-1:0] alu_din2,
-    input [`FUNCT_WIDTH-1:0] funct,
+    input [`ALU_OP_WIDTH-1:0] alu_op,
     output [`DATA_WIDTH-1:0] alu_dout,
     output alu_comp
 );
@@ -16,11 +16,13 @@ wire lt;
 wire gt;
 always @(*) begin
     sign = 0;
+    alu_dout = 0;
     alu_comp = 0;
-    case (funct)
-        `FUNCT_ADD: alu_dout = alu_din1 + alu_din2;
-        `FUNCT_SUB: alu_dout = alu_din1 - alu_din2;
-        `FUNCT_EQ:  alu_comp = eq;
+    case (alu_op)
+        `ALU_OP_NOP: alu_dout = {`DATA_WIDTH{1'bx}};
+        `ALU_OP_ADD: alu_dout = alu_din1 + alu_din2;
+        `ALU_OP_SUB: alu_dout = alu_din1 - alu_din2;
+        `ALU_OP_EQ:  alu_comp = eq;
     endcase
 end
 comparator comp(

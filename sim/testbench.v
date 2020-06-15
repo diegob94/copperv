@@ -120,7 +120,6 @@ end
 
 task finish_sim;
 begin
-    mon.regfile_dump;
     $finish;
 end
 endtask

@@ -2,3 +2,4 @@ work/
 util/
 *.o
 *.swp
+__pycache__/
