@@ -1,11 +1,3 @@
-.PHONY: all
-all: sim
-SHELL = /bin/bash
-
-SCRIPTS = ../scripts
-RTL = ../rtl
-SIM = ../sim
-UTIL = ../util
 RISCV_TEST = $(UTIL)/riscv-tests
 LINKER_SCRIPT = ../sim/tests/test.ld
 TOOLCHAIN = ../util/toolchain/bin/riscv32-unknown-elf-
@@ -20,13 +12,11 @@ GTKWAVEFLAGS = --rcvar 'splash_disable on' -A
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
 CFLAGS = -march=rv32i -I. -I$(RISCV_TEST)/isa/macros/scalar
 
-RTL_SOURCES = $(wildcard $(RTL)/*.v)
 SIM_SOURCES = $(wildcard $(SIM)/*.v) $(wildcard $(SIM)/*.sv)
-VERILOG_SOURCES = $(RTL_SOURCES) $(SIM_SOURCES)
-SOURCES = $(SIM)/tests/test_0.S
-#SOURCES = $(RISCV_TEST)/isa/rv32ui/simple.S
-OBJS = $(SOURCES:.S=.o)
-DISS = $(SOURCES:.S=.D)
+FW_SOURCES = $(SIM)/tests/test_0.S
+#FW_SOURCES = $(RISCV_TEST)/isa/rv32ui/simple.S
+OBJS = $(FW_SOURCES:.S=.o)
+DISS = $(FW_SOURCES:.S=.D)
 
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -47,8 +37,8 @@ fw.D: fw.elf
 fw.hex_dump: fw.hex
 	$(SCRIPTS)/hex_dump.py $< -o $@
 
-sim.vvp: $(VERILOG_SOURCES) $(SIM)/include/monitor_utils_h.v 
-	iverilog $(ICARUSFLAGS) -o $@ $(VERILOG_SOURCES) |& tee sim_compile.log
+sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(SIM)/include/monitor_utils_h.v 
+	iverilog $(ICARUSFLAGS) -o $@ $(RTL_SOURCES) $(SIM_SOURCES) |& tee sim_compile.log
 
 design.rtl: $(RTL_SOURCES)
 	iverilog $(ICARUSFLAGS) -o $@ $^ -E
@@ -65,9 +55,9 @@ gui:
 	gtkwave tb.lxt $(GTKWAVEFLAGS)
 
 .PHONY: clean
-clean:
+clean_sim:
 	rm -fv sim.vvp
 
 .PHONY: clean_all
-clean_all: clean
+clean_sim_all: clean
 	rm -fv sim_run.log sim_compile.log *.D *.hex *.elf *.hex_dump $(OBJS) $(DISS) *.lxt *.rtl
