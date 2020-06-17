@@ -8,25 +8,21 @@ module copperv #(
     input rst,
     input d_rdata_valid,
     input d_raddr_ready,
-    input d_wdata_ready,
-    input d_waddr_ready,
+    input d_w_ready,
     input [`BUS_WIDTH-1:0] d_rdata,
     input i_rdata_valid,
     input i_raddr_ready,
-    input i_wdata_ready,
-    input i_waddr_ready,
+    input i_w_ready,
     input [`BUS_WIDTH-1:0] i_rdata,
     output d_rdata_ready,
     output d_raddr_valid,
-    output d_wdata_valid,
-    output d_waddr_valid,
+    output reg d_w_valid,
     output [`BUS_WIDTH-1:0] d_raddr,
-    output [`BUS_WIDTH-1:0] d_wdata,
-    output [`BUS_WIDTH-1:0] d_waddr,
+    output reg [`BUS_WIDTH-1:0] d_wdata,
+    output reg [`BUS_WIDTH-1:0] d_waddr,
     output i_rdata_ready,
     output i_raddr_valid,
-    output i_wdata_valid,
-    output i_waddr_valid,
+    output i_w_valid,
     output [`BUS_WIDTH-1:0] i_raddr,
     output [`BUS_WIDTH-1:0] i_wdata,
     output [`BUS_WIDTH-1:0] i_waddr
@@ -67,7 +63,11 @@ wire [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
 wire [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel;
 wire [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel;
 wire [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel;
-reg rcomp;
+reg data_send;
+reg data_send_delay;
+reg [`DATA_WIDTH-1:0] data_addr;
+reg [`DATA_WIDTH-1:0] data_data;
+reg d_w_tran;
 // datapath end
 
 assign i_rdata_ready = 1;
@@ -92,6 +92,22 @@ always @(posedge clk) begin
         inst_valid <= 1;
     end else begin
         inst_valid <= 0;
+    end
+end
+always @(posedge clk)
+        data_send_delay <= data_send;
+always @(*) begin
+    data_addr = alu_dout;
+    data_data = rs2_dout;
+    d_w_valid = data_send && data_send_delay;
+    d_w_tran = d_w_valid && d_w_ready;
+end
+always @(posedge clk) begin
+    if(!rst) begin
+        d_waddr = 0;
+    end else if(d_w_tran) begin
+        d_waddr = data_addr;
+        d_wdata = data_data;
     end
 end
 always @(*) begin
@@ -123,8 +139,6 @@ always @(*) begin
         `PC_NEXT_SEL_BRANCH: pc_next = pc + imm;
     endcase
 end
-always @(*)
-    rcomp = alu_comp;
 idecoder idec (
     .inst(inst),
     .opcode(opcode),
@@ -158,7 +172,7 @@ control_unit control (
     .clk(clk),
     .rst(rst),
     .inst_valid(inst_valid),
-    .rcomp(rcomp),
+    .alu_comp(alu_comp),
     .funct(funct),
     .inst_type(inst_type),
     .inst_fetch(inst_fetch),
@@ -169,7 +183,6 @@ control_unit control (
     .pc_next_sel(pc_next_sel),
     .alu_din1_sel(alu_din1_sel),
     .alu_din2_sel(alu_din2_sel),
-    .rcomp_en(rcomp_en),
     .alu_op(alu_op)
 );
 endmodule

@@ -13,8 +13,9 @@ STD_OVL = ../util/std_ovl
 CC = $(TOOLCHAIN)gcc
 
 ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale -g2012
-#ICARUSFLAGS += -pfileline=1
-VVPFLAGS = -lxt2 #+DUMP_REGFILE
+ICARUSFLAGS += -pfileline=1
+VVPFLAGS = -lxt2 
+#VVPFLAGS += +DUMP_REGFILE
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A 
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
 CFLAGS = -march=rv32i -I. -I$(RISCV_TEST)/isa/macros/scalar
@@ -65,4 +66,8 @@ gui:
 
 .PHONY: clean
 clean:
-	rm -fv *.log *.vvp *.D *.hex *.elf *.hex_dump $(OBJS) $(DISS) *.lxt *.rtl
+	rm -fv sim.vvp
+
+.PHONY: clean_all
+clean_all: clean
+	rm -fv sim_run.log sim_compile.log *.D *.hex *.elf *.hex_dump $(OBJS) $(DISS) *.lxt *.rtl

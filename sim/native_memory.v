@@ -11,18 +11,16 @@ module native_memory #(
     input rst,
     input raddr_valid,
     input rdata_ready,
-    input wdata_valid,
-    input waddr_valid,
+    input w_valid,
     input [`BUS_WIDTH-1:0] raddr,
     input [`BUS_WIDTH-1:0] wdata,
     input [`BUS_WIDTH-1:0] waddr,
     output raddr_ready,
     output rdata_valid,
-    output wdata_ready,
-    output waddr_ready,
+    output w_ready,
     output [`BUS_WIDTH-1:0] rdata
 );
-parameter msg_prefix = ": I_MEMORY: ";
+parameter msg_prefix = instruction_memory ? ": I_MEMORY: ":": D_MEMORY: ";
 reg [7:0] memory [length - 1:0];
 `STRING fw_file;
 initial begin
@@ -57,9 +55,11 @@ always @(posedge clk) begin
                 memory[raddr+0]
         };
         rdata_valid <= 1;
-        $display($time, {msg_prefix, "read addr 0x%0X data 0x%0X"}, rdata, raddr);
     end else if(read_data_tran) begin
         rdata_valid <= 0;
     end
 end
+always @(negedge clk)
+    if (read_addr_tran)
+        $display($time, {msg_prefix, "read addr 0x%0X data 0x%0X"}, raddr, rdata);
 endmodule

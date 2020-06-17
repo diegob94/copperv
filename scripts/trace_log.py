@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 
-run_log = Path('sim_compile.log')
+run_log = Path('sim_run.log')
 
 cache = dict()
 def read_source(path):

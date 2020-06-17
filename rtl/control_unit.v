@@ -6,7 +6,7 @@ module control_unit (
     input rst,
     input [`INST_TYPE_WIDTH-1:0] inst_type,
     input inst_valid,
-    input rcomp,
+    input alu_comp,
     input [`FUNCT_WIDTH-1:0] funct,
     output inst_fetch,
     output rd_en,
@@ -16,7 +16,6 @@ module control_unit (
     output [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel,
     output [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel,
     output [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel,
-    output rcomp_en,
     output [`ALU_OP_WIDTH-1:0] alu_op
 );
 reg [`STATE_WIDTH-1:0] state;
@@ -29,8 +28,7 @@ reg [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
 reg [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel;
 reg [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel;
 reg [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel;
-reg rcomp_en;
-reg alu_op;
+reg [`ALU_OP_WIDTH-1:0] alu_op;
 always @(posedge clk) begin
     if(!rst)
         state <= `STATE_RESET;
@@ -75,7 +73,6 @@ always @(*) begin
     rd_din_sel = 0;
     alu_din1_sel = 0;
     alu_din2_sel = 0;
-    rcomp_en = 0;
     pc_next_sel = `PC_NEXT_SEL_STALL;
     alu_op = `ALU_OP_NOP;
     case (state)
@@ -130,10 +127,9 @@ always @(*) begin
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
                     alu_din2_sel = `ALU_DIN2_SEL_RS2;
                     if(funct == `FUNCT_EQ) begin
-                        rcomp_en = 1;
                         alu_op = `ALU_OP_EQ;
                     end
-                    if(rcomp)
+                    if(alu_comp)
                         pc_next_sel = `PC_NEXT_SEL_BRANCH;
                 end
             endcase
