@@ -1,17 +1,47 @@
 SHELL = /bin/bash
 
-ROOT = $(realpath ../)
+#ROOT = $(realpath ../)
+ROOT = ..
 SCRIPTS = $(ROOT)/scripts
 RTL = $(ROOT)/rtl
 SIM = $(ROOT)/sim
 UTIL = $(ROOT)/util
 
 RTL_SOURCES = $(wildcard $(RTL)/*.v)
+SIM_SOURCES = $(wildcard $(SIM)/*.v) $(wildcard $(SIM)/*.sv)
+STD_OVL = $(UTIL)/std_ovl
+
+ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale -g2012
+ICARUSFLAGS += -pfileline=1
+VVPFLAGS = -lxt2 
+#VVPFLAGS += +DUMP_REGFILE
+GTKWAVEFLAGS = --rcvar 'splash_disable on' -A 
 
 .PHONY: all
 all: sim
 
-# Simulation
-include $(SCRIPTS)/sim.mk
+# Test compile
+include $(SCRIPTS)/test.mk
 
+sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) test 
+	iverilog $(ICARUSFLAGS) -o $@ $(RTL_SOURCES) $(SIM_SOURCES) |& tee sim_compile.log
+
+design.rtl: $(RTL_SOURCES)
+	iverilog $(ICARUSFLAGS) -o $@ $^ -E
+
+.PHONY: sim
+sim: sim.vvp 
+	vvp $< +FW_FILE=fw.hex $(VVPFLAGS) |& tee sim_run.log
+
+.PHONY: gui
+gui:
+	gtkwave tb.lxt $(GTKWAVEFLAGS)
+
+.PHONY: clean
+clean:
+	rm -fv sim.vvp
+
+.PHONY: clean_all
+clean_all: clean clean_test
+	rm -fv sim_run.log sim_compile.log *.lxt *.rtl
 
