@@ -22,6 +22,7 @@ module native_memory #(
     output waddr_ready,
     output [`BUS_WIDTH-1:0] rdata
 );
+parameter msg_prefix = ": I_MEMORY: ";
 reg [7:0] memory [length - 1:0];
 `STRING fw_file;
 initial begin
@@ -30,7 +31,7 @@ initial begin
         if ($value$plusargs("FW_FILE=%s", fw_file)) begin
             $readmemh(fw_file, memory, 0, length - 1);
         end else begin
-            $display("%t: Error: No firmware given. Example: vvp sim.vvp +FW_FILE=fw.hex", $time);
+            $display($time, {msg_prefix, "Error: No firmware given. Example: vvp sim.vvp +FW_FILE=fw.hex"});
             $finish;
         end
     end
@@ -56,6 +57,7 @@ always @(posedge clk) begin
                 memory[raddr+0]
         };
         rdata_valid <= 1;
+        $display($time, {msg_prefix, "read addr 0x%0X data 0x%0X"}, rdata, raddr);
     end else if(read_data_tran) begin
         rdata_valid <= 0;
     end

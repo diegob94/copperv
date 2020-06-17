@@ -67,7 +67,6 @@ wire [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
 wire [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel;
 wire [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel;
 wire [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel;
-wire rcomp_en;
 reg rcomp;
 // datapath end
 
@@ -124,11 +123,8 @@ always @(*) begin
         `PC_NEXT_SEL_BRANCH: pc_next = pc + imm;
     endcase
 end
-always @(posedge clk)
-    if(!rst)
-        rcomp <= 0;
-    else if(rcomp_en)
-        rcomp <= alu_comp;
+always @(*)
+    rcomp = alu_comp;
 idecoder idec (
     .inst(inst),
     .opcode(opcode),

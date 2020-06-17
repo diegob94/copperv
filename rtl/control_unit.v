@@ -44,14 +44,14 @@ always @(*) begin
         `STATE_RESET: begin
             state_next = `STATE_FETCH;
         end
+        `STATE_FETCH: begin
+            state_next = `STATE_IDLE;
+        end
         `STATE_IDLE: begin
             if (inst_valid)
                 state_next = `STATE_LOAD;
             else
                 state_next = `STATE_IDLE;
-        end
-        `STATE_FETCH: begin
-            state_next = `STATE_IDLE;
         end
         `STATE_LOAD: begin
             case (inst_type)
@@ -81,12 +81,6 @@ always @(*) begin
     case (state)
         `STATE_FETCH: begin
             inst_fetch = 1;
-            case (inst_type)
-                `INST_TYPE_BRANCH: begin
-                    if(rcomp)
-                        pc_next_sel = `PC_NEXT_SEL_BRANCH;
-                end
-            endcase
         end
         `STATE_LOAD: begin
             case (inst_type)
@@ -99,6 +93,10 @@ always @(*) begin
                     rs1_en = 1;
                 end
                 `INST_TYPE_INT_REG: begin
+                    rs1_en = 1;
+                    rs2_en = 1;
+                end
+                `INST_TYPE_BRANCH: begin
                     rs1_en = 1;
                     rs2_en = 1;
                 end
@@ -131,8 +129,12 @@ always @(*) begin
                 `INST_TYPE_BRANCH: begin
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
                     alu_din2_sel = `ALU_DIN2_SEL_RS2;
-                    if(funct == `FUNCT_EQ)
+                    if(funct == `FUNCT_EQ) begin
                         rcomp_en = 1;
+                        alu_op = `ALU_OP_EQ;
+                    end
+                    if(rcomp)
+                        pc_next_sel = `PC_NEXT_SEL_BRANCH;
                 end
             endcase
         end

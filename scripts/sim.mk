@@ -14,7 +14,7 @@ CC = $(TOOLCHAIN)gcc
 
 ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale -g2012
 #ICARUSFLAGS += -pfileline=1
-VVPFLAGS = -lxt2 +DUMP_REGFILE
+VVPFLAGS = -lxt2 #+DUMP_REGFILE
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A 
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
 CFLAGS = -march=rv32i -I. -I$(RISCV_TEST)/isa/macros/scalar
