@@ -26,15 +26,12 @@ include $(SCRIPTS)/test.mk
 sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) test 
 	iverilog $(ICARUSFLAGS) -o $@ $(RTL_SOURCES) $(SIM_SOURCES) |& tee sim_compile.log
 
-design.rtl: $(RTL_SOURCES)
-	iverilog $(ICARUSFLAGS) -o $@ $^ -E
-
 .PHONY: sim
 sim: sim.vvp 
 	vvp $< +FW_FILE=fw.hex $(VVPFLAGS) |& tee sim_run.log
 
-.PHONY: gui
-gui:
+.PHONY: wave
+wave:
 	gtkwave tb.lxt $(GTKWAVEFLAGS)
 
 .PHONY: clean
@@ -43,5 +40,5 @@ clean:
 
 .PHONY: clean_all
 clean_all: clean clean_test
-	rm -fv sim_run.log sim_compile.log *.lxt *.rtl
+	rm -fv sim_run.log sim_compile.log tb.lxt
 
