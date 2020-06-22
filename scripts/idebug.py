@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from pathlib import Path
-from dataclasses import dataclass
 import re
 import cmd
 import sys
@@ -72,31 +71,39 @@ class ShellOutput:
     def _return(self, r):
         print(r)
 
-@dataclass
-class Config:
-    log: Path = None
-    before: int = 5
-    after: int = 5
-    _debug: bool = False
-    _filter: list = None
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._filter = []
-    @property
-    def debug(self):
-        return self._debug
-    @debug.setter
-    def debug(self, value):
+class GenericConfig:
+    def __init__(self, initval):
+        self.value = initval
+    def __get__(self, obj, objtype):
+        return self.value
+    def __set__(self, obj, value):
+        self.value = value
+
+class ListConfig(GenericConfig):
+    def __get__(self, obj, objtype):
+        return tuple(self.value)
+    def __set__(self, obj, value):
+        self.value.append(value)
+
+class BoolConfig(GenericConfig):
+    def __set__(self, obj, value):
         if value.lower() == 'true':
-            self._debug = True
+            self.value = True
         else:
-            self._debug = False
-    @property
-    def filter(self):
-        return self._filter
-    @filter.setter
-    def filter(self, value):
-        self._filter.append(value)
+            self.value = False
+
+class Config:
+    def __init__(self):
+        config = {
+            'log':    GenericConfig(None),
+            'before': GenericConfig(5),
+            'after':  GenericConfig(5),
+            'debug':  BoolConfig(False),
+            'filter': ListConfig([]),
+            'break':  ListConfig([]),
+        }
+        for k,v in config.items():
+            setattr(Config, k, v)
     def __getitem__(self, key):
         return getattr(self, key)
     def __setitem__(self, key, value):
@@ -115,9 +122,9 @@ class Tracer:
     def next_line(self):
         r = dict()
         line = self.readline()
-        for f in self.config['filter']:
+        for f in self.config.filter:
             if f in line:
-                #print('DEBUG: filter', self.config['filter'], line)
+                #print('DEBUG: filter', self.config.filter, line)
                 return self.next_line()
         r['log'] = line
         r['rtl'] = self.parse(line)
@@ -152,8 +159,8 @@ class Tracer:
         rtl = self.read_rtl(path)
         i = int(n) - 1
         r = dict(line_number = int(n))
-        low = max(0, i - self.config['before'])
-        high = min(len(rtl), i + 1 + self.config['after'])
+        low = max(0, i - self.config.before)
+        high = min(len(rtl), i + 1 + self.config.after)
         r['before'] = rtl[low:i]
         r['line'] = rtl[i]
         r['after'] = rtl[i+1:high]
