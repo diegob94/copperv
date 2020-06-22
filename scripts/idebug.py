@@ -24,6 +24,17 @@ class DebugShell(cmd.Cmd):
         'Go to next line'
         r = self.tracer.next_line()
         self.out.print_trace(**r)
+    def do_continue(self, arg):
+        'Continue until breakpoint'
+        exit = False
+        while not exit:
+            r = self.tracer.next_line()
+            for b in config['break']:
+                s,i = b.split(':')
+                if s == r['rtl']['path'] and int(i) == r['rtl']['line_number']:
+                    exit = True
+                    break
+        self.out.print_trace(**r)
     @parse_args
     def do_set_config(self, name = None, value = None):
         'Set options'
@@ -158,14 +169,17 @@ class Tracer:
     def get_rtl(self, path, n):
         rtl = self.read_rtl(path)
         i = int(n) - 1
-        r = dict(line_number = int(n))
         low = max(0, i - self.config.before)
         high = min(len(rtl), i + 1 + self.config.after)
-        r['before'] = rtl[low:i]
-        r['line'] = rtl[i]
-        r['after'] = rtl[i+1:high]
-        r['before_number'] = list(range(low+1,i+1))
-        r['after_number'] = list(range(i+2,high+1))
+        r = dict(
+            path = path,
+            before = rtl[low:i],
+            line = rtl[i],
+            after = rtl[i+1:high],
+            before_number = list(range(low+1,i+1)),
+            line_number = i+1,
+            after_number = list(range(i+2,high+1)),
+        )
         return r
 
 config = Config()
