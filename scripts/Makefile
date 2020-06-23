@@ -12,7 +12,7 @@ SIM_SOURCES = $(wildcard $(SIM)/*.v) $(wildcard $(SIM)/*.sv)
 STD_OVL = $(UTIL)/std_ovl
 
 ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale -g2012
-ICARUSFLAGS += -pfileline=1
+#ICARUSFLAGS += -pfileline=1
 VVPFLAGS = -lxt2 
 #VVPFLAGS += +DUMP_REGFILE
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A 
