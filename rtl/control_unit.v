@@ -126,9 +126,6 @@ always @(*) begin
                 `INST_TYPE_BRANCH: begin
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
                     alu_din2_sel = `ALU_DIN2_SEL_RS2;
-                    if(funct == `FUNCT_EQ) begin
-                        alu_op = `ALU_OP_EQ;
-                    end
                     if(alu_comp)
                         pc_next_sel = `PC_NEXT_SEL_BRANCH;
                 end

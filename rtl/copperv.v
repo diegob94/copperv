@@ -69,7 +69,6 @@ reg [`DATA_WIDTH-1:0] data_addr;
 reg [`DATA_WIDTH-1:0] data_data;
 reg d_w_tran;
 // datapath end
-
 assign i_rdata_ready = 1;
 always @(posedge clk) begin
     if (!rst) begin
@@ -95,7 +94,7 @@ always @(posedge clk) begin
     end
 end
 always @(posedge clk)
-        data_send_delay <= data_send;
+    data_send_delay <= data_send;
 always @(*) begin
     data_addr = alu_dout;
     data_data = rs2_dout;

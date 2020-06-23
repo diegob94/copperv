@@ -17,14 +17,14 @@ wire gt;
 always @(*) begin
     sign = 0;
     alu_dout = 0;
-    alu_comp = 0;
     case (alu_op)
         `ALU_OP_NOP: alu_dout = {`DATA_WIDTH{1'bx}};
         `ALU_OP_ADD: alu_dout = alu_din1 + alu_din2;
         `ALU_OP_SUB: alu_dout = alu_din1 - alu_din2;
-        `ALU_OP_EQ:  alu_comp = eq;
     endcase
 end
+always @(*)
+    alu_comp = eq;
 comparator comp(
     .a(alu_din1),
     .b(alu_din2),
