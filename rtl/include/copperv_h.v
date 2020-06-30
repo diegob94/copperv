@@ -38,7 +38,7 @@
 `define INST_TYPE_INT_REG  2
 `define INST_TYPE_BRANCH   3
 `define INST_TYPE_STORE    4
-`define INST_TYPE_LOAD     5
+`define INST_TYPE_DECODE   5
 `define FUNCT_WIDTH        4
 `define FUNCT_ADD          0
 `define FUNCT_SUB          1
@@ -53,6 +53,6 @@
 `define STATE_RESET        0
 `define STATE_IDLE         1
 `define STATE_FETCH        2
-`define STATE_LOAD         3
+`define STATE_DECODE       3
 `define STATE_EXEC         4
 `define STATE_MEM          5

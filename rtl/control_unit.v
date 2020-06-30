@@ -37,28 +37,28 @@ always @(posedge clk) begin
 end
 // Next state logic
 always @(*) begin
-    state_next = `STATE_IDLE;
+    state_next = `STATE_RESET;
     case (state)
         `STATE_RESET: begin
             state_next = `STATE_FETCH;
         end
         `STATE_FETCH: begin
-            state_next = `STATE_IDLE;
-        end
-        `STATE_IDLE: begin
             if (inst_valid)
-                state_next = `STATE_LOAD;
+                state_next = `STATE_DECODE;
             else
-                state_next = `STATE_IDLE;
+                state_next = `STATE_FETCH;
         end
-        `STATE_LOAD: begin
+        `STATE_DECODE: begin
             case (inst_type)
                 `INST_TYPE_IMM: state_next = `STATE_FETCH;
                 default: state_next = `STATE_EXEC;
             endcase
         end
         `STATE_EXEC: begin
-            state_next = `STATE_FETCH;
+            case (inst_type)
+                `INST_TYPE_STORE: state_next = `STATE_MEM;
+                default: state_next = `STATE_FETCH;
+            endcase
         end
         `STATE_MEM: begin
         end
@@ -79,7 +79,7 @@ always @(*) begin
         `STATE_FETCH: begin
             inst_fetch = 1;
         end
-        `STATE_LOAD: begin
+        `STATE_DECODE: begin
             case (inst_type)
                 `INST_TYPE_IMM: begin
                     rd_en = 1;
