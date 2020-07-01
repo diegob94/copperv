@@ -1,0 +1,32 @@
+# Instruction bus:
+## inputs:
+* ir_addr_ready
+* ir_data
+* ir_data_valid
+* iw_data_addr_ready
+* iw_resp
+* iw_resp_valid
+## outputs:
+* ir_addr
+* ir_addr_valid
+* ir_data_ready
+* iw_addr
+* iw_data
+* iw_data_addr_valid
+* iw_resp_ready
+# Data bus:
+## inputs:
+* dr_addr_ready
+* dr_data
+* dr_data_valid
+* dw_data_addr_ready
+* dw_resp
+* dw_resp_valid
+## outputs:
+* dr_addr
+* dr_addr_valid
+* dr_data_ready
+* dw_addr
+* dw_data
+* dw_data_addr_valid
+* dw_resp_ready

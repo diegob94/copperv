@@ -11,12 +11,12 @@ module  monitor_cpu (
 reg [`INST_WIDTH-1:0] raddr_queue[$];
 always @(posedge clk) begin
     if (rst) begin
-        if(`CPU_INST.i_raddr_valid) begin
-            $display($time, ": INST_FETCH: addr 0x%08X", `CPU_INST.i_raddr);
-            raddr_queue.push_front(`CPU_INST.i_raddr);
+        if(`CPU_INST.ir_addr_valid) begin
+            $display($time, ": INST_FETCH: addr 0x%08X", `CPU_INST.ir_addr);
+            raddr_queue.push_front(`CPU_INST.ir_addr);
         end
-        if(`CPU_INST.i_rdata_valid && `CPU_INST.i_rdata_ready)
-            $display($time, ": INST_RECV: addr 0x%08X data 0x%08X", raddr_queue.pop_back(), `CPU_INST.i_rdata);
+        if(`CPU_INST.ir_data_valid && `CPU_INST.ir_data_ready)
+            $display($time, ": INST_RECV: addr 0x%08X data 0x%08X", raddr_queue.pop_back(), `CPU_INST.ir_data);
         if(`CPU_INST.inst_valid) begin
             $write($time, ": DECODER:");
             $write(" inst 0x%08X", `CPU_INST.inst);
@@ -29,10 +29,26 @@ always @(posedge clk) begin
             $write(" inst_type 0x%01X/%0s", `CPU_INST.idec.inst_type, inst_type(`CPU_INST.idec.inst_type));
             $write("\n");
         end
-        if(`CPU_INST.i_raddr_valid && `CPU_INST.i_raddr_ready)
-            $display($time, ": BUS: i_raddr tran: 0x%08X", `CPU_INST.i_raddr);
-        if(`CPU_INST.i_rdata_valid && `CPU_INST.i_rdata_ready)
-            $display($time, ": BUS: i_rdata tran: 0x%08X", `CPU_INST.i_rdata);
+        if(`CPU_INST.ir_data_valid && `CPU_INST.ir_data_ready)
+            $display($time, ": BUS: ir_data tran: 0x%08X", `CPU_INST.ir_data);
+        if(`CPU_INST.ir_addr_valid && `CPU_INST.ir_addr_ready)
+            $display($time, ": BUS: ir_addr tran: 0x%08X", `CPU_INST.ir_addr);
+        if(`CPU_INST.iw_data_addr_valid && `CPU_INST.iw_data_addr_ready) begin
+            $display($time, ": BUS: iw_data tran: 0x%08X", `CPU_INST.iw_data);
+            $display($time, ": BUS: iw_addr tran: 0x%08X", `CPU_INST.iw_addr);
+        end
+        if(`CPU_INST.iw_resp_valid && `CPU_INST.iw_resp_ready)
+            $display($time, ": BUS: iw_resp tran: 0x%08X", `CPU_INST.iw_resp);
+        if(`CPU_INST.dr_data_valid && `CPU_INST.dr_data_ready)
+            $display($time, ": BUS: dr_data tran: 0x%08X", `CPU_INST.dr_data);
+        if(`CPU_INST.dr_addr_valid && `CPU_INST.dr_addr_ready)
+            $display($time, ": BUS: dr_addr tran: 0x%08X", `CPU_INST.dr_addr);
+        if(`CPU_INST.dw_data_addr_valid && `CPU_INST.dw_data_addr_ready) begin
+            $display($time, ": BUS: dw_data tran: 0x%08X", `CPU_INST.dw_data);
+            $display($time, ": BUS: dw_addr tran: 0x%08X", `CPU_INST.dw_addr);
+        end
+        if(`CPU_INST.dw_resp_valid && `CPU_INST.dw_resp_ready)
+            $display($time, ": BUS: dw_resp tran: 0x%08X", `CPU_INST.dw_resp);
     end
 end
 always @(`CPU_INST.pc, posedge `CPU_INST.rst) begin

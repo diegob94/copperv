@@ -6,26 +6,32 @@ module copperv #(
 ) (
     input clk,
     input rst,
-    input d_rdata_valid,
-    input d_raddr_ready,
-    input d_w_ready,
-    input [`BUS_WIDTH-1:0] d_rdata,
-    input i_rdata_valid,
-    input i_raddr_ready,
-    input i_w_ready,
-    input [`BUS_WIDTH-1:0] i_rdata,
-    output d_rdata_ready,
-    output d_raddr_valid,
-    output reg d_w_valid,
-    output [`BUS_WIDTH-1:0] d_raddr,
-    output reg [`BUS_WIDTH-1:0] d_wdata,
-    output reg [`BUS_WIDTH-1:0] d_waddr,
-    output i_rdata_ready,
-    output i_raddr_valid,
-    output i_w_valid,
-    output [`BUS_WIDTH-1:0] i_raddr,
-    output [`BUS_WIDTH-1:0] i_wdata,
-    output [`BUS_WIDTH-1:0] i_waddr
+    input dr_data_valid,
+    input dr_addr_ready,
+    input dw_data_addr_ready,
+    input dw_resp_valid,
+    input [`BUS_WIDTH-1:0] dr_data,
+    input ir_data_valid,
+    input ir_addr_ready,
+    input iw_data_addr_ready,
+    input iw_resp_valid,
+    input [`BUS_WIDTH-1:0] ir_data,
+    input [`BUS_RESP_WIDTH-1:0] iw_resp,
+    input [`BUS_RESP_WIDTH-1:0] dw_resp,
+    output dr_data_ready,
+    output dr_addr_valid,
+    output reg dw_data_addr_valid,
+    output reg dw_resp_ready,
+    output [`BUS_WIDTH-1:0] dr_addr,
+    output reg [`BUS_WIDTH-1:0] dw_data,
+    output reg [`BUS_WIDTH-1:0] dw_addr,
+    output reg ir_data_ready,
+    output ir_addr_valid,
+    output iw_data_addr_valid,
+    output iw_resp_ready,
+    output [`BUS_WIDTH-1:0] ir_addr,
+    output [`BUS_WIDTH-1:0] iw_data,
+    output [`BUS_WIDTH-1:0] iw_addr
 );
 // idecoder begin
 wire [`IMM_WIDTH-1:0] imm;
@@ -63,13 +69,13 @@ wire [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
 wire [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel;
 wire [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel;
 wire [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel;
-reg data_send;
-reg data_send_delay;
+wire store_data;
 reg [`DATA_WIDTH-1:0] data_addr;
 reg [`DATA_WIDTH-1:0] data_data;
-reg d_w_tran;
+reg data_valid;
+wire dw_resp_tran;
+reg dw_data_addr_tran;
 // datapath end
-assign i_rdata_ready = 1;
 always @(posedge clk) begin
     if (!rst) begin
         pc <= pc_init;
@@ -77,38 +83,57 @@ always @(posedge clk) begin
         pc <= pc_next;
     end
 end
-assign i_raddr_valid = inst_fetch;
-assign i_raddr = pc;
+assign ir_addr_valid = inst_fetch;
+assign ir_addr = pc;
 always @(*) begin
-    i_rdata_tran = i_rdata_valid && i_rdata_ready;
+    i_rdata_tran = ir_data_valid && ir_data_ready;
 end
 always @(posedge clk) begin
     if(!rst) begin
         inst <= 0;
         inst_valid <= 0;
     end else if(i_rdata_tran) begin
-        inst <= i_rdata;
+        inst <= ir_data;
         inst_valid <= 1;
     end else begin
         inst_valid <= 0;
     end
 end
+assign dw_resp_tran = dw_resp_valid && dw_resp_ready;
+always @(posedge clk) begin
+    if(!rst) begin
+        data_valid <= 0;
+    end else if(dw_resp_tran) begin
+        case(dw_resp)
+            `DATA_WRITE_RESP_FAIL: data_valid <= 0;
+            `DATA_WRITE_RESP_OK: data_valid <= 1;
+        endcase
+    end else
+        data_valid <= 0;
+end
 always @(posedge clk)
-    data_send_delay <= data_send;
+    if(!rst) begin
+        ir_data_ready <= 1;
+    end
 always @(*) begin
     data_addr = alu_dout;
     data_data = rs2_dout;
-    d_w_valid = data_send && data_send_delay;
-    d_w_tran = d_w_valid && d_w_ready;
+    dw_data_addr_valid = store_data;
+    dw_data_addr_tran = dw_data_addr_valid && dw_data_addr_ready;
 end
 always @(posedge clk) begin
     if(!rst) begin
-        d_waddr = 0;
-    end else if(d_w_tran) begin
-        d_waddr = data_addr;
-        d_wdata = data_data;
+        dw_addr = 0;
+        dw_data = 0;
+    end else if(dw_data_addr_tran) begin
+        dw_addr = data_addr;
+        dw_data = data_data;
     end
 end
+always @(posedge clk)
+    if(!rst) begin
+        dw_resp_ready <= 1;
+    end
 always @(*) begin
     rd_din = 0;
     case (rd_din_sel)
@@ -170,6 +195,7 @@ arith_logic_unit alu (
 control_unit control (
     .clk(clk),
     .rst(rst),
+    .data_valid(data_valid),
     .inst_valid(inst_valid),
     .alu_comp(alu_comp),
     .funct(funct),
@@ -182,7 +208,8 @@ control_unit control (
     .pc_next_sel(pc_next_sel),
     .alu_din1_sel(alu_din1_sel),
     .alu_din2_sel(alu_din2_sel),
-    .alu_op(alu_op)
+    .alu_op(alu_op),
+    .store_data(store_data)
 );
 endmodule
 

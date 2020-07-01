@@ -3,30 +3,37 @@
 `include "copperv_h.v"
 
 module tb();
-parameter bus_width = 32;
 parameter timeout = `PERIOD*100;
+// copperv inputs
 reg clk;
 reg rst;
-wire d_rdata_valid;
-wire d_raddr_ready;
-wire d_w_ready;
-wire [bus_width-1:0] d_rdata;
-wire i_rdata_valid;
-wire i_raddr_ready;
-wire i_w_ready;
-wire [bus_width-1:0] i_rdata;
-wire d_rdata_ready;
-wire d_raddr_valid;
-wire d_w_valid;
-wire [bus_width-1:0] d_raddr;
-wire [bus_width-1:0] d_wdata;
-wire [bus_width-1:0] d_waddr;
-wire i_rdata_ready;
-wire i_raddr_valid;
-wire i_w_valid;
-wire [bus_width-1:0] i_raddr;
-wire [bus_width-1:0] i_wdata;
-wire [bus_width-1:0] i_waddr;
+wire dr_data_valid;
+wire dr_addr_ready;
+wire dw_data_addr_ready;
+wire dw_resp_valid;
+wire [`BUS_WIDTH-1:0] dr_data;
+wire ir_data_valid;
+wire ir_addr_ready;
+wire iw_data_addr_ready;
+wire iw_resp_valid;
+wire [`BUS_WIDTH-1:0] ir_data;
+wire [`BUS_RESP_WIDTH-1:0] iw_resp;
+wire [`BUS_RESP_WIDTH-1:0] dw_resp;
+// copperv outputs
+wire dr_data_ready;
+wire dr_addr_valid;
+wire dw_data_addr_valid;
+wire dw_resp_ready;
+wire [`BUS_WIDTH-1:0] dr_addr;
+wire [`BUS_WIDTH-1:0] dw_data;
+wire [`BUS_WIDTH-1:0] dw_addr;
+wire ir_data_ready;
+wire ir_addr_valid;
+wire iw_data_addr_valid;
+wire iw_resp_ready;
+wire [`BUS_WIDTH-1:0] ir_addr;
+wire [`BUS_WIDTH-1:0] iw_data;
+wire [`BUS_WIDTH-1:0] iw_addr;
 initial begin
     rst = 0;
     clk = 0;
@@ -40,57 +47,69 @@ initial begin
     finish_sim;
 end
 always #(`PERIOD/2) clk <= !clk;
-copperv dut(
+copperv dut (
     .clk(clk),
     .rst(rst),
-    .d_rdata_valid(d_rdata_valid),
-    .d_raddr_ready(d_raddr_ready),
-    .d_w_ready(d_w_ready),
-    .d_rdata(d_rdata),
-    .i_rdata_valid(i_rdata_valid),
-    .i_raddr_ready(i_raddr_ready),
-    .i_w_ready(i_w_ready),
-    .i_rdata(i_rdata),
-    .d_rdata_ready(d_rdata_ready),
-    .d_raddr_valid(d_raddr_valid),
-    .d_w_valid(d_w_valid),
-    .d_raddr(d_raddr),
-    .d_wdata(d_wdata),
-    .d_waddr(d_waddr),
-    .i_rdata_ready(i_rdata_ready),
-    .i_raddr_valid(i_raddr_valid),
-    .i_w_valid(i_w_valid),
-    .i_raddr(i_raddr),
-    .i_wdata(i_wdata),
-    .i_waddr(i_waddr)
+    .dr_data_valid(dr_data_valid),
+    .dr_addr_ready(dr_addr_ready),
+    .dw_data_addr_ready(dw_data_addr_ready),
+    .dw_resp_valid(dw_resp_valid),
+    .dr_data(dr_data),
+    .ir_data_valid(ir_data_valid),
+    .ir_addr_ready(ir_addr_ready),
+    .iw_data_addr_ready(iw_data_addr_ready),
+    .iw_resp_valid(iw_resp_valid),
+    .ir_data(ir_data),
+    .iw_resp(iw_resp),
+    .dw_resp(dw_resp),
+    .dr_data_ready(dr_data_ready),
+    .dr_addr_valid(dr_addr_valid),
+    .dw_data_addr_valid(dw_data_addr_valid),
+    .dw_resp_ready(dw_resp_ready),
+    .dr_addr(dr_addr),
+    .dw_data(dw_data),
+    .dw_addr(dw_addr),
+    .ir_data_ready(ir_data_ready),
+    .ir_addr_valid(ir_addr_valid),
+    .iw_data_addr_valid(iw_data_addr_valid),
+    .iw_resp_ready(iw_resp_ready),
+    .ir_addr(ir_addr),
+    .iw_data(iw_data),
+    .iw_addr(iw_addr)
 );
 native_memory #(.instruction_memory(`TRUE)) i_mem(
     .clk(clk),
     .rst(rst),
-    .rdata_valid(i_rdata_valid),
-    .raddr_ready(i_raddr_ready),
-    .w_ready(i_w_ready),
-    .rdata(i_rdata),
-    .rdata_ready(i_rdata_ready),
-    .raddr_valid(i_raddr_valid),
-    .w_valid(i_w_valid),
-    .raddr(i_raddr),
-    .wdata(i_wdata),
-    .waddr(i_waddr)
+    .r_addr_valid(ir_addr_valid),
+    .r_data_ready(ir_data_ready),
+    .w_data_addr_valid(iw_data_addr_valid),
+    .r_addr(ir_addr),
+    .w_data(iw_data),
+    .w_addr(iw_addr),
+    .w_resp_ready(iw_resp_ready),
+    .w_resp_valid(iw_resp_valid),
+    .w_resp(iw_resp),
+    .r_addr_ready(ir_addr_ready),
+    .r_data_valid(ir_data_valid),
+    .w_data_addr_ready(iw_data_addr_ready),
+    .r_data(ir_data)
 );
 native_memory d_mem(
     .clk(clk),
     .rst(rst),
-    .rdata_valid(d_rdata_valid),
-    .raddr_ready(d_raddr_ready),
-    .w_ready(d_w_ready),
-    .rdata(d_rdata),
-    .rdata_ready(d_rdata_ready),
-    .raddr_valid(d_raddr_valid),
-    .w_valid(d_w_valid),
-    .raddr(d_raddr),
-    .wdata(d_wdata),
-    .waddr(d_waddr)
+    .r_addr_valid(dr_addr_valid),
+    .r_data_ready(dr_data_ready),
+    .w_data_addr_valid(dw_data_addr_valid),
+    .r_addr(dr_addr),
+    .w_data(dw_data),
+    .w_addr(dw_addr),
+    .w_resp_ready(dw_resp_ready),
+    .w_resp_valid(dw_resp_valid),
+    .w_resp(dw_resp),
+    .r_addr_ready(dr_addr_ready),
+    .r_data_valid(dr_data_valid),
+    .w_data_addr_ready(dw_data_addr_ready),
+    .r_data(dr_data)
 );
 monitor_cpu mon(
     .clk(clk),

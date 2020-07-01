@@ -9,7 +9,7 @@
     beqz t6, finish  # Test passed!
     li t1, 0         # Test failed code
 finish:
-    sw t1, 0(t2)     # Communicate test result to the world
+    sw t1, 0(t2)     # Output test results
 loop:
     j loop
 

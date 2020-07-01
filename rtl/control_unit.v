@@ -8,7 +8,9 @@ module control_unit (
     input inst_valid,
     input alu_comp,
     input [`FUNCT_WIDTH-1:0] funct,
-    output inst_fetch,
+    input data_valid,
+    output reg inst_fetch,
+    output reg store_data,
     output rd_en,
     output rs1_en,
     output rs2_en,
@@ -20,7 +22,6 @@ module control_unit (
 );
 reg [`STATE_WIDTH-1:0] state;
 reg [`STATE_WIDTH-1:0] state_next;
-reg inst_fetch;
 reg rd_en;
 reg rs1_en;
 reg rs2_en;
@@ -29,11 +30,18 @@ reg [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel;
 reg [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel;
 reg [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel;
 reg [`ALU_OP_WIDTH-1:0] alu_op;
+reg state_change;
+wire state_change_next;
 always @(posedge clk) begin
     if(!rst)
         state <= `STATE_RESET;
     else
         state <= state_next;
+end
+assign state_change_next = state != state_next;
+// TODO: gate possible?
+always @(posedge clk) begin
+    state_change <= state_change_next;
 end
 // Next state logic
 always @(*) begin
@@ -61,6 +69,10 @@ always @(*) begin
             endcase
         end
         `STATE_MEM: begin
+            if (data_valid)
+                state_next = `STATE_FETCH;
+            else
+                state_next = `STATE_MEM;
         end
     endcase
 end
@@ -75,9 +87,10 @@ always @(*) begin
     alu_din2_sel = 0;
     pc_next_sel = `PC_NEXT_SEL_STALL;
     alu_op = `ALU_OP_NOP;
+    store_data = 0;
     case (state)
         `STATE_FETCH: begin
-            inst_fetch = 1;
+            inst_fetch = state_change;
         end
         `STATE_DECODE: begin
             case (inst_type)
@@ -94,6 +107,10 @@ always @(*) begin
                     rs2_en = 1;
                 end
                 `INST_TYPE_BRANCH: begin
+                    rs1_en = 1;
+                    rs2_en = 1;
+                end
+                `INST_TYPE_STORE: begin
                     rs1_en = 1;
                     rs2_en = 1;
                 end
@@ -128,10 +145,22 @@ always @(*) begin
                     alu_din2_sel = `ALU_DIN2_SEL_RS2;
                     if(alu_comp)
                         pc_next_sel = `PC_NEXT_SEL_BRANCH;
+                    else
+                        pc_next_sel = `PC_NEXT_SEL_INCR;
+                end
+                `INST_TYPE_STORE: begin
+                    alu_din1_sel = `ALU_DIN1_SEL_RS1;
+                    alu_din2_sel = `ALU_DIN2_SEL_IMM;
+                    case(funct)
+                        `FUNCT_MEM_WORD: alu_op = `ALU_OP_ADD;
+                    endcase
+                    if(inst_type == `INST_TYPE_STORE)
+                        store_data = state_change;
                 end
             endcase
         end
         `STATE_MEM: begin
+            pc_next_sel = `PC_NEXT_SEL_INCR;
         end
     endcase
 end

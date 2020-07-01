@@ -30,7 +30,7 @@ flag #(
     .clock(clock),
     .reset(reset),
     .up(reset_rose),
-    .down(`CPU_INST.i_raddr_valid && `CPU_INST.i_raddr_ready),
+    .down(`CPU_INST.ir_addr_valid && `CPU_INST.ir_addr_ready),
     .flag_fell(first_i_raddr_tran)
 );
 ovl_implication #(
@@ -55,8 +55,8 @@ bus_channel_checker #(
 ) i_raddr_checker (
     .clock(clock),
     .reset(reset),
-    .ready(`CPU_INST.i_raddr_ready),
-    .valid(`CPU_INST.i_raddr_valid)
+    .ready(`CPU_INST.ir_addr_ready),
+    .valid(`CPU_INST.ir_addr_valid)
 );
 bus_channel_checker #(
     .severity_level(severity_level),
@@ -64,8 +64,8 @@ bus_channel_checker #(
 ) i_rdata_checker (
     .clock(clock),
     .reset(reset),
-    .ready(`CPU_INST.i_rdata_ready),
-    .valid(`CPU_INST.i_rdata_valid)
+    .ready(`CPU_INST.ir_data_ready),
+    .valid(`CPU_INST.ir_data_valid)
 );
 alu_checker #(
     .severity_level(severity_level)
