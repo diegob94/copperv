@@ -1,4 +1,4 @@
-SHELL = /bin/bash
+SHELL = /usr/bin/zsh
 
 #ROOT = $(realpath ../)
 ROOT = ..
@@ -10,6 +10,7 @@ UTIL = $(ROOT)/util
 RTL_SOURCES = $(wildcard $(RTL)/*.v)
 SIM_SOURCES = $(wildcard $(SIM)/*.v) $(wildcard $(SIM)/*.sv)
 STD_OVL = $(UTIL)/std_ovl
+TEST_NAME = test
 
 ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale -g2012
 #ICARUSFLAGS += -pfileline=1
@@ -28,7 +29,7 @@ sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) test
 
 .PHONY: sim
 sim: sim.vvp 
-	vvp $< +FW_FILE=fw.hex $(VVPFLAGS) |& tee sim_run.log
+	vvp $< +HEX_FILE=$(TEST_NAME).hex $(VVPFLAGS) |& tee sim_run_$(TEST_NAME).log
 
 .PHONY: wave
 wave:

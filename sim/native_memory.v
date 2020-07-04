@@ -25,14 +25,14 @@ module native_memory #(
 );
 parameter msg_prefix = instruction_memory ? ": I_MEMORY: ":": D_MEMORY: ";
 reg [7:0] memory [length - 1:0];
-`STRING fw_file;
+`STRING hex_file;
 initial begin
     $display("%t: %m length: %0d", $time, length);
     if (instruction_memory == `TRUE) begin
-        if ($value$plusargs("FW_FILE=%s", fw_file)) begin
-            $readmemh(fw_file, memory, 0, length - 1);
+        if ($value$plusargs("HEX_FILE=%s", hex_file)) begin
+            $readmemh(hex_file, memory, 0, length - 1);
         end else begin
-            $display($time, {msg_prefix, "Error: No firmware given. Example: vvp sim.vvp +FW_FILE=fw.hex"});
+            $display($time, {msg_prefix, "Error: No hex file given. Example: vvp sim.vvp +HEX_FILE=test.hex"});
             $finish;
         end
     end

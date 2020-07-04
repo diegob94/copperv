@@ -27,9 +27,14 @@ always @(*) begin
     rs1 = 0;
     rs2 = 0;
     case (opcode)
-        {6'h0D, 2'b11}: begin // LUI
+        `OPCODE_LUI: begin
             inst_type = `INST_TYPE_IMM;
             imm = {inst[31:12], 12'b0};
+            rd = inst[11:7];
+        end
+        `OPCODE_JAL: begin
+            inst_type = `INST_TYPE_JAL;
+            imm = {{11{inst[31]}}, inst[19:12], inst[20], inst[30:25], inst[24:21], 1'b0};
             rd = inst[11:7];
         end
         {6'h04, 2'b11}: begin // Reg-Inmmediate
@@ -51,7 +56,7 @@ always @(*) begin
                 {7'd32,3'd0}: funct = `FUNCT_SUB;
             endcase
         end
-        {6'h18, 2'b11}: begin
+        {6'h18, 2'b11}: begin // Branch
             inst_type = `INST_TYPE_BRANCH;
             imm = {{19{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
             rs1 = inst[19:15];
@@ -60,7 +65,7 @@ always @(*) begin
                 3'd0: funct = `FUNCT_EQ;
             endcase
         end
-        {6'h08, 2'b11}: begin
+        {6'h08, 2'b11}: begin // Store
             inst_type = `INST_TYPE_STORE;
             imm = {{19{inst[31]}}, inst[30:25], inst[11:7]};
             rs1 = inst[19:15];

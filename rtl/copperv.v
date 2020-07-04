@@ -145,22 +145,24 @@ always @(*) begin
     alu_din1 = 0;
     case (alu_din1_sel)
         `ALU_DIN1_SEL_RS1: alu_din1 = rs1_dout;
+        `ALU_DIN1_SEL_PC:  alu_din1 = pc;
     endcase
 end
 always @(*) begin
     alu_din2 = 0;
     case (alu_din2_sel)
-        `ALU_DIN2_SEL_RS2: alu_din2 = rs2_dout;
-        `ALU_DIN2_SEL_IMM: alu_din2 = imm;
+        `ALU_DIN2_SEL_RS2:     alu_din2 = rs2_dout;
+        `ALU_DIN2_SEL_IMM:     alu_din2 = imm;
+        `ALU_DIN2_SEL_CONST_4: alu_din2 = 4;
     endcase
 end
 always @(*) begin
     pc_next = 0;
     pc_en = 1;
     case (pc_next_sel)
-        `PC_NEXT_SEL_STALL: pc_en = 0;
-        `PC_NEXT_SEL_INCR: pc_next = pc + 4;
-        `PC_NEXT_SEL_BRANCH: pc_next = pc + imm;
+        `PC_NEXT_SEL_STALL:   pc_en = 0;
+        `PC_NEXT_SEL_INCR:    pc_next = pc + 4;
+        `PC_NEXT_SEL_ADD_IMM: pc_next = pc + imm;
     endcase
 end
 idecoder idec (

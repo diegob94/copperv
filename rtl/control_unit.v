@@ -52,7 +52,10 @@ always @(*) begin
         end
         `STATE_FETCH: begin
             if (inst_valid)
-                state_next = `STATE_DECODE;
+                case(inst_type)
+                    `INST_TYPE_JAL: state_next = `STATE_EXEC;
+                    default: state_next = `STATE_DECODE;
+                endcase
             else
                 state_next = `STATE_FETCH;
         end
@@ -144,7 +147,7 @@ always @(*) begin
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
                     alu_din2_sel = `ALU_DIN2_SEL_RS2;
                     if(alu_comp)
-                        pc_next_sel = `PC_NEXT_SEL_BRANCH;
+                        pc_next_sel = `PC_NEXT_SEL_ADD_IMM;
                     else
                         pc_next_sel = `PC_NEXT_SEL_INCR;
                 end
@@ -157,10 +160,21 @@ always @(*) begin
                     if(inst_type == `INST_TYPE_STORE)
                         store_data = state_change;
                 end
+                `INST_TYPE_JAL: begin
+                    rd_en = 1;
+                    rd_din_sel = `RD_DIN_SEL_ALU;
+                    alu_din1_sel = `ALU_DIN1_SEL_PC;
+                    alu_din2_sel = `ALU_DIN2_SEL_CONST_4;
+                    pc_next_sel = `PC_NEXT_SEL_ADD_IMM;
+                    case(funct)
+                        `FUNCT_ADD: alu_op = `ALU_OP_ADD;
+                    endcase
+                end
             endcase
         end
         `STATE_MEM: begin
-            pc_next_sel = `PC_NEXT_SEL_INCR;
+            if(state_change_next)
+                pc_next_sel = `PC_NEXT_SEL_INCR;
         end
     endcase
 end
