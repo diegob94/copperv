@@ -12,38 +12,6 @@ args = parser.parse_args()
 
 test_rpt_path = args.test_rpt
 
-readme_template = """
-# copperv
-RISCV core
-
-## Usage
-- https://github.com/riscv/riscv-gnu-toolchain
-  -  Clone to $ROOT/util/riscv-gnu-toolchain  
-  -  Set install prefix $ROOT/util/toolchain
-- https://github.com/riscv/riscv-tests
-  -  Clone to $ROOT/util/riscv-tests
-- https://www.accellera.org/downloads/standards/ovl
-  -  Download to $ROOT/util/std_ovl
-- http://iverilog.icarus.com/
-- ZSH
-- Python 3:
-  - Recommended to use pyenv to install last python
-  - pip install -r requirements.txt
-- Basic simulation:
-  - mkdir work
-  - ln -s ../scripts/Makefile work/Makefile
-  - cd work
-  - make
-- Unit tests:
-  - cd work
-  - ../scripts/unit_test.zsh
-
-## Unit test results:
-
-{test_report}
-
-""".strip()
-
 def parse(test_rpt):
     header = []
     data = []
@@ -99,10 +67,15 @@ test_report = test_report[['Test','Passed','Failed','Error']]
 print("\nSummary:")
 print(test_report.iloc[-2:,:].T.reindex(['Passed','Failed','Error','Test']).rename({'Test':'Total'},axis='index').to_string(header = False))
 
-readme = readme_template.format(
-    test_report = tabulate(display(test_report), tablefmt = 'github', showindex = False, headers="keys")
-)
+readme = str(tabulate(display(test_report), tablefmt = 'github', showindex = False, headers="keys"))
 
-Path('../README.md').write_text(readme + '\n\n')
+readme_path = Path('../README.md')
+header = "## Unit test results:"
+text = []
+for line in readme_path.read_text().splitlines():
+    text.append(line)
+    if line.strip() == header:
+        break
+readme_path.write_text('\n'.join(text) + '\n\n' + readme + '\n\n')
 print('\nGenerated README.md')
 
