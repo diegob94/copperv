@@ -3,49 +3,49 @@ RISCV core
 
 ## Unit test results:
 
-| Test    | Passed   | Failed   | Error   |
-|---------|----------|----------|---------|
-| test_0  | X        |          |         |
-| addi    | X        |          |         |
-| add     |          | X        |         |
-| andi    |          |          | X       |
-| and     |          |          | X       |
-| auipc   |          |          | X       |
-| beq     |          |          | X       |
-| bge     |          |          | X       |
-| bgeu    |          |          | X       |
-| blt     |          |          | X       |
-| bltu    |          |          | X       |
-| bne     |          |          | X       |
-| fence_i |          |          | X       |
-| jalr    |          |          | X       |
-| jal     |          |          | X       |
-| lb      |          |          | X       |
-| lbu     |          |          | X       |
-| lh      |          |          | X       |
-| lhu     |          |          | X       |
-| lui     | X        |          |         |
-| lw      |          |          | X       |
-| ori     |          |          | X       |
-| or      |          |          | X       |
-| sb      |          |          | X       |
-| sh      |          |          | X       |
-| simple  | X        |          |         |
-| slli    | X        |          |         |
-| sll     |          | X        |         |
-| slti    | X        |          |         |
-| sltiu   | X        |          |         |
-| slt     |          | X        |         |
-| sltu    |          | X        |         |
-| srai    |          |          | X       |
-| sra     |          | X        |         |
-| srli    | X        |          |         |
-| srl     |          | X        |         |
-| sub     |          | X        |         |
-| sw      |          |          | X       |
-| xori    |          |          | X       |
-| xor     |          |          | X       |
-| Summary | ---      | ---      | ---     |
-| 40      | 8        | 7        | 25      |
-| 100.0%  | 20.0%    | 17.5%    | 62.5%   |
+| Test    |        | Result   |       |
+|---------|--------|----------|-------|
+| test_0  | Passed |          |       |
+| addi    | Passed |          |       |
+| add     |        | Failed   |       |
+| andi    |        |          | Error |
+| and     |        |          | Error |
+| auipc   |        |          | Error |
+| beq     |        |          | Error |
+| bge     |        |          | Error |
+| bgeu    |        |          | Error |
+| blt     |        |          | Error |
+| bltu    |        |          | Error |
+| bne     |        |          | Error |
+| fence_i |        |          | Error |
+| jalr    |        |          | Error |
+| jal     |        |          | Error |
+| lb      |        |          | Error |
+| lbu     |        |          | Error |
+| lh      |        |          | Error |
+| lhu     |        |          | Error |
+| lui     | Passed |          |       |
+| lw      |        |          | Error |
+| ori     |        |          | Error |
+| or      |        |          | Error |
+| sb      |        |          | Error |
+| sh      |        |          | Error |
+| simple  | Passed |          |       |
+| slli    | Passed |          |       |
+| sll     |        | Failed   |       |
+| slti    | Passed |          |       |
+| sltiu   | Passed |          |       |
+| slt     |        | Failed   |       |
+| sltu    |        | Failed   |       |
+| srai    |        |          | Error |
+| sra     |        | Failed   |       |
+| srli    | Passed |          |       |
+| srl     |        | Failed   |       |
+| sub     |        | Failed   |       |
+| sw      |        |          | Error |
+| xori    |        |          | Error |
+| xor     |        |          | Error |
+| Summary | ---    | ---      | ---   |
+| 40      | 8      | 7        | 25    |
+| 100.0%  | 20.0%  | 17.5%    | 62.5% |
 

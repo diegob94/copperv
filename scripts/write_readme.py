@@ -40,7 +40,8 @@ def parse(test_rpt):
 
 def generate_report(df):
     def add_res_col(df, res):
-        df[res.capitalize()] = ['X' if i == res else '' for i in df.result]
+        Res = res.capitalize()
+        df[Res] = [Res if i == res else '' for i in df.result]
         return df
     df = add_res_col(df, 'passed')
     df = add_res_col(df, 'failed')
@@ -67,13 +68,16 @@ def generate_report(df):
     #df = df.reindex(index)
     return df[['Test', 'result', 'Passed', 'Failed', 'Error', 'log']]
 
+def display(test_report):
+    return test_report.rename({'Passed':'','Failed':'Result','Error':''}, axis = 'columns')
+
 df = parse(test_rpt_path)
 test_report = generate_report(df)
-print(test_report.to_string(index = False))
+print(display(test_report[['Test','Passed','Failed','Error','log']]).to_string(index = False))
 test_report = test_report[['Test','Passed','Failed','Error']]
 
 readme = readme_template.format(
-    test_report = tabulate(test_report, tablefmt = 'github', showindex = False, headers="keys")
+    test_report = tabulate(display(test_report), tablefmt = 'github', showindex = False, headers="keys")
 )
 
 Path('../README.md').write_text(readme + '\n\n')
