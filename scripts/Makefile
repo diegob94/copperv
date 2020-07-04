@@ -24,7 +24,7 @@ all: sim
 # Test compile
 include $(SCRIPTS)/test.mk
 
-sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) test 
+sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(TEST_NAME).hex 
 	iverilog $(ICARUSFLAGS) -o $@ $(RTL_SOURCES) $(SIM_SOURCES) |& tee sim_compile.log
 
 .PHONY: sim
@@ -41,5 +41,5 @@ clean:
 
 .PHONY: clean_all
 clean_all: clean clean_test
-	rm -fv sim_run.log sim_compile.log tb.lxt
+	setopt NULL_GLOB; rm -fv sim_run_*.log sim_compile.log tb.lxt
 

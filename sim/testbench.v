@@ -131,10 +131,15 @@ begin
 end
 endtask
 always @(posedge clk)
-    if(dw_data_addr_valid && dw_data_addr_ready)
+    if(dw_data_addr_valid && dw_data_addr_ready) begin
         if(dw_addr == 32'd33 && dw_data == 32'd123456789) begin
             $display($time, ": TEST PASSED");
             $finish;
         end
+        if(dw_addr == 32'd33 && dw_data == 32'd111111111) begin
+            $display($time, ": TEST FAILED");
+            $finish;
+        end
+    end
 endmodule
 

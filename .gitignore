@@ -1,5 +1,7 @@
 work/
 util/
 *.o
+*.E
+*.D
 *.swp
 __pycache__/
