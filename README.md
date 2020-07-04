@@ -1,7 +1,7 @@
 # copperv
 RISCV core
 
-## Environment
+## Usage
 - https://github.com/riscv/riscv-gnu-toolchain
   -  Clone to $ROOT/util/riscv-gnu-toolchain  
   -  Set install prefix $ROOT/util/toolchain
