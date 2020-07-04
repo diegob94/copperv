@@ -30,18 +30,11 @@ run_all_tests(){
     done
 }
 
-summary(){
-    echo Summary:
-    echo Passed $(grep passed unit_tests.rpt | wc -l)
-    echo Failed $(grep failed unit_tests.rpt | wc -l)
-    echo Error  $(grep error unit_tests.rpt | wc -l)
-    echo Total  $(($(cat unit_tests.rpt | wc -l) - 2))
-}
-
 TESTS=("../sim/tests/test_0.S")
 TESTS+=($(ls ../util/riscv-tests/isa/rv32ui/*.S | xargs))
 single_test=${1}
 
-run_all_tests | column -t | tee unit_tests.rpt
-echo                      | tee -a unit_tests.rpt
-summary       | column -t | tee -a unit_tests.rpt
+run_all_tests | column -t > unit_tests.rpt
+
+../scripts/write_readme.py unit_tests.rpt
+

@@ -1,5 +1,5 @@
 MEMORY {
-	mem : ORIGIN = 0x00000000, LENGTH = 0x000000ff + 1
+	mem : ORIGIN = 0x00000000, LENGTH = 0x0000ffff + 1
 }
 
 SECTIONS {

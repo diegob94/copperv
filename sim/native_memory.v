@@ -3,7 +3,7 @@
 `include "copperv_h.v"
 
 module native_memory #(
-    parameter address_width = 8,
+    parameter address_width = 16,
     parameter length = (2**address_width),
     parameter instruction_memory = 0
 ) (
