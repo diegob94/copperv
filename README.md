@@ -1,6 +1,28 @@
 # copperv
 RISCV core
 
+## Environment
+- https://github.com/riscv/riscv-gnu-toolchain
+  -  Clone to $ROOT/util/riscv-gnu-toolchain  
+  -  Set install prefix $ROOT/util/toolchain
+- https://github.com/riscv/riscv-tests
+  -  Clone to $ROOT/util/riscv-tests
+- https://www.accellera.org/downloads/standards/ovl
+  -  Download to $ROOT/util/std_ovl
+- http://iverilog.icarus.com/
+- ZSH
+- Python 3:
+  - Recommended to use pyenv to install last python
+  - pip install -r requirements.txt
+- Basic simulation:
+  - mkdir work
+  - ln -s ../scripts/Makefile work/Makefile
+  - cd work
+  - make
+- Unit tests:
+  - cd work
+  - ../scripts/unit_test.zsh
+
 ## Unit test results:
 
 | Test    |        | Result   |       |

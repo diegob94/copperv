@@ -1,0 +1,148 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Wed Jul  1 03:53:05 2020
+[*]
+[dumpfile] "/media/diegob/riscv/riscv/work/tb.lxt"
+[dumpfile_mtime] "Wed Jul  1 03:26:59 2020"
+[dumpfile_size] 4764
+[savefile] "/media/diegob/riscv/riscv/work/tb.gtkw"
+[timestart] 269900
+[size] 1920 1023
+[pos] -1 -1
+*-16.695866 875000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb.
+[treeopen] tb.chk.i_raddr_checker.
+[treeopen] tb.dut.
+[treeopen] tb.dut.alu.
+[sst_width] 239
+[signals_width] 270
+[sst_expanded] 1
+[sst_vpaned_height] 461
+@28
+tb.dut.clk[0]
+tb.dut.rst[0]
+tb.dut.inst_valid[0]
+tb.dut.inst_fetch[0]
+@23
+tb.dut.pc[31:0]
+@28
+tb.dut.pc_en[0]
+@2024
+^1 /media/diegob/riscv/riscv/work/pc_next_sel.gtkfilter
+tb.dut.pc_next_sel[1:0]
+@22
+tb.dut.inst[31:0]
+@2024
+^2 /media/diegob/riscv/riscv/work/inst_type.gtkfilter
+tb.dut.inst_type[2:0]
+@c00200
+-imem
+-tb.dut.i_raddr
+@1401200
+-group_end
+@28
+tb.i_mem.read_addr_tran[0]
+tb.i_mem.read_data_tran[0]
+@1401200
+-imem
+@2024
+[color] 7
+^3 /media/diegob/riscv/riscv/work/state.gtkfilter
+tb.dut.control.state[2:0]
+^3 /media/diegob/riscv/riscv/work/state.gtkfilter
+tb.dut.control.state_next[2:0]
+@28
+tb.dut.control.state_change[0]
+tb.dut.control.state_change_next[0]
+@22
+tb.dut.regfile.rs1[4:0]
+tb.dut.regfile.rs1_dout[31:0]
+@28
+tb.dut.regfile.rs1_en[0]
+@22
+tb.dut.regfile.rs2_dout[31:0]
+@28
+tb.dut.rs2_en[0]
+@22
+tb.dut.alu.alu_dout[31:0]
+@28
+tb.dut.rd_en[0]
+@22
+tb.dut.regfile.rd_din[31:0]
+@28
+tb.dut.rd_din_sel[0]
+tb.dut.alu.alu_comp[0]
+tb.dut.alu_din1_sel[0]
+tb.dut.alu_din2_sel[1:0]
+@2024
+^4 /media/diegob/riscv/riscv/work/alu_op.gtkfilter
+tb.dut.alu.alu_op[3:0]
+@22
+tb.dut.idec.rd[4:0]
+tb.dut.idec.rs1[4:0]
+tb.dut.idec.rs2[4:0]
+@c00200
+-dmem
+@28
+tb.dut.dw_resp_valid[0]
+tb.dut.dw_resp_ready[0]
+@c00022
+tb.dut.dr_addr[31:0]
+@28
+(0)tb.dut.dr_addr[31:0]
+(1)tb.dut.dr_addr[31:0]
+(2)tb.dut.dr_addr[31:0]
+(3)tb.dut.dr_addr[31:0]
+(4)tb.dut.dr_addr[31:0]
+(5)tb.dut.dr_addr[31:0]
+(6)tb.dut.dr_addr[31:0]
+(7)tb.dut.dr_addr[31:0]
+(8)tb.dut.dr_addr[31:0]
+(9)tb.dut.dr_addr[31:0]
+(10)tb.dut.dr_addr[31:0]
+(11)tb.dut.dr_addr[31:0]
+(12)tb.dut.dr_addr[31:0]
+(13)tb.dut.dr_addr[31:0]
+(14)tb.dut.dr_addr[31:0]
+(15)tb.dut.dr_addr[31:0]
+(16)tb.dut.dr_addr[31:0]
+(17)tb.dut.dr_addr[31:0]
+(18)tb.dut.dr_addr[31:0]
+(19)tb.dut.dr_addr[31:0]
+(20)tb.dut.dr_addr[31:0]
+(21)tb.dut.dr_addr[31:0]
+(22)tb.dut.dr_addr[31:0]
+(23)tb.dut.dr_addr[31:0]
+(24)tb.dut.dr_addr[31:0]
+(25)tb.dut.dr_addr[31:0]
+(26)tb.dut.dr_addr[31:0]
+(27)tb.dut.dr_addr[31:0]
+(28)tb.dut.dr_addr[31:0]
+(29)tb.dut.dr_addr[31:0]
+(30)tb.dut.dr_addr[31:0]
+(31)tb.dut.dr_addr[31:0]
+@1401200
+-group_end
+@28
+tb.dut.dr_addr_ready[0]
+tb.dut.dr_addr_valid[0]
+@22
+tb.dut.dr_data[31:0]
+@28
+tb.dut.dr_data_ready[0]
+tb.dut.dr_data_valid[0]
+@22
+tb.dut.dw_addr[31:0]
+tb.dut.dw_data[31:0]
+@28
+tb.dut.dw_data_addr_ready[0]
+tb.dut.dw_data_addr_tran[0]
+tb.dut.dw_data_addr_valid[0]
+tb.dut.dw_resp[0]
+tb.dut.dw_resp_tran[0]
+@1401200
+-dmem
+@28
+tb.d_mem.write_data_addr_tran[0]
+[pattern_trace] 1
+[pattern_trace] 0
