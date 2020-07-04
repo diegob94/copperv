@@ -6,27 +6,29 @@ run_test(){
         return
     fi
     sim_run_log=sim_run_${test_name}.log
-    printf "${test_name} "
 #    make clean_run TEST_SOURCES=$1 TEST_NAME=$test_name |& tee run_test_${test_name}.log > /dev/null
     make TEST_SOURCES=$1 TEST_NAME=$test_name |& tee run_test_${test_name}.log > /dev/null
     if test -f $sim_run_log; then
         if grep -q "TEST PASSED" $sim_run_log; then
-            printf "passed "
+            res="passed"
         elif grep -q "TEST FAILED" $sim_run_log; then
-            printf "failed "
+            res="failed"
         else
-            printf "error "
+            res="error"
         fi
     else
-        printf "error "
+        res="error"
     fi
-    echo "run_test_${test_name}.log "
+    printf "%10s %10s %20s\n" $test_name $res run_test_${test_name}.log
+    printf "%4d %10s %10s %20s\n" $2 $test_name $res run_test_${test_name}.log 1>&2
 }
 
 run_all_tests(){
     echo "test_name result log"
+    i=0
     for TEST in $TESTS; do
-        run_test $TEST
+        run_test $TEST $i
+        i=$((i + 1))
     done
 }
 

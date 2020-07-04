@@ -73,8 +73,9 @@ def display(test_report):
 
 df = parse(test_rpt_path)
 test_report = generate_report(df)
-print(display(test_report[['Test','Passed','Failed','Error','log']]).to_string(index = False))
 test_report = test_report[['Test','Passed','Failed','Error']]
+print("\nSummary:")
+print(test_report.iloc[-2:,:].T.reindex(['Passed','Failed','Error','Test']).rename({'Test':'Total'},axis='index').to_string(header = False))
 
 readme = readme_template.format(
     test_report = tabulate(display(test_report), tablefmt = 'github', showindex = False, headers="keys")
