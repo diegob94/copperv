@@ -118,17 +118,18 @@ always @(posedge clk)
 always @(*) begin
     data_addr = alu_dout;
     data_data = rs2_dout;
-    dw_data_addr_valid = store_data;
-    dw_data_addr_tran = dw_data_addr_valid && dw_data_addr_ready;
+    dw_data_addr_tran = store_data && dw_data_addr_ready;
 end
 always @(posedge clk) begin
     if(!rst) begin
-        dw_addr = 0;
-        dw_data = 0;
+        dw_addr <= 0;
+        dw_data <= 0;
     end else if(dw_data_addr_tran) begin
-        dw_addr = data_addr;
-        dw_data = data_data;
-    end
+        dw_addr <= data_addr;
+        dw_data <= data_data;
+        dw_data_addr_valid <= 1;
+    end else
+        dw_data_addr_valid <= 0;
 end
 always @(posedge clk)
     if(!rst) begin

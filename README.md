@@ -28,9 +28,9 @@ RISCV core
 | Test    |        | Result   |       |
 |---------|--------|----------|-------|
 | test_0  | Passed |          |       |
-| addi    |        | Failed   |       |
+| addi    | Passed |          |       |
 | add     | Passed |          |       |
-| andi    | Passed |          |       |
+| andi    |        | Failed   |       |
 | and     |        | Failed   |       |
 | auipc   |        |          | Error |
 | beq     | Passed |          |       |
@@ -39,35 +39,35 @@ RISCV core
 | blt     | Passed |          |       |
 | bltu    | Passed |          |       |
 | bne     | Passed |          |       |
-| fence_i | Passed |          |       |
+| fence_i |        | Failed   |       |
 | jalr    |        |          | Error |
 | jal     |        |          | Error |
 | lb      |        |          | Error |
 | lbu     |        |          | Error |
 | lh      |        |          | Error |
 | lhu     |        |          | Error |
-| lui     | Passed |          |       |
+| lui     |        | Failed   |       |
 | lw      |        |          | Error |
-| ori     | Passed |          |       |
+| ori     |        | Failed   |       |
 | or      |        | Failed   |       |
-| sb      |        | Failed   |       |
-| sh      |        | Failed   |       |
+| sb      | Passed |          |       |
+| sh      | Passed |          |       |
 | simple  | Passed |          |       |
-| slli    | Passed |          |       |
+| slli    |        | Failed   |       |
 | sll     |        | Failed   |       |
 | slti    |        | Failed   |       |
 | sltiu   |        | Failed   |       |
 | slt     |        | Failed   |       |
 | sltu    |        | Failed   |       |
-| srai    | Passed |          |       |
+| srai    |        | Failed   |       |
 | sra     |        | Failed   |       |
 | srli    |        | Failed   |       |
 | srl     |        | Failed   |       |
 | sub     | Passed |          |       |
 | sw      | Passed |          |       |
-| xori    | Passed |          |       |
+| xori    |        | Failed   |       |
 | xor     |        | Failed   |       |
 | Summary | ---    | ---      | ---   |
-| 40      | 18     | 14       | 8     |
-| 100.0%  | 45.0%  | 35.0%    | 20.0% |
+| 40      | 14     | 18       | 8     |
+| 100.0%  | 35.0%  | 45.0%    | 20.0% |
 

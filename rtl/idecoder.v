@@ -66,8 +66,8 @@ always @(*) begin
                 3'd1: funct = `FUNCT_NEQ;
                 3'd4: funct = `FUNCT_LT;
                 3'd5: funct = `FUNCT_GTE;
-                3'd4: funct = `FUNCT_LTU;
-                3'd5: funct = `FUNCT_GTEU;
+                3'd6: funct = `FUNCT_LTU;
+                3'd7: funct = `FUNCT_GTEU;
             endcase
         end
         {6'h08, 2'b11}: begin // Store

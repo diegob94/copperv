@@ -52,10 +52,10 @@ always @(*) begin
     a_s = a;
     b_s = b;
     equ = a == b;
-    ltu = a > b;
-    gtu = a < b;
+    ltu = a < b;
+    gtu = a > b;
     eq = a_s == b_s;
-    lt = a_s > b_s;
-    gt = a_s < b_s;
+    lt = a_s < b_s;
+    gt = a_s > b_s;
 end
 endmodule
