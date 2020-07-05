@@ -33,8 +33,8 @@ RISCV core
 | test_0  | Passed |          |       |
 | addi    | Passed |          |       |
 | add     | Passed |          |       |
-| andi    |        | Failed   |       |
-| and     |        | Failed   |       |
+| andi    | Passed |          |       |
+| and     | Passed |          |       |
 | auipc   |        |          | Error |
 | beq     | Passed |          |       |
 | bge     | Passed |          |       |
@@ -71,6 +71,6 @@ RISCV core
 | xori    |        | Failed   |       |
 | xor     |        | Failed   |       |
 | Summary | ---    | ---      | ---   |
-| 40      | 14     | 18       | 8     |
-| 100.0%  | 35.0%  | 45.0%    | 20.0% |
+| 40      | 16     | 16       | 8     |
+| 100.0%  | 40.0%  | 40.0%    | 20.0% |
 

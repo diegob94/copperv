@@ -131,7 +131,7 @@ always @(*) begin
                     pc_next_sel = `PC_NEXT_SEL_INCR;
                     case(funct)
                         `FUNCT_ADD: alu_op = `ALU_OP_ADD;
-                        `FUNCT_SUB: alu_op = `ALU_OP_SUB;
+                        `FUNCT_AND: alu_op = `ALU_OP_AND;
                     endcase
                 end
                 `INST_TYPE_INT_REG: begin
@@ -143,6 +143,7 @@ always @(*) begin
                     case(funct)
                         `FUNCT_ADD: alu_op = `ALU_OP_ADD;
                         `FUNCT_SUB: alu_op = `ALU_OP_SUB;
+                        `FUNCT_AND: alu_op = `ALU_OP_AND;
                     endcase
                 end
                 `INST_TYPE_BRANCH: begin

@@ -20,6 +20,7 @@ always @(*) begin
         `ALU_OP_NOP: alu_dout = {`DATA_WIDTH{1'bx}};
         `ALU_OP_ADD: alu_dout = alu_din1 + alu_din2;
         `ALU_OP_SUB: alu_dout = alu_din1 - alu_din2;
+        `ALU_OP_AND: alu_dout = alu_din1 & alu_din2;
     endcase
 end
 always @(*) begin

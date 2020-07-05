@@ -44,6 +44,7 @@ always @(*) begin
             rs1 = inst[19:15];
             case (inst[14:12])
                 3'd0: funct = `FUNCT_ADD;
+                3'd7: funct = `FUNCT_AND;
             endcase
         end
         {6'h0C, 2'b11}: begin // Reg-reg
@@ -54,6 +55,7 @@ always @(*) begin
             case ({inst[31:25], inst[14:12]})
                 {7'd0, 3'd0}: funct = `FUNCT_ADD;
                 {7'd32,3'd0}: funct = `FUNCT_SUB;
+                {7'd0, 3'd7}: funct = `FUNCT_AND;
             endcase
         end
         {6'h18, 2'b11}: begin // Branch
