@@ -58,11 +58,16 @@ always @(*) begin
         end
         {6'h18, 2'b11}: begin // Branch
             inst_type = `INST_TYPE_BRANCH;
-            imm = {{19{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
+            imm = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
             rs1 = inst[19:15];
             rs2 = inst[24:20];
             case (inst[14:12])
                 3'd0: funct = `FUNCT_EQ;
+                3'd1: funct = `FUNCT_NEQ;
+                3'd4: funct = `FUNCT_LT;
+                3'd5: funct = `FUNCT_GTE;
+                3'd4: funct = `FUNCT_LTU;
+                3'd5: funct = `FUNCT_GTEU;
             endcase
         end
         {6'h08, 2'b11}: begin // Store

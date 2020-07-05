@@ -6,14 +6,13 @@ module arith_logic_unit (
     input [`DATA_WIDTH-1:0] alu_din2,
     input [`ALU_OP_WIDTH-1:0] alu_op,
     output [`DATA_WIDTH-1:0] alu_dout,
-    output alu_comp
+    output reg [`ALU_COMP_WIDTH-1:0] alu_comp
 );
 reg [`DATA_WIDTH-1:0] alu_dout;
-reg alu_comp;
 reg sign;
 wire eq;
 wire lt;
-wire gt;
+wire ltu;
 always @(*) begin
     sign = 0;
     alu_dout = 0;
@@ -23,42 +22,40 @@ always @(*) begin
         `ALU_OP_SUB: alu_dout = alu_din1 - alu_din2;
     endcase
 end
-always @(*)
-    alu_comp = eq;
+always @(*) begin
+    alu_comp[`ALU_COMP_EQ]  = eq;
+    alu_comp[`ALU_COMP_LT]  = lt;
+    alu_comp[`ALU_COMP_LTU] = ltu;
+end
 comparator comp(
     .a(alu_din1),
     .b(alu_din2),
-    .sign(sign),
     .eq(eq),
-    .gt(gt),
-    .lt(lt)
+    .lt(lt),
+    .ltu(ltu)
 );
 endmodule
 
 module comparator(
     input [`DATA_WIDTH-1:0] a,
     input [`DATA_WIDTH-1:0] b,
-    input sign,
-    output eq,
-    output gt,
-    output lt
+    output reg eq,
+    output reg gt,
+    output reg lt,
+    output reg equ,
+    output reg gtu,
+    output reg ltu
 );
-reg eq;
-reg gt;
-reg lt;
 reg signed [`DATA_WIDTH-1:0] a_s;
 reg signed [`DATA_WIDTH-1:0] b_s;
 always @(*) begin
     a_s = a;
     b_s = b;
-    if(!sign) begin
-        eq = a == b;
-        lt = a > b;
-        gt = a < b;
-    end else begin
-        eq = a_s == b_s;
-        lt = a_s > b_s;
-        gt = a_s < b_s;
-    end
+    equ = a == b;
+    ltu = a > b;
+    gtu = a < b;
+    eq = a_s == b_s;
+    lt = a_s > b_s;
+    gt = a_s < b_s;
 end
 endmodule

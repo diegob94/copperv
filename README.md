@@ -28,18 +28,18 @@ RISCV core
 | Test    |        | Result   |       |
 |---------|--------|----------|-------|
 | test_0  | Passed |          |       |
-| addi    | Passed |          |       |
-| add     |        | Failed   |       |
-| andi    |        |          | Error |
-| and     |        |          | Error |
+| addi    |        | Failed   |       |
+| add     | Passed |          |       |
+| andi    | Passed |          |       |
+| and     |        | Failed   |       |
 | auipc   |        |          | Error |
-| beq     |        |          | Error |
-| bge     |        |          | Error |
-| bgeu    |        |          | Error |
-| blt     |        |          | Error |
-| bltu    |        |          | Error |
-| bne     |        |          | Error |
-| fence_i |        |          | Error |
+| beq     | Passed |          |       |
+| bge     | Passed |          |       |
+| bgeu    | Passed |          |       |
+| blt     | Passed |          |       |
+| bltu    | Passed |          |       |
+| bne     | Passed |          |       |
+| fence_i | Passed |          |       |
 | jalr    |        |          | Error |
 | jal     |        |          | Error |
 | lb      |        |          | Error |
@@ -48,26 +48,26 @@ RISCV core
 | lhu     |        |          | Error |
 | lui     | Passed |          |       |
 | lw      |        |          | Error |
-| ori     |        |          | Error |
-| or      |        |          | Error |
-| sb      |        |          | Error |
-| sh      |        |          | Error |
+| ori     | Passed |          |       |
+| or      |        | Failed   |       |
+| sb      |        | Failed   |       |
+| sh      |        | Failed   |       |
 | simple  | Passed |          |       |
 | slli    | Passed |          |       |
 | sll     |        | Failed   |       |
-| slti    | Passed |          |       |
-| sltiu   | Passed |          |       |
+| slti    |        | Failed   |       |
+| sltiu   |        | Failed   |       |
 | slt     |        | Failed   |       |
 | sltu    |        | Failed   |       |
-| srai    |        |          | Error |
+| srai    | Passed |          |       |
 | sra     |        | Failed   |       |
-| srli    | Passed |          |       |
+| srli    |        | Failed   |       |
 | srl     |        | Failed   |       |
-| sub     |        | Failed   |       |
-| sw      |        |          | Error |
-| xori    |        |          | Error |
-| xor     |        |          | Error |
+| sub     | Passed |          |       |
+| sw      | Passed |          |       |
+| xori    | Passed |          |       |
+| xor     |        | Failed   |       |
 | Summary | ---    | ---      | ---   |
-| 40      | 8      | 7        | 25    |
-| 100.0%  | 20.0%  | 17.5%    | 62.5% |
+| 40      | 18     | 14       | 8     |
+| 100.0%  | 45.0%  | 35.0%    | 20.0% |
 

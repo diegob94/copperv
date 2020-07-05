@@ -3,7 +3,7 @@
 `include "copperv_h.v"
 
 module tb();
-parameter timeout = `PERIOD*100;
+parameter timeout = `PERIOD*10000;
 // copperv inputs
 reg clk;
 reg rst;
@@ -43,8 +43,8 @@ initial begin
 end
 initial begin
     #timeout;
-    $display($time, ": Failed: Timeout");
-    finish_sim;
+    $display($time, ": Simulation timeout");
+    test_failed;
 end
 always #(`PERIOD/2) clk <= !clk;
 copperv dut (
@@ -124,22 +124,26 @@ initial begin
     $dumpfile("tb.lxt");
     $dumpvars(0, tb);
 end
-
-task finish_sim;
-begin
-    $finish;
-end
-endtask
 always @(posedge clk)
     if(dw_data_addr_valid && dw_data_addr_ready) begin
         if(dw_addr == 32'd33 && dw_data == 32'd123456789) begin
-            $display($time, ": TEST PASSED");
-            $finish;
+            test_passed;
         end
         if(dw_addr == 32'd33 && dw_data == 32'd111111111) begin
-            $display($time, ": TEST FAILED");
-            $finish;
+            test_failed;
         end
     end
+task test_passed;
+begin
+    $display($time, ": TEST PASSED");
+    $finish;
+end
+endtask
+task test_failed;
+begin
+    $display($time, ": TEST FAILED");
+    $finish;
+end
+endtask
 endmodule
 

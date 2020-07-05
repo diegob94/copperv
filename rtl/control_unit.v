@@ -6,7 +6,7 @@ module control_unit (
     input rst,
     input [`INST_TYPE_WIDTH-1:0] inst_type,
     input inst_valid,
-    input alu_comp,
+    input [`ALU_COMP_WIDTH-1:0] alu_comp,
     input [`FUNCT_WIDTH-1:0] funct,
     input data_valid,
     output reg inst_fetch,
@@ -31,6 +31,7 @@ reg [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel;
 reg [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel;
 reg [`ALU_OP_WIDTH-1:0] alu_op;
 reg state_change;
+reg take_branch;
 wire state_change_next;
 always @(posedge clk) begin
     if(!rst)
@@ -91,6 +92,7 @@ always @(*) begin
     pc_next_sel = `PC_NEXT_SEL_STALL;
     alu_op = `ALU_OP_NOP;
     store_data = 0;
+    take_branch = 0;
     case (state)
         `STATE_FETCH: begin
             inst_fetch = state_change;
@@ -146,7 +148,21 @@ always @(*) begin
                 `INST_TYPE_BRANCH: begin
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
                     alu_din2_sel = `ALU_DIN2_SEL_RS2;
-                    if(alu_comp)
+                    case(funct)
+                        `FUNCT_EQ:
+                            take_branch =  alu_comp[`ALU_COMP_EQ];
+                        `FUNCT_NEQ:
+                            take_branch = !alu_comp[`ALU_COMP_EQ];
+                        `FUNCT_LT:
+                            take_branch =  alu_comp[`ALU_COMP_LT];
+                        `FUNCT_GTE:
+                            take_branch = !alu_comp[`ALU_COMP_LT];
+                        `FUNCT_LTU:
+                            take_branch =  alu_comp[`ALU_COMP_LTU];
+                        `FUNCT_GTEU:
+                            take_branch = !alu_comp[`ALU_COMP_LTU];
+                    endcase
+                    if(take_branch)
                         pc_next_sel = `PC_NEXT_SEL_ADD_IMM;
                     else
                         pc_next_sel = `PC_NEXT_SEL_INCR;

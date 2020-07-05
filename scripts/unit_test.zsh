@@ -2,11 +2,14 @@
 
 run_test(){
     test_name=${1:r:t}
-    if [[ "$single_test" != "" && "$single_test" != "$test_name" ]]; then
-        return
+    if [[ "$single_test" != "" ]]; then
+        if [[ "$single_test" != "$test_name" ]]; then
+            return
+        else
+            echo "make TEST_SOURCES=$1 TEST_NAME=$test_name" 1>&2
+        fi
     fi
     sim_run_log=sim_run_${test_name}.log
-#    make clean_run TEST_SOURCES=$1 TEST_NAME=$test_name |& tee run_test_${test_name}.log > /dev/null
     make TEST_SOURCES=$1 TEST_NAME=$test_name |& tee run_test_${test_name}.log > /dev/null
     if test -f $sim_run_log; then
         if grep -q "TEST PASSED" $sim_run_log; then
@@ -26,6 +29,7 @@ run_test(){
 run_all_tests(){
     echo "test_name result log"
     i=0
+    make clean |& tee clean.log > /dev/null
     for TEST in $TESTS; do
         run_test $TEST $i
         i=$((i + 1))

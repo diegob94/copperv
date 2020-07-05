@@ -30,8 +30,10 @@
 `define ALU_OP_NOP         0
 `define ALU_OP_ADD         1
 `define ALU_OP_SUB         2
-`define ALU_OP_EQ          3
-`define ALU_OP_NEQ         4
+`define ALU_COMP_WIDTH     3
+`define ALU_COMP_EQ        0
+`define ALU_COMP_LT        1
+`define ALU_COMP_LTU       2
 
 // idecoder
 `define INST_WIDTH         32
@@ -49,10 +51,14 @@
 `define FUNCT_SUB          1
 `define FUNCT_EQ           2
 `define FUNCT_NEQ          3
-`define FUNCT_MEM_BYTE     4
-`define FUNCT_MEM_HWORD    5
-`define FUNCT_MEM_WORD     6
-`define FUNCT_JAL          7
+`define FUNCT_LT           4
+`define FUNCT_GTE          5
+`define FUNCT_LTU          6
+`define FUNCT_GTEU         7
+`define FUNCT_MEM_BYTE     8
+`define FUNCT_MEM_HWORD    9
+`define FUNCT_MEM_WORD     10
+`define FUNCT_JAL          11
 `define OPCODE_LUI         {6'h0D, 2'b11}
 `define OPCODE_JAL         {6'h1B, 2'b11}
 

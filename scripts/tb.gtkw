@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Wed Jul  1 03:53:05 2020
+[*] Sun Jul  5 02:46:03 2020
 [*]
 [dumpfile] "/media/diegob/riscv/riscv/work/tb.lxt"
-[dumpfile_mtime] "Wed Jul  1 03:26:59 2020"
-[dumpfile_size] 4764
-[savefile] "/media/diegob/riscv/riscv/work/tb.gtkw"
-[timestart] 269900
-[size] 1920 1023
+[dumpfile_mtime] "Sun Jul  5 02:30:44 2020"
+[dumpfile_size] 130961
+[savefile] "/media/diegob/riscv/riscv/scripts/tb.gtkw"
+[timestart] 6097000
+[size] 1366 711
 [pos] -1 -1
-*-16.695866 875000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-16.087420 6225000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb.
 [treeopen] tb.chk.i_raddr_checker.
 [treeopen] tb.dut.
@@ -17,24 +17,28 @@
 [sst_width] 239
 [signals_width] 270
 [sst_expanded] 1
-[sst_vpaned_height] 461
+[sst_vpaned_height] 215
 @28
 tb.dut.clk[0]
 tb.dut.rst[0]
 tb.dut.inst_valid[0]
 tb.dut.inst_fetch[0]
-@23
+@22
 tb.dut.pc[31:0]
 @28
 tb.dut.pc_en[0]
+@22
+tb.dut.inst[31:0]
+@2022
+^2 /media/diegob/riscv/riscv/work/inst_type.gtkfilter
+tb.dut.inst_type[3:0]
+@28
+tb.dut.control.take_branch[0]
 @2024
 ^1 /media/diegob/riscv/riscv/work/pc_next_sel.gtkfilter
 tb.dut.pc_next_sel[1:0]
-@22
-tb.dut.inst[31:0]
-@2024
-^2 /media/diegob/riscv/riscv/work/inst_type.gtkfilter
-tb.dut.inst_type[2:0]
+@23
+tb.dut.imm[31:0]
 @c00200
 -imem
 -tb.dut.i_raddr
@@ -71,8 +75,6 @@ tb.dut.rd_en[0]
 tb.dut.regfile.rd_din[31:0]
 @28
 tb.dut.rd_din_sel[0]
-tb.dut.alu.alu_comp[0]
-tb.dut.alu_din1_sel[0]
 tb.dut.alu_din2_sel[1:0]
 @2024
 ^4 /media/diegob/riscv/riscv/work/alu_op.gtkfilter

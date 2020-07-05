@@ -55,7 +55,7 @@ wire [`DATA_WIDTH-1:0] rs2_dout;
 reg [`DATA_WIDTH-1:0] alu_din1;
 reg [`DATA_WIDTH-1:0] alu_din2;
 wire [`DATA_WIDTH-1:0] alu_dout;
-wire alu_comp;
+wire [`ALU_COMP_WIDTH-1:0] alu_comp;
 // arith_logic_unit end
 // datapath begin
 wire inst_fetch;
