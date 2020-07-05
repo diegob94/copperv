@@ -3,23 +3,26 @@ RISCV core
 
 ## Usage
 - https://github.com/riscv/riscv-gnu-toolchain
-  -  Clone to $ROOT/util/riscv-gnu-toolchain  
-  -  Set install prefix $ROOT/util/toolchain
+  - Clone to ./util/riscv-gnu-toolchain
+  - ./configure --prefix=$(readlink -f ./util/toolchain) --with-arch=rv32i
+  - Add as submodule?
 - https://github.com/riscv/riscv-tests
-  -  Clone to $ROOT/util/riscv-tests
+  - Clone to ./util/riscv-tests
+  - Add as submodule?
 - https://www.accellera.org/downloads/standards/ovl
-  -  Download to $ROOT/util/std_ovl
+  - Download to ./util/std_ovl
+  - Optional?
 - http://iverilog.icarus.com/
 - ZSH
 - Python 3:
-  - Recommended to use pyenv to install last python
+  - Pyenv is recommended to install latest python
   - pip install -r requirements.txt
 - Basic simulation:
   - mkdir work
   - ln -s ../scripts/Makefile work/Makefile
   - cd work
   - make
-- Unit tests:
+- Run unit tests:
   - cd work
   - ../scripts/unit_test.zsh
 
