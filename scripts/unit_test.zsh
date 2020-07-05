@@ -34,9 +34,13 @@ run_all_tests(){
 
 TESTS=("../sim/tests/test_0.S")
 TESTS+=($(ls ../util/riscv-tests/isa/rv32ui/*.S | xargs))
+
 single_test=${1}
+if [[ "$single_test" == "" ]]; then
+    update_readme=-update_readme
+fi
 
 run_all_tests | column -t > unit_tests.rpt
 
-../scripts/write_readme.py unit_tests.rpt
+../scripts/write_readme.py unit_tests.rpt $update_readme
 

@@ -8,6 +8,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Write README.md')
 parser.add_argument('test_rpt', type=Path, help='Unit test report')
+parser.add_argument('-update_readme', action='store_true', help='Update README.md')
 args = parser.parse_args()
 
 test_rpt_path = args.test_rpt
@@ -67,15 +68,16 @@ test_report = test_report[['Test','Passed','Failed','Error']]
 print("\nSummary:")
 print(test_report.iloc[-2:,:].T.reindex(['Passed','Failed','Error','Test']).rename({'Test':'Total'},axis='index').to_string(header = False))
 
-readme = str(tabulate(display(test_report), tablefmt = 'github', showindex = False, headers="keys"))
+if args.update_readme:
+    readme = str(tabulate(display(test_report), tablefmt = 'github', showindex = False, headers="keys"))
 
-readme_path = Path('../README.md')
-header = "## Unit test results:"
-text = []
-for line in readme_path.read_text().splitlines():
-    text.append(line)
-    if line.strip() == header:
-        break
-readme_path.write_text('\n'.join(text) + '\n\n' + readme + '\n\n')
-print('\nGenerated README.md')
+    readme_path = Path('../README.md')
+    header = "## Unit test results:"
+    text = []
+    for line in readme_path.read_text().splitlines():
+        text.append(line)
+        if line.strip() == header:
+            break
+    readme_path.write_text('\n'.join(text) + '\n\n' + readme + '\n\n')
+    print('\nUpdated README.md')
 
