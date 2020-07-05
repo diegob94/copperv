@@ -16,7 +16,7 @@ ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall 
 #ICARUSFLAGS += -pfileline=1
 VVPFLAGS = -lxt2 
 #VVPFLAGS += +DUMP_REGFILE
-GTKWAVEFLAGS = --rcvar 'splash_disable on' -A 
+GTKWAVEFLAGS = --rcvar 'splash_disable on' -A -a $(SCRIPTS)/tb.gtkw 
 
 .PHONY: all
 all: sim

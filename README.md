@@ -26,6 +26,10 @@ RISCV core
   - cd work
   - ../scripts/unit_test.zsh
 
+## To Do
+- Easier make UI: make TEST=test_0
+- Write dissassembly monitor in C
+
 ## Unit test results:
 
 | Test    |        | Result   |       |

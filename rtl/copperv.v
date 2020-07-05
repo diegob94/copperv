@@ -178,6 +178,7 @@ idecoder idec (
 );
 register_file regfile (
     .clk(clk),
+    .rst(rst),
     .rd_en(rd_en),
     .rs1_en(rs1_en),
     .rs2_en(rs2_en),

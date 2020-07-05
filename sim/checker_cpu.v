@@ -132,7 +132,7 @@ ovl_implication #(
     .reset(reset),
     .enable(1'b1),
     .antecedent_expr(alu_active && `CPU_INST.alu.alu_op == `ALU_OP_ADD), 
-    .consequent_expr(`CPU_INST.alu.alu_dout == `CPU_INST.alu.alu_din1 + `CPU_INST.alu.alu_din2),
+    .consequent_expr(`CPU_INST.alu.alu_dout == (`CPU_INST.alu.alu_din1 + `CPU_INST.alu.alu_din2)),
     .fire(fire)
 );
 endmodule
