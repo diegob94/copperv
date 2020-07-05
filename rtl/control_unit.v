@@ -187,6 +187,16 @@ always @(*) begin
                         `FUNCT_ADD: alu_op = `ALU_OP_ADD;
                     endcase
                 end
+                `INST_TYPE_AUIPC: begin
+                    rd_en = 1;
+                    rd_din_sel = `RD_DIN_SEL_ALU;
+                    alu_din1_sel = `ALU_DIN1_SEL_PC;
+                    alu_din2_sel = `ALU_DIN2_SEL_IMM;
+                    pc_next_sel = `PC_NEXT_SEL_INCR;
+                    case(funct)
+                        `FUNCT_ADD: alu_op = `ALU_OP_ADD;
+                    endcase
+                end
             endcase
         end
         `STATE_MEM: begin

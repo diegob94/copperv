@@ -47,6 +47,7 @@
 `define INST_TYPE_BRANCH   3
 `define INST_TYPE_STORE    4
 `define INST_TYPE_JAL      5
+`define INST_TYPE_AUIPC    6
 `define FUNCT_WIDTH        4
 `define FUNCT_ADD          0
 `define FUNCT_SUB          1
@@ -63,6 +64,7 @@
 `define FUNCT_JAL          12
 `define OPCODE_LUI         {6'h0D, 2'b11}
 `define OPCODE_JAL         {6'h1B, 2'b11}
+`define OPCODE_AUIPC       {6'h05, 2'b11}
 
 // control_unit
 `define STATE_WIDTH        3

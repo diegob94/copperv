@@ -39,7 +39,7 @@ RISCV core
 | add     | Passed |          |      |
 | andi    | Passed |          |      |
 | and     | Passed |          |      |
-| auipc   |        | Failed   |      |
+| auipc   | Passed |          |      |
 | beq     | Passed |          |      |
 | bge     | Passed |          |      |
 | bgeu    | Passed |          |      |
@@ -48,7 +48,7 @@ RISCV core
 | bne     | Passed |          |      |
 | fence_i |        | Failed   |      |
 | jalr    |        | Failed   |      |
-| jal     |        | Failed   |      |
+| jal     | Passed |          |      |
 | lb      |        | Failed   |      |
 | lbu     |        | Failed   |      |
 | lh      |        | Failed   |      |
@@ -75,6 +75,6 @@ RISCV core
 | xori    |        | Failed   |      |
 | xor     |        | Failed   |      |
 | Summary | ---    | ---      | ---  |
-| 40      | 13     | 27       | 0    |
-| 100.0%  | 32.5%  | 67.5%    | 0.0% |
+| 40      | 15     | 25       | 0    |
+| 100.0%  | 37.5%  | 62.5%    | 0.0% |
 

@@ -37,6 +37,11 @@ always @(*) begin
             imm = {{11{inst[31]}}, inst[19:12], inst[20], inst[30:25], inst[24:21], 1'b0};
             rd = inst[11:7];
         end
+        `OPCODE_AUIPC: begin
+            inst_type = `INST_TYPE_AUIPC;
+            imm = {inst[31:12], {12{1'b0}}};
+            rd = inst[11:7];
+        end
         {6'h04, 2'b11}: begin // Reg-Inmmediate
             inst_type = `INST_TYPE_INT_IMM;
             imm = {{21{inst[31]}}, inst[30:20]};
