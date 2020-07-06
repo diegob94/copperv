@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Sun Jul  5 08:26:54 2020
+[*] Mon Jul  6 01:27:08 2020
 [*]
 [dumpfile] "/media/diegob/riscv/riscv/work/tb.lxt"
-[dumpfile_mtime] "Sun Jul  5 07:22:28 2020"
-[dumpfile_size] 3122
+[dumpfile_mtime] "Mon Jul  6 01:27:01 2020"
+[dumpfile_size] 13880
 [savefile] "/media/diegob/riscv/riscv/scripts/tb.gtkw"
-[timestart] 143700
+[timestart] 242400
 [size] 1366 711
 [pos] -1 -1
-*-14.695916 193000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-15.708232 349000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb.
 [treeopen] tb.chk.i_raddr_checker.
 [treeopen] tb.dut.

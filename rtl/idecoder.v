@@ -3,7 +3,6 @@
 
 module idecoder (
     input [`INST_WIDTH-1:0] inst,
-    output reg [`OPCODE_WIDTH-1:0] opcode,
     output reg [`IMM_WIDTH-1:0] imm,
     output reg [`INST_TYPE_WIDTH-1:0] inst_type,
     output reg [`REG_WIDTH-1:0] rd,
@@ -11,6 +10,7 @@ module idecoder (
     output reg [`REG_WIDTH-1:0] rs2,
     output reg [`FUNCT_WIDTH-1:0] funct
 );
+reg [`OPCODE_WIDTH-1:0] opcode;
 reg [`FUNCT3_WIDTH-1:0] funct3;
 reg [`FUNCT7_WIDTH-1:0] funct7;
 always @(*) begin
@@ -31,6 +31,10 @@ always @(*) begin
         `OPCODE_JAL: begin
             inst_type = `INST_TYPE_JAL;
             decode_j_type(inst);
+        end
+        `OPCODE_JALR: begin
+            inst_type = `INST_TYPE_JALR;
+            decode_i_type(inst);
         end
         `OPCODE_AUIPC: begin
             inst_type = `INST_TYPE_AUIPC;

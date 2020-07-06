@@ -35,7 +35,6 @@ module copperv #(
 );
 // idecoder begin
 wire [`IMM_WIDTH-1:0] imm;
-wire [`OPCODE_WIDTH-1:0] opcode;
 wire [`FUNCT_WIDTH-1:0] funct;
 wire [`ALU_OP_WIDTH-1:0] alu_op;
 wire [`REG_WIDTH-1:0] rd;
@@ -161,14 +160,14 @@ always @(*) begin
     pc_next = 0;
     pc_en = 1;
     case (pc_next_sel)
-        `PC_NEXT_SEL_STALL:   pc_en = 0;
-        `PC_NEXT_SEL_INCR:    pc_next = pc + 4;
-        `PC_NEXT_SEL_ADD_IMM: pc_next = pc + imm;
+        `PC_NEXT_SEL_STALL:       pc_en = 0;
+        `PC_NEXT_SEL_INCR:        pc_next = pc + 4;
+        `PC_NEXT_SEL_ADD_IMM:     pc_next = pc + imm;
+        `PC_NEXT_SEL_ADD_RS1_IMM: pc_next = rs1_dout + imm;
     endcase
 end
 idecoder idec (
     .inst(inst),
-    .opcode(opcode),
     .imm(imm),
     .inst_type(inst_type),
     .rd(rd),

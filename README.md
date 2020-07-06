@@ -47,7 +47,7 @@ RISCV core
 | bltu    | Passed |          |      |
 | bne     | Passed |          |      |
 | fence_i |        | Failed   |      |
-| jalr    |        | Failed   |      |
+| jalr    | Passed |          |      |
 | jal     | Passed |          |      |
 | lb      |        | Failed   |      |
 | lbu     |        | Failed   |      |
@@ -75,6 +75,6 @@ RISCV core
 | xori    |        | Failed   |      |
 | xor     |        | Failed   |      |
 | Summary | ---    | ---      | ---  |
-| 40      | 15     | 25       | 0    |
-| 100.0%  | 37.5%  | 62.5%    | 0.0% |
+| 40      | 16     | 24       | 0    |
+| 100.0%  | 40.0%  | 60.0%    | 0.0% |
 
