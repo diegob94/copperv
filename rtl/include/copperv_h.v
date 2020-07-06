@@ -65,6 +65,12 @@
 `define OPCODE_LUI         {6'h0D, 2'b11}
 `define OPCODE_JAL         {6'h1B, 2'b11}
 `define OPCODE_AUIPC       {6'h05, 2'b11}
+`define OPCODE_INT_IMM     {6'h04, 2'b11}
+`define OPCODE_INT_REG     {6'h0C, 2'b11}
+`define OPCODE_BRANCH      {6'h18, 2'b11}
+`define OPCODE_STORE       {6'h08, 2'b11}
+`define FUNCT3_WIDTH       3
+`define FUNCT7_WIDTH       7
 
 // control_unit
 `define STATE_WIDTH        3

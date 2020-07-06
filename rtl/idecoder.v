@@ -3,72 +3,60 @@
 
 module idecoder (
     input [`INST_WIDTH-1:0] inst,
-    output [`OPCODE_WIDTH-1:0] opcode,
-    output [`IMM_WIDTH-1:0] imm,
-    output [`INST_TYPE_WIDTH-1:0] inst_type,
-    output [`REG_WIDTH-1:0] rd,
-    output [`REG_WIDTH-1:0] rs1,
-    output [`REG_WIDTH-1:0] rs2,
-    output [`FUNCT_WIDTH-1:0] funct
+    output reg [`OPCODE_WIDTH-1:0] opcode,
+    output reg [`IMM_WIDTH-1:0] imm,
+    output reg [`INST_TYPE_WIDTH-1:0] inst_type,
+    output reg [`REG_WIDTH-1:0] rd,
+    output reg [`REG_WIDTH-1:0] rs1,
+    output reg [`REG_WIDTH-1:0] rs2,
+    output reg [`FUNCT_WIDTH-1:0] funct
 );
-reg [`INST_TYPE_WIDTH-1:0] inst_type;
-reg [`IMM_WIDTH-1:0] imm;
-reg [`OPCODE_WIDTH-1:0] opcode;
-reg [`FUNCT_WIDTH-1:0] funct;
-reg [`REG_WIDTH-1:0] rd;
-reg [`REG_WIDTH-1:0] rs1;
-reg [`REG_WIDTH-1:0] rs2;
+reg [`FUNCT3_WIDTH-1:0] funct3;
+reg [`FUNCT7_WIDTH-1:0] funct7;
 always @(*) begin
-    opcode = inst[6:0];
-    imm = 0;
     inst_type = 0;
     funct = 0;
-    rd = 0;
+    imm = 0;
     rs1 = 0;
     rs2 = 0;
+    rd = 0;
+    funct3 = 0;
+    funct7 = 0;
+    opcode = inst[6:0];
     case (opcode)
         `OPCODE_LUI: begin
             inst_type = `INST_TYPE_IMM;
-            imm = {inst[31:12], 12'b0};
-            rd = inst[11:7];
+            decode_u_type(inst);
         end
         `OPCODE_JAL: begin
             inst_type = `INST_TYPE_JAL;
-            imm = {{11{inst[31]}}, inst[19:12], inst[20], inst[30:25], inst[24:21], 1'b0};
-            rd = inst[11:7];
+            decode_j_type(inst);
         end
         `OPCODE_AUIPC: begin
             inst_type = `INST_TYPE_AUIPC;
-            imm = {inst[31:12], {12{1'b0}}};
-            rd = inst[11:7];
+            decode_u_type(inst);
         end
-        {6'h04, 2'b11}: begin // Reg-Inmmediate
+        `OPCODE_INT_IMM: begin
             inst_type = `INST_TYPE_INT_IMM;
-            imm = {{21{inst[31]}}, inst[30:20]};
-            rd = inst[11:7];
-            rs1 = inst[19:15];
-            case (inst[14:12])
+            decode_i_type(inst);
+            case (funct3)
                 3'd0: funct = `FUNCT_ADD;
                 3'd7: funct = `FUNCT_AND;
             endcase
         end
-        {6'h0C, 2'b11}: begin // Reg-reg
+        `OPCODE_INT_REG: begin 
             inst_type = `INST_TYPE_INT_REG;
-            rs1 = inst[19:15];
-            rs2 = inst[24:20];
-            rd = inst[11:7];
-            case ({inst[31:25], inst[14:12]})
+            decode_r_type(inst);
+            case ({funct7, funct3})
                 {7'd0, 3'd0}: funct = `FUNCT_ADD;
                 {7'd32,3'd0}: funct = `FUNCT_SUB;
                 {7'd0, 3'd7}: funct = `FUNCT_AND;
             endcase
         end
-        {6'h18, 2'b11}: begin // Branch
+        `OPCODE_BRANCH: begin
             inst_type = `INST_TYPE_BRANCH;
-            imm = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
-            rs1 = inst[19:15];
-            rs2 = inst[24:20];
-            case (inst[14:12])
+            decode_b_type(inst);
+            case (funct3)
                 3'd0: funct = `FUNCT_EQ;
                 3'd1: funct = `FUNCT_NEQ;
                 3'd4: funct = `FUNCT_LT;
@@ -77,12 +65,10 @@ always @(*) begin
                 3'd7: funct = `FUNCT_GTEU;
             endcase
         end
-        {6'h08, 2'b11}: begin // Store
+        `OPCODE_STORE: begin
             inst_type = `INST_TYPE_STORE;
-            imm = {{19{inst[31]}}, inst[30:25], inst[11:7]};
-            rs1 = inst[19:15];
-            rs2 = inst[24:20];
-            case (inst[14:12])
+            decode_s_type(inst);
+            case(funct3)
                 3'd2: funct = `FUNCT_MEM_WORD;
                 3'd1: funct = `FUNCT_MEM_HWORD;
                 3'd0: funct = `FUNCT_MEM_BYTE;
@@ -90,4 +76,55 @@ always @(*) begin
         end
     endcase
 end
+task decode_u_type;
+input [`INST_WIDTH-1:0] inst;
+begin
+    imm = {inst[31:12], 12'b0};
+    rd = inst[11:7];
+end
+endtask
+task decode_j_type;
+input [`INST_WIDTH-1:0] inst;
+begin
+    imm = {{11{inst[31]}}, inst[19:12], inst[20], inst[30:25], inst[24:21], 1'b0};
+    rd = inst[11:7];
+end
+endtask
+task decode_i_type;
+input [`INST_WIDTH-1:0] inst;
+begin
+    imm = {{21{inst[31]}}, inst[30:20]};
+    rd = inst[11:7];
+    rs1 = inst[19:15];
+    funct3 = inst[14:12];
+end
+endtask
+task decode_r_type;
+input [`INST_WIDTH-1:0] inst;
+begin
+    rs1 = inst[19:15];
+    rs2 = inst[24:20];
+    rd = inst[11:7];
+    funct7 = inst[31:25];
+    funct3 = inst[14:12];
+end
+endtask
+task decode_b_type;
+input [`INST_WIDTH-1:0] inst;
+begin
+    imm = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
+    rs1 = inst[19:15];
+    rs2 = inst[24:20];
+    funct3 = inst[14:12];
+end
+endtask
+task decode_s_type;
+input [`INST_WIDTH-1:0] inst;
+begin
+    imm = {{19{inst[31]}}, inst[30:25], inst[11:7]};
+    rs1 = inst[19:15];
+    rs2 = inst[24:20];
+    funct3 = inst[14:12];
+end
+endtask
 endmodule
