@@ -24,7 +24,7 @@ all: sim
 # Test compile
 include $(SCRIPTS)/test.mk
 
-sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(TEST_NAME).hex 
+sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(TEST_NAME).hex $(TEST_NAME).hex_dump 
 	iverilog $(ICARUSFLAGS) -o $@ $(RTL_SOURCES) $(SIM_SOURCES) |& tee sim_compile.log
 
 .PHONY: sim
