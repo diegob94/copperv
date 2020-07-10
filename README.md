@@ -13,7 +13,6 @@ RISCV core
   - Download to ./util/std_ovl
   - Optional?
 - http://iverilog.icarus.com/
-- ZSH
 - Python 3:
   - Pyenv is recommended to install latest python
   - pip install -r requirements.txt
@@ -22,7 +21,7 @@ RISCV core
   - ln -s ../scripts/Makefile work/Makefile
   - cd work
   - make
-- Run all tests:
+- Run unit tests:
   - cd work
   - make test_all
 

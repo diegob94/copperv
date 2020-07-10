@@ -3,7 +3,7 @@
 import sys
 from pathlib import Path
 import pexpect
-from tabulate import tabulate
+import tabulate
 import pandas as pd
 from get_test import get_all_tests
 
@@ -37,7 +37,7 @@ for test in [i['test'] for i in tests]:
 
 def generate_report(df):
     def add_res_col(df, res):
-        Res = res.capitalize()
+        Res = res.strip().capitalize()
         df[Res] = [Res if i == res else '' for i in df.result]
         return df
     df = add_res_col(df, 'passed')
@@ -74,7 +74,7 @@ test_report = test_report[['Test','Passed','Failed','Error']]
 print("\nSummary:")
 print(test_report.iloc[-2:,:].T.reindex(['Passed','Failed','Error','Test']).rename({'Test':'Total'},axis='index').to_string(header = False))
 
-readme = str(tabulate(display(test_report), tablefmt = 'github', showindex = False, headers="keys"))
+readme = str(tabulate.tabulate(display(test_report), tablefmt = 'github', showindex = False, headers="keys"))
 
 readme_path = Path('../README.md')
 header = "## Unit test results:"
