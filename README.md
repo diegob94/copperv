@@ -22,59 +22,58 @@ RISCV core
   - ln -s ../scripts/Makefile work/Makefile
   - cd work
   - make
-- Run unit tests:
+- Run all tests:
   - cd work
-  - ../scripts/unit_test.zsh
+  - make test_all
 
 ## To Do
-- Easier make UI: make TEST=test_0
 - Write dissassembly monitor in C
 
 ## Unit test results:
 
-| Test    |        | Result   |      |
-|---------|--------|----------|------|
-| test_0  | Passed |          |      |
-| addi    | Passed |          |      |
-| add     | Passed |          |      |
-| andi    | Passed |          |      |
-| and     | Passed |          |      |
-| auipc   | Passed |          |      |
-| beq     | Passed |          |      |
-| bge     | Passed |          |      |
-| bgeu    | Passed |          |      |
-| blt     | Passed |          |      |
-| bltu    | Passed |          |      |
-| bne     | Passed |          |      |
-| fence_i |        | Failed   |      |
-| jalr    | Passed |          |      |
-| jal     | Passed |          |      |
-| lb      |        | Failed   |      |
-| lbu     |        | Failed   |      |
-| lh      |        | Failed   |      |
-| lhu     |        | Failed   |      |
-| lui     |        | Failed   |      |
-| lw      |        | Failed   |      |
-| ori     |        | Failed   |      |
-| or      |        | Failed   |      |
-| sb      |        | Failed   |      |
-| sh      |        | Failed   |      |
-| simple  | Passed |          |      |
-| slli    |        | Failed   |      |
-| sll     |        | Failed   |      |
-| slti    |        | Failed   |      |
-| sltiu   |        | Failed   |      |
-| slt     |        | Failed   |      |
-| sltu    |        | Failed   |      |
-| srai    |        | Failed   |      |
-| sra     |        | Failed   |      |
-| srli    |        | Failed   |      |
-| srl     |        | Failed   |      |
-| sub     | Passed |          |      |
-| sw      |        | Failed   |      |
-| xori    |        | Failed   |      |
-| xor     |        | Failed   |      |
-| Summary | ---    | ---      | ---  |
-| 40      | 16     | 24       | 0    |
-| 100.0%  | 40.0%  | 60.0%    | 0.0% |
+| Test    |        | Result   |       |
+|---------|--------|----------|-------|
+| test_0  | Passed |          |       |
+| add     | Passed |          |       |
+| addi    | Passed |          |       |
+| and     | Passed |          |       |
+| andi    | Passed |          |       |
+| auipc   | Passed |          |       |
+| beq     | Passed |          |       |
+| bge     | Passed |          |       |
+| bgeu    | Passed |          |       |
+| blt     | Passed |          |       |
+| bltu    | Passed |          |       |
+| bne     | Passed |          |       |
+| fence_i |        | Failed   |       |
+| jal     | Passed |          |       |
+| jalr    | Passed |          |       |
+| lb      |        | Failed   |       |
+| lbu     |        | Failed   |       |
+| lh      |        | Failed   |       |
+| lhu     |        | Failed   |       |
+| lui     |        | Failed   |       |
+| lw      |        | Failed   |       |
+| or      |        | Failed   |       |
+| ori     |        | Failed   |       |
+| sb      |        |          | Error |
+| sh      |        | Failed   |       |
+| simple  | Passed |          |       |
+| sll     |        | Failed   |       |
+| slli    |        | Failed   |       |
+| slt     |        | Failed   |       |
+| slti    |        | Failed   |       |
+| sltiu   |        | Failed   |       |
+| sltu    |        | Failed   |       |
+| sra     |        | Failed   |       |
+| srai    |        | Failed   |       |
+| srl     |        | Failed   |       |
+| srli    |        | Failed   |       |
+| sub     | Passed |          |       |
+| sw      |        | Failed   |       |
+| xor     |        | Failed   |       |
+| xori    |        | Failed   |       |
+| Summary | ---    | ---      | ---   |
+| 40      | 16     | 23       | 1     |
+| 100.0%  | 40.0%  | 57.5%    | 2.5%  |
 

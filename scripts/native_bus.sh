@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/bin/bash
 
 report(){
     direction=${1:?}

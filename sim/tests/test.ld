@@ -3,14 +3,7 @@ MEMORY {
 }
 
 SECTIONS {
-	.memory : {
-		. = 0x000000;
-		start*(.text);
-		*(.text);
-		*(*);
-		end = .;
-		. = ALIGN(4);
-                FILL(0x0);
-                . = LENGTH(mem);
-	} > mem
+  .text : { *(.text) } > mem
+  .data : { *(.data) } > mem
+  .bss : { *(.bss) } > mem
 }

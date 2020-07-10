@@ -1,4 +1,4 @@
-SHELL = /usr/bin/zsh
+SHELL = bash
 
 #ROOT = $(realpath ../)
 ROOT = ..
@@ -10,7 +10,7 @@ UTIL = $(ROOT)/util
 RTL_SOURCES = $(wildcard $(RTL)/*.v)
 SIM_SOURCES = $(wildcard $(SIM)/*.v) $(wildcard $(SIM)/*.sv)
 STD_OVL = $(UTIL)/std_ovl
-TEST_NAME = test
+TEST = test_0
 
 ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale -g2012
 #ICARUSFLAGS += -pfileline=1
@@ -24,12 +24,16 @@ all: sim
 # Test compile
 include $(SCRIPTS)/test.mk
 
-sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(TEST_NAME).hex $(TEST_NAME).hex_dump 
+.PHONY: test_all
+test_all:
+	$(SCRIPTS)/unit_test.py
+
+sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(TEST).hex $(TEST).hex_dump 
 	iverilog $(ICARUSFLAGS) -o $@ $(RTL_SOURCES) $(SIM_SOURCES) |& tee sim_compile.log
 
 .PHONY: sim
 sim: sim.vvp 
-	vvp $< +HEX_FILE=$(TEST_NAME).hex $(VVPFLAGS) |& tee sim_run_$(TEST_NAME).log
+	vvp $< +HEX_FILE=$(TEST).hex $(VVPFLAGS) |& tee sim_run_$(TEST).log
 
 .PHONY: wave
 wave:
@@ -41,5 +45,5 @@ clean:
 
 .PHONY: clean_all
 clean_all: clean clean_test
-	setopt NULL_GLOB; rm -fv sim_run_*.log sim_compile.log tb.lxt
+	rm -fv sim_run_*.log sim_compile.log tb.lxt
 
