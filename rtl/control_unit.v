@@ -134,13 +134,7 @@ always @(*) begin
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
                     alu_din2_sel = `ALU_DIN2_SEL_IMM;
                     pc_next_sel = `PC_NEXT_SEL_INCR;
-                    case(funct)
-                        `FUNCT_ADD:  alu_op = `ALU_OP_ADD;
-                        `FUNCT_AND:  alu_op = `ALU_OP_AND;
-                        `FUNCT_SLLI: alu_op = `ALU_OP_SLL;
-                        `FUNCT_SRAI: alu_op = `ALU_OP_SRA;
-                        `FUNCT_SRLI: alu_op = `ALU_OP_SRL;
-                    endcase
+                    alu_op = get_int_alu_op(funct);
                 end
                 `INST_TYPE_INT_REG: begin
                     rd_en = 1;
@@ -148,18 +142,7 @@ always @(*) begin
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
                     alu_din2_sel = `ALU_DIN2_SEL_RS2;
                     pc_next_sel = `PC_NEXT_SEL_INCR;
-                    case(funct)
-                        `FUNCT_ADD: alu_op = `ALU_OP_ADD;
-                        `FUNCT_SUB: alu_op = `ALU_OP_SUB;
-                        `FUNCT_SLL: alu_op = `ALU_OP_SLL;
-                        //`FUNCT_SLT: alu_op = `ALU_OP_SLT;
-                        //`FUNCT_SLTU: alu_op = `ALU_OP_STLU;
-                        `FUNCT_XOR: alu_op = `ALU_OP_XOR;
-                        `FUNCT_SRL: alu_op = `ALU_OP_SRL;
-                        `FUNCT_SRA: alu_op = `ALU_OP_SRA;
-                        `FUNCT_OR:  alu_op = `ALU_OP_OR;
-                        `FUNCT_AND: alu_op = `ALU_OP_AND;
-                    endcase
+                    alu_op = get_int_alu_op(funct);
                 end
                 `INST_TYPE_BRANCH: begin
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
@@ -187,18 +170,12 @@ always @(*) begin
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
                     alu_din2_sel = `ALU_DIN2_SEL_IMM;
                     alu_op = `ALU_OP_ADD;
-                    //case(funct)
-                    //    `FUNCT_MEM_WORD: alu_op = `ALU_OP_ADD;
-                    //endcase
                     store_data = state_change;
                 end
                 `INST_TYPE_LOAD: begin
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
                     alu_din2_sel = `ALU_DIN2_SEL_IMM;
                     alu_op = `ALU_OP_ADD;
-                    //case(funct)
-                    //    `FUNCT_MEM_WORD: alu_op = `ALU_OP_ADD;
-                    //endcase
                     load_data = state_change;
                 end
                 `INST_TYPE_JAL: begin
@@ -207,9 +184,7 @@ always @(*) begin
                     alu_din1_sel = `ALU_DIN1_SEL_PC;
                     alu_din2_sel = `ALU_DIN2_SEL_CONST_4;
                     pc_next_sel = `PC_NEXT_SEL_ADD_IMM;
-                    case(funct)
-                        `FUNCT_ADD: alu_op = `ALU_OP_ADD;
-                    endcase
+                    alu_op = `ALU_OP_ADD;
                 end
                 `INST_TYPE_AUIPC: begin
                     rd_en = 1;
@@ -217,9 +192,7 @@ always @(*) begin
                     alu_din1_sel = `ALU_DIN1_SEL_PC;
                     alu_din2_sel = `ALU_DIN2_SEL_IMM;
                     pc_next_sel = `PC_NEXT_SEL_INCR;
-                    case(funct)
-                        `FUNCT_ADD: alu_op = `ALU_OP_ADD;
-                    endcase
+                    alu_op = `ALU_OP_ADD;
                 end
                 `INST_TYPE_JALR: begin
                     rd_en = 1;
@@ -227,9 +200,7 @@ always @(*) begin
                     alu_din1_sel = `ALU_DIN1_SEL_PC;
                     alu_din2_sel = `ALU_DIN2_SEL_CONST_4;
                     pc_next_sel = `PC_NEXT_SEL_ADD_RS1_IMM;
-                    case(funct)
-                        `FUNCT_ADD: alu_op = `ALU_OP_ADD;
-                    endcase
+                    alu_op = `ALU_OP_ADD;
                 end
             endcase
         end
@@ -243,4 +214,22 @@ always @(*) begin
         end
     endcase
 end
+function [`ALU_OP_WIDTH-1:0] get_int_alu_op;
+    input [`FUNCT_WIDTH-1:0] funct;
+    begin
+        case(funct)
+            `FUNCT_ADD: get_int_alu_op = `ALU_OP_ADD;
+            `FUNCT_SUB: get_int_alu_op = `ALU_OP_SUB;
+            `FUNCT_SLL: get_int_alu_op = `ALU_OP_SLL;
+            //`FUNCT_SLT: alu_op = `ALU_OP_SLT;
+            //`FUNCT_SLTU: alu_op = `ALU_OP_STLU;
+            `FUNCT_XOR: get_int_alu_op = `ALU_OP_XOR;
+            `FUNCT_SRL: get_int_alu_op = `ALU_OP_SRL;
+            `FUNCT_SRA: get_int_alu_op = `ALU_OP_SRA;
+            `FUNCT_OR:  get_int_alu_op = `ALU_OP_OR;
+            `FUNCT_AND: get_int_alu_op = `ALU_OP_AND;
+            default:    get_int_alu_op = `ALU_OP_NOP;
+        endcase
+    end
+endfunction
 endmodule

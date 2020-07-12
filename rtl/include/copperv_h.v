@@ -28,20 +28,21 @@
 `define REG_WIDTH          5
 
 // alu
-`define ALU_OP_WIDTH       4
-`define ALU_OP_NOP         0
-`define ALU_OP_ADD         1
-`define ALU_OP_SUB         2
-`define ALU_OP_AND         3
-`define ALU_OP_SLL         4
-`define ALU_OP_SRA         5
-`define ALU_OP_SRL         6
-`define ALU_OP_XOR         7
-`define ALU_OP_OR          8
-`define ALU_COMP_WIDTH     3
-`define ALU_COMP_EQ        0
-`define ALU_COMP_LT        1
-`define ALU_COMP_LTU       2
+`define ALU_SHIFT_DIN2_WIDTH 5
+`define ALU_OP_WIDTH         4
+`define ALU_OP_NOP           0
+`define ALU_OP_ADD           1
+`define ALU_OP_SUB           2
+`define ALU_OP_AND           3
+`define ALU_OP_SLL           4
+`define ALU_OP_SRA           5
+`define ALU_OP_SRL           6
+`define ALU_OP_XOR           7
+`define ALU_OP_OR            8
+`define ALU_COMP_WIDTH       3
+`define ALU_COMP_EQ          0
+`define ALU_COMP_LT          1
+`define ALU_COMP_LTU         2
 
 // idecoder
 `define INST_WIDTH         32
@@ -74,16 +75,13 @@
 `define FUNCT_MEM_BYTEU    12
 `define FUNCT_MEM_HWORDU   13
 `define FUNCT_JAL          14
-`define FUNCT_SLLI         15
-`define FUNCT_SRAI         16
-`define FUNCT_SRLI         17
-`define FUNCT_SLL          18
-`define FUNCT_SLT          19
-`define FUNCT_SLTU         20
-`define FUNCT_XOR          21
-`define FUNCT_SRL          22
-`define FUNCT_SRA          23
-`define FUNCT_OR           24
+`define FUNCT_SLL          15
+`define FUNCT_SLT          16
+`define FUNCT_SLTU         17
+`define FUNCT_XOR          18
+`define FUNCT_SRL          19
+`define FUNCT_SRA          20
+`define FUNCT_OR           21
 `define OPCODE_WIDTH       7
 `define OPCODE_LOAD        {5'h00, 2'b11}
 `define OPCODE_FENCE       {5'h03, 2'b11}

@@ -45,14 +45,18 @@ always @(*) begin
             decode_i_type(inst);
             case (funct3)
                 3'd0: funct = `FUNCT_ADD;
-                3'd1: funct = `FUNCT_SLLI;
+                3'd1: funct = `FUNCT_SLL;
+                3'd2: funct = `FUNCT_SLT;
+                3'd3: funct = `FUNCT_SLTU;
+                3'd4: funct = `FUNCT_XOR;
                 3'd5: begin
                     case(imm[11:5])
-                        7'd0:  funct = `FUNCT_SRLI;
-                        7'd32: funct = `FUNCT_SRAI;
+                        7'd0:  funct = `FUNCT_SRL;
+                        7'd32: funct = `FUNCT_SRA;
                     endcase
                     imm = imm[4:0];
                 end
+                3'd6: funct = `FUNCT_OR;
                 3'd7: funct = `FUNCT_AND;
             endcase
         end
