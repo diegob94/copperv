@@ -158,7 +158,7 @@ endtask
 task decode_s_type;
     input [`INST_WIDTH-1:0] inst;
     begin
-        imm = {{19{inst[31]}}, inst[30:25], inst[11:7]};
+        imm = {{21{inst[31]}}, inst[30:25], inst[11:7]};
         rs1 = inst[19:15];
         rs2 = inst[24:20];
         funct3 = inst[14:12];

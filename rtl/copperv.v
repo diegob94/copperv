@@ -82,6 +82,8 @@ reg read_valid;
 wire [`BUS_WIDTH-1:0] read_addr;
 wire dr_data_tran;
 // datapath end
+assign iw_data_addr_valid = 0;
+assign iw_resp_ready = 0;
 always @(posedge clk) begin
     if (!rst) begin
         pc <= pc_init;

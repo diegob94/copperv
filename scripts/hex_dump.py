@@ -33,8 +33,12 @@ for token in tokens:
 for i in range(0, len(data), 4):
     value = ''
     for j in range(4):
+        if i + j > len(data) - 1:
+            break
         value = f"{int(data[i+j]['byte'],16):X}" + value
     for j in range(4):
+        if i + j > len(data) - 1:
+            break
         if j == 0:
             word = int(value, 16)
             decoded = decode(word)

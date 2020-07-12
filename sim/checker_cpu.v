@@ -51,8 +51,8 @@ ovl_implication #(
 );
 bus_channel_checker #(
     .severity_level(severity_level),
-    .channel_name("i_raddr")
-) i_raddr_checker (
+    .channel_name("ir_addr")
+) ir_addr_checker (
     .clock(clock),
     .reset(reset),
     .ready(`CPU_INST.ir_addr_ready),
@@ -60,12 +60,30 @@ bus_channel_checker #(
 );
 bus_channel_checker #(
     .severity_level(severity_level),
-    .channel_name("i_rdata")
-) i_rdata_checker (
+    .channel_name("ir_data")
+) ir_data_checker (
     .clock(clock),
     .reset(reset),
     .ready(`CPU_INST.ir_data_ready),
     .valid(`CPU_INST.ir_data_valid)
+);
+bus_channel_checker #(
+    .severity_level(severity_level),
+    .channel_name("iw_data_addr")
+) iw_data_addr_checker (
+    .clock(clock),
+    .reset(reset),
+    .ready(`CPU_INST.iw_data_addr_ready),
+    .valid(`CPU_INST.iw_data_addr_valid)
+);
+bus_channel_checker #(
+    .severity_level(severity_level),
+    .channel_name("iw_resp")
+) iw_resp_checker (
+    .clock(clock),
+    .reset(reset),
+    .ready(`CPU_INST.iw_resp_ready),
+    .valid(`CPU_INST.iw_resp_valid)
 );
 alu_checker #(
     .severity_level(severity_level)
@@ -100,12 +118,60 @@ ovl_implication #(
     .clock_edge(`OVL_POSEDGE),
     .reset_polarity(`OVL_ACTIVE_LOW),
     .gating_type(`OVL_GATE_NONE)
-) reset_done (
+) reset_valid (
     .clock(clock),
     .reset(reset),
     .enable(1'b1),
     .antecedent_expr(reset_rose), 
     .consequent_expr(!valid),
+    .fire(fire)
+);
+ovl_implication #(
+    .severity_level(severity_level),
+    .property_type(`OVL_ASSERT),
+    .msg({msg_prefix,"ready invalid after reset"}),
+    .coverage_level(`OVL_COVER_NONE),
+    .clock_edge(`OVL_POSEDGE),
+    .reset_polarity(`OVL_ACTIVE_LOW),
+    .gating_type(`OVL_GATE_NONE)
+) reset_ready (
+    .clock(clock),
+    .reset(reset),
+    .enable(1'b1),
+    .antecedent_expr(reset_rose), 
+    .consequent_expr(ready | !ready),
+    .fire(fire)
+);
+ovl_never_unknown #(
+    .severity_level(severity_level),
+    .property_type(`OVL_ASSERT),
+    .msg({msg_prefix,"ready invalid state (non 0 or 1)"}),
+    .coverage_level(`OVL_COVER_NONE),
+    .clock_edge(`OVL_POSEDGE),
+    .reset_polarity(`OVL_ACTIVE_LOW),
+    .gating_type(`OVL_GATE_NONE)
+) ready_never_unknown (
+    .clock(clock), 
+    .reset(reset), 
+    .enable(1'b1), 
+    .qualifier(1'b1),
+    .test_expr(ready), 
+    .fire(fire)
+);
+ovl_never_unknown #(
+    .severity_level(severity_level),
+    .property_type(`OVL_ASSERT),
+    .msg({msg_prefix,"valid invalid state (non 0 or 1)"}),
+    .coverage_level(`OVL_COVER_NONE),
+    .clock_edge(`OVL_POSEDGE),
+    .reset_polarity(`OVL_ACTIVE_LOW),
+    .gating_type(`OVL_GATE_NONE)
+) valid_never_unknown (
+    .clock(clock), 
+    .reset(reset), 
+    .enable(1'b1), 
+    .qualifier(1'b1),
+    .test_expr(valid), 
     .fire(fire)
 );
 endmodule
