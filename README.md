@@ -51,28 +51,28 @@ RISCV core
 | lbu     | Passed |          |       |
 | lh      | Passed |          |       |
 | lhu     | Passed |          |       |
-| lui     |        | Failed   |       |
+| lui     | Passed |          |       |
 | lw      | Passed |          |       |
-| or      |        | Failed   |       |
+| or      | Passed |          |       |
 | ori     |        | Failed   |       |
 | sb      |        |          | Error |
 | sh      |        | Failed   |       |
 | simple  | Passed |          |       |
 | sll     |        | Failed   |       |
-| slli    |        | Failed   |       |
-| slt     |        | Failed   |       |
+| slli    | Passed |          |       |
+| slt     |        |          | Error |
 | slti    |        | Failed   |       |
 | sltiu   |        | Failed   |       |
-| sltu    |        | Failed   |       |
+| sltu    |        |          | Error |
 | sra     |        | Failed   |       |
-| srai    |        | Failed   |       |
+| srai    | Passed |          |       |
 | srl     |        | Failed   |       |
-| srli    |        | Failed   |       |
+| srli    | Passed |          |       |
 | sub     | Passed |          |       |
 | sw      |        | Failed   |       |
-| xor     |        | Failed   |       |
+| xor     | Passed |          |       |
 | xori    |        | Failed   |       |
 | Summary | ---    | ---      | ---   |
-| 40      | 21     | 18       | 1     |
-| 100.0%  | 52.5%  | 45.0%    | 2.5%  |
+| 40      | 27     | 10       | 3     |
+| 100.0%  | 67.5%  | 25.0%    | 7.5%  |
 

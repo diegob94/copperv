@@ -47,11 +47,11 @@ always @(*) begin
                 3'd0: funct = `FUNCT_ADD;
                 3'd1: funct = `FUNCT_SLLI;
                 3'd5: begin
-                    imm = imm[4:0];
                     case(imm[11:5])
                         7'd0:  funct = `FUNCT_SRLI;
                         7'd32: funct = `FUNCT_SRAI;
                     endcase
+                    imm = imm[4:0];
                 end
                 3'd7: funct = `FUNCT_AND;
             endcase
@@ -60,9 +60,16 @@ always @(*) begin
             inst_type = `INST_TYPE_INT_REG;
             decode_r_type(inst);
             case ({funct7, funct3})
-                {7'd0, 3'd0}: funct = `FUNCT_ADD;
-                {7'd32,3'd0}: funct = `FUNCT_SUB;
-                {7'd0, 3'd7}: funct = `FUNCT_AND;
+                {7'd0,  3'd0}: funct = `FUNCT_ADD;
+                {7'd32, 3'd0}: funct = `FUNCT_SUB;
+                {7'd0,  3'd1}: funct = `FUNCT_SLL;
+                {7'd0,  3'd2}: funct = `FUNCT_SLT;
+                {7'd0,  3'd3}: funct = `FUNCT_SLTU;
+                {7'd0,  3'd4}: funct = `FUNCT_XOR;
+                {7'd0,  3'd5}: funct = `FUNCT_SRL;
+                {7'd32, 3'd5}: funct = `FUNCT_SRA;
+                {7'd0,  3'd6}: funct = `FUNCT_OR;
+                {7'd0,  3'd7}: funct = `FUNCT_AND;
             endcase
         end
         `OPCODE_BRANCH: begin

@@ -137,9 +137,9 @@ always @(*) begin
                     case(funct)
                         `FUNCT_ADD:  alu_op = `ALU_OP_ADD;
                         `FUNCT_AND:  alu_op = `ALU_OP_AND;
-                        `FUNCT_SLLI: alu_op = `ALU_OP_SLLI;
-                        `FUNCT_SRAI: alu_op = `ALU_OP_SRAI;
-                        `FUNCT_SRLI: alu_op = `ALU_OP_SRLI;
+                        `FUNCT_SLLI: alu_op = `ALU_OP_SLL;
+                        `FUNCT_SRAI: alu_op = `ALU_OP_SRA;
+                        `FUNCT_SRLI: alu_op = `ALU_OP_SRL;
                     endcase
                 end
                 `INST_TYPE_INT_REG: begin
@@ -151,6 +151,13 @@ always @(*) begin
                     case(funct)
                         `FUNCT_ADD: alu_op = `ALU_OP_ADD;
                         `FUNCT_SUB: alu_op = `ALU_OP_SUB;
+                        `FUNCT_SLL: alu_op = `ALU_OP_SLL;
+                        //`FUNCT_SLT: alu_op = `ALU_OP_SLT;
+                        //`FUNCT_SLTU: alu_op = `ALU_OP_STLU;
+                        `FUNCT_XOR: alu_op = `ALU_OP_XOR;
+                        `FUNCT_SRL: alu_op = `ALU_OP_SRL;
+                        `FUNCT_SRA: alu_op = `ALU_OP_SRA;
+                        `FUNCT_OR:  alu_op = `ALU_OP_OR;
                         `FUNCT_AND: alu_op = `ALU_OP_AND;
                     endcase
                 end

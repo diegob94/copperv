@@ -17,10 +17,15 @@ always @(*) begin
     sign = 0;
     alu_dout = 0;
     case (alu_op)
-        `ALU_OP_NOP: alu_dout = {`DATA_WIDTH{1'bx}};
-        `ALU_OP_ADD: alu_dout = alu_din1 + alu_din2;
-        `ALU_OP_SUB: alu_dout = alu_din1 - alu_din2;
-        `ALU_OP_AND: alu_dout = alu_din1 & alu_din2;
+        `ALU_OP_NOP:  alu_dout = {`DATA_WIDTH{1'bx}};
+        `ALU_OP_ADD:  alu_dout = alu_din1 + alu_din2;
+        `ALU_OP_SUB:  alu_dout = alu_din1 - alu_din2;
+        `ALU_OP_AND:  alu_dout = alu_din1 & alu_din2;
+        `ALU_OP_SLL: alu_dout = alu_din1 << alu_din2;
+        `ALU_OP_SRL: alu_dout = alu_din1 >> alu_din2;
+        `ALU_OP_SRA: alu_dout = $signed(alu_din1) >>> alu_din2;
+        `ALU_OP_XOR: alu_dout = alu_din1 ^ alu_din2;
+        `ALU_OP_OR: alu_dout = alu_din1 | alu_din2;
     endcase
 end
 always @(*) begin
