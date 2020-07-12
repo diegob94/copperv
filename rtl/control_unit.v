@@ -11,25 +11,18 @@ module control_unit (
     input data_valid,
     output reg inst_fetch,
     output reg store_data,
-    output rd_en,
-    output rs1_en,
-    output rs2_en,
-    output [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel,
-    output [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel,
-    output [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel,
-    output [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel,
-    output [`ALU_OP_WIDTH-1:0] alu_op
+    output reg load_data,
+    output reg rd_en,
+    output reg rs1_en,
+    output reg rs2_en,
+    output reg [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel,
+    output reg [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel,
+    output reg [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel,
+    output reg [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel,
+    output reg [`ALU_OP_WIDTH-1:0] alu_op
 );
 reg [`STATE_WIDTH-1:0] state;
 reg [`STATE_WIDTH-1:0] state_next;
-reg rd_en;
-reg rs1_en;
-reg rs2_en;
-reg [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
-reg [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel;
-reg [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel;
-reg [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel;
-reg [`ALU_OP_WIDTH-1:0] alu_op;
 reg state_change;
 reg take_branch;
 wire state_change_next;
@@ -69,6 +62,7 @@ always @(*) begin
         `STATE_EXEC: begin
             case (inst_type)
                 `INST_TYPE_STORE: state_next = `STATE_MEM;
+                `INST_TYPE_LOAD: state_next = `STATE_MEM;
                 default: state_next = `STATE_FETCH;
             endcase
         end
@@ -92,6 +86,7 @@ always @(*) begin
     pc_next_sel = `PC_NEXT_SEL_STALL;
     alu_op = `ALU_OP_NOP;
     store_data = 0;
+    load_data = 0;
     take_branch = 0;
     case (state)
         `STATE_FETCH: begin
@@ -118,6 +113,9 @@ always @(*) begin
                 `INST_TYPE_STORE: begin
                     rs1_en = 1;
                     rs2_en = 1;
+                end
+                `INST_TYPE_LOAD: begin
+                    rs1_en = 1;
                 end
                 `INST_TYPE_JALR: begin
                     rs1_en = 1;
@@ -174,11 +172,20 @@ always @(*) begin
                 `INST_TYPE_STORE: begin
                     alu_din1_sel = `ALU_DIN1_SEL_RS1;
                     alu_din2_sel = `ALU_DIN2_SEL_IMM;
-                    case(funct)
-                        `FUNCT_MEM_WORD: alu_op = `ALU_OP_ADD;
-                    endcase
-                    if(inst_type == `INST_TYPE_STORE)
-                        store_data = state_change;
+                    alu_op = `ALU_OP_ADD;
+                    //case(funct)
+                    //    `FUNCT_MEM_WORD: alu_op = `ALU_OP_ADD;
+                    //endcase
+                    store_data = state_change;
+                end
+                `INST_TYPE_LOAD: begin
+                    alu_din1_sel = `ALU_DIN1_SEL_RS1;
+                    alu_din2_sel = `ALU_DIN2_SEL_IMM;
+                    alu_op = `ALU_OP_ADD;
+                    //case(funct)
+                    //    `FUNCT_MEM_WORD: alu_op = `ALU_OP_ADD;
+                    //endcase
+                    load_data = state_change;
                 end
                 `INST_TYPE_JAL: begin
                     rd_en = 1;
@@ -213,6 +220,10 @@ always @(*) begin
             endcase
         end
         `STATE_MEM: begin
+            if(inst_type == `INST_TYPE_LOAD) begin
+                rd_en = state_change_next;
+                rd_din_sel = `RD_DIN_SEL_MEM;
+            end
             if(state_change_next)
                 pc_next_sel = `PC_NEXT_SEL_INCR;
         end

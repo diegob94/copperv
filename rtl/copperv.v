@@ -18,11 +18,11 @@ module copperv #(
     input [`BUS_WIDTH-1:0] ir_data,
     input [`BUS_RESP_WIDTH-1:0] iw_resp,
     input [`BUS_RESP_WIDTH-1:0] dw_resp,
-    output dr_data_ready,
-    output dr_addr_valid,
+    output reg dr_data_ready,
+    output reg dr_addr_valid,
     output reg dw_data_addr_valid,
     output reg dw_resp_ready,
-    output [`BUS_WIDTH-1:0] dr_addr,
+    output reg [`BUS_WIDTH-1:0] dr_addr,
     output reg [`BUS_WIDTH-1:0] dw_data,
     output reg [`BUS_WIDTH-1:0] dw_addr,
     output reg ir_data_ready,
@@ -63,17 +63,24 @@ reg [`PC_WIDTH-1:0] pc;
 reg [`PC_WIDTH-1:0] pc_next;
 reg [`INST_WIDTH-1:0] inst;
 reg inst_valid;
-reg i_rdata_tran;
+wire i_rdata_tran;
 wire [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel;
 wire [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel;
 wire [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel;
 wire [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel;
 wire store_data;
-reg [`DATA_WIDTH-1:0] data_addr;
-reg [`DATA_WIDTH-1:0] data_data;
-reg data_valid;
+wire load_data;
+reg [`DATA_WIDTH-1:0] write_addr;
+reg [`DATA_WIDTH-1:0] write_data;
+reg [`DATA_WIDTH-1:0] read_data;
+reg [`DATA_WIDTH-1:0] read_data_ext;
+reg write_valid;
 wire dw_resp_tran;
 reg dw_data_addr_tran;
+reg dr_addr_tran;
+reg read_valid;
+wire [`BUS_WIDTH-1:0] read_addr;
+wire dr_data_tran;
 // datapath end
 always @(posedge clk) begin
     if (!rst) begin
@@ -84,9 +91,7 @@ always @(posedge clk) begin
 end
 assign ir_addr_valid = inst_fetch;
 assign ir_addr = pc;
-always @(*) begin
-    i_rdata_tran = ir_data_valid && ir_data_ready;
-end
+assign i_rdata_tran = ir_data_valid && ir_data_ready;
 always @(posedge clk) begin
     if(!rst) begin
         inst <= 0;
@@ -98,34 +103,35 @@ always @(posedge clk) begin
         inst_valid <= 0;
     end
 end
+// Write response
 assign dw_resp_tran = dw_resp_valid && dw_resp_ready;
 always @(posedge clk) begin
     if(!rst) begin
-        data_valid <= 0;
+        write_valid <= 0;
     end else if(dw_resp_tran) begin
         case(dw_resp)
-            `DATA_WRITE_RESP_FAIL: data_valid <= 0;
-            `DATA_WRITE_RESP_OK: data_valid <= 1;
+            `DATA_WRITE_RESP_FAIL: write_valid <= 0;
+            `DATA_WRITE_RESP_OK: write_valid <= 1;
         endcase
     end else
-        data_valid <= 0;
+        write_valid <= 0;
 end
 always @(posedge clk)
     if(!rst) begin
         ir_data_ready <= 1;
     end
-always @(*) begin
-    data_addr = alu_dout;
-    data_data = rs2_dout;
-    dw_data_addr_tran = store_data && dw_data_addr_ready;
-end
+// Write data address
+assign write_data = rs2_dout;
+assign write_addr = alu_dout;
+assign dw_data_addr_tran = store_data && dw_data_addr_ready;
 always @(posedge clk) begin
     if(!rst) begin
         dw_addr <= 0;
         dw_data <= 0;
+        dw_data_addr_valid <= 0;
     end else if(dw_data_addr_tran) begin
-        dw_addr <= data_addr;
-        dw_data <= data_data;
+        dw_addr <= write_addr;
+        dw_data <= write_data;
         dw_data_addr_valid <= 1;
     end else
         dw_data_addr_valid <= 0;
@@ -134,11 +140,49 @@ always @(posedge clk)
     if(!rst) begin
         dw_resp_ready <= 1;
     end
+// Read address
+assign read_addr = alu_dout;
+assign dr_addr_tran = load_data && dr_addr_ready;
+always @(posedge clk) begin
+    if(!rst) begin
+        dr_addr <= 0;
+        dr_addr_valid <= 0;
+    end else if(dr_addr_tran) begin
+        dr_addr <= read_addr;
+        dr_addr_valid <= 1;
+    end else
+        dr_addr_valid <= 0;
+end
+// Read data
+assign dr_data_tran = dr_data_valid && dr_data_ready;
+always @(posedge clk) begin
+    if(!rst) begin
+        read_data <= 0;
+        read_valid <= 0;
+    end else if(dr_data_tran) begin
+        read_data <= dr_data;
+        read_valid <= 1;
+    end else begin
+        read_valid <= 0;
+    end
+end
+always @(posedge clk)
+    if(!rst) begin
+        dr_data_ready <= 1;
+    end
 always @(*) begin
     rd_din = 0;
-    case (rd_din_sel)
+    case(funct)
+        `FUNCT_MEM_BYTE:   read_data_ext = {{24{read_data[7]}},read_data[7:0]};
+        `FUNCT_MEM_HWORD:  read_data_ext = {{16{read_data[15]}},read_data[15:0]};
+        `FUNCT_MEM_WORD:   read_data_ext = read_data;
+        `FUNCT_MEM_BYTEU:  read_data_ext = {24'b0,read_data[7:0]};
+        `FUNCT_MEM_HWORDU: read_data_ext = {16'b0,read_data[15:0]};
+    endcase
+    case(rd_din_sel)
         `RD_DIN_SEL_IMM: rd_din = imm;
         `RD_DIN_SEL_ALU: rd_din = alu_dout;
+        `RD_DIN_SEL_MEM: rd_din = read_data_ext;
     endcase
 end
 always @(*) begin
@@ -198,7 +242,7 @@ arith_logic_unit alu (
 control_unit control (
     .clk(clk),
     .rst(rst),
-    .data_valid(data_valid),
+    .data_valid(write_valid || read_valid),
     .inst_valid(inst_valid),
     .alu_comp(alu_comp),
     .funct(funct),
@@ -212,7 +256,8 @@ control_unit control (
     .alu_din1_sel(alu_din1_sel),
     .alu_din2_sel(alu_din2_sel),
     .alu_op(alu_op),
-    .store_data(store_data)
+    .store_data(store_data),
+    .load_data(load_data)
 );
 endmodule
 

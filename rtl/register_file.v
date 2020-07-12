@@ -18,19 +18,19 @@ module register_file #(
 );
 reg [`DATA_WIDTH-1:0] rs1_dout;
 reg [`DATA_WIDTH-1:0] rs2_dout;
-reg [`DATA_WIDTH-1:0] memory [reg_length-1:0];
+reg [`DATA_WIDTH-1:0] mem [reg_length-1:0];
 integer i;
 always @(posedge clk) begin
     if(!rst) begin
         for(i = 0; i < reg_length; i = i + 1)
-            memory[i] <= 0;
+            mem[i] <= 0;
     end if(rd_en && rd != 0) begin
-        memory[rd] <= rd_din;
+        mem[rd] <= rd_din;
     end else if(rs1_en && rs2_en) begin
-        rs1_dout <= memory[rs1];
-        rs2_dout <= memory[rs2];
+        rs1_dout <= mem[rs1];
+        rs2_dout <= mem[rs2];
     end else if(rs1_en) begin
-        rs1_dout <= memory[rs1];
+        rs1_dout <= mem[rs1];
     end 
 end
 endmodule

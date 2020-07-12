@@ -11,7 +11,7 @@ module  monitor_cpu (
 reg [`INST_WIDTH-1:0] raddr_queue[$];
 always @(posedge clk) begin
     if (rst) begin
-        if(`CPU_INST.ir_addr_valid) begin
+        if(`CPU_INST.ir_addr_valid && `CPU_INST.ir_addr_ready) begin
             $display($time, ": INST_FETCH: addr 0x%08X", `CPU_INST.ir_addr);
             raddr_queue.push_front(`CPU_INST.ir_addr);
         end
@@ -60,30 +60,23 @@ end
 always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.rd_en) begin
-            @(posedge clk);
             $display($time, ": REGFILE: write rd addr 0x%08X/%0s data 0x%08X", `CPU_INST.rd, reg_name(`CPU_INST.rd), `CPU_INST.rd_din);
             if ($test$plusargs("DUMP_REGFILE"))
                 regfile_dump;
         end
     end
 end
-reg [`REG_WIDTH-1:0] rs1_queue;
 always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.rs1_en) begin
-            rs1_queue = `CPU_INST.rs1;
-            @(posedge clk);
-            $display($time, ": REGFILE: read rs1 addr 0x%08X/%0s data 0x%08X", rs1_queue, reg_name(rs1_queue), `CPU_INST.rs1_dout);
+            $display($time, ": REGFILE: read rs1 addr 0x%08X/%0s data 0x%08X", `CPU_INST.rs1, reg_name(`CPU_INST.rs1), `CPU_INST.regfile.mem[`CPU_INST.rs1]);
         end
     end
 end
-reg [`REG_WIDTH-1:0] rs2_queue;
 always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.rs2_en) begin
-            rs2_queue = `CPU_INST.rs2;
-            @(posedge clk);
-            $display($time, ": REGFILE: read rs2 addr 0x%08X/%0s data 0x%08X", rs2_queue, reg_name(rs2_queue), `CPU_INST.rs2_dout);
+            $display($time, ": REGFILE: read rs2 addr 0x%08X/%0s data 0x%08X", `CPU_INST.rs2, reg_name(`CPU_INST.rs2), `CPU_INST.regfile.mem[`CPU_INST.rs2]);
         end
     end
 end
@@ -104,7 +97,7 @@ integer i;
 begin
     $display($time, ": REGFILE DUMP BEGIN");
     for(i = 0; i < 2**`REG_WIDTH; i = i + 1) begin
-        $display($time, ": 0x%02X %6s: 0x%08X", i[`REG_WIDTH-1:0], reg_name(i), `CPU_INST.regfile.memory[i]);
+        $display($time, ": 0x%02X %6s: 0x%08X", i[`REG_WIDTH-1:0], reg_name(i), `CPU_INST.regfile.mem[i]);
     end
     $display($time, ": REGFILE DUMP END");
 end

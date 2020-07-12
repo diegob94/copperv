@@ -73,9 +73,20 @@ always @(*) begin
             inst_type = `INST_TYPE_STORE;
             decode_s_type(inst);
             case(funct3)
-                3'd2: funct = `FUNCT_MEM_WORD;
-                3'd1: funct = `FUNCT_MEM_HWORD;
                 3'd0: funct = `FUNCT_MEM_BYTE;
+                3'd1: funct = `FUNCT_MEM_HWORD;
+                3'd2: funct = `FUNCT_MEM_WORD;
+            endcase
+        end
+        `OPCODE_LOAD: begin
+            inst_type = `INST_TYPE_LOAD;
+            decode_i_type(inst);
+            case(funct3)
+                3'd0: funct = `FUNCT_MEM_BYTE;
+                3'd1: funct = `FUNCT_MEM_HWORD;
+                3'd2: funct = `FUNCT_MEM_WORD;
+                3'd4: funct = `FUNCT_MEM_BYTEU;
+                3'd5: funct = `FUNCT_MEM_HWORDU;
             endcase
         end
     endcase

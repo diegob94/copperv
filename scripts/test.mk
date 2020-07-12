@@ -11,6 +11,7 @@ CFLAGS = -march=rv32i -I$(SIM)/tests -I$(RISCV_TESTS)/isa/macros/scalar
 
 TEST_SOURCES = $(shell ../scripts/get_test.py $(TEST))
 OBJS = $(TEST_SOURCES:.S=.o)
+PPRC = $(TEST_SOURCES:.S=.E)
 DISS = $(TEST_SOURCES:.S=.D)
 
 define DISSASSEMBLY
@@ -20,10 +21,13 @@ endef
 
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
-	$(CC) $(CFLAGS) -E -c $< -o $(@:.o=.E)
 #	$(TOOLCHAIN)objcopy -O elf32-littleriscv -R .riscv.attributes $@
 
-$(TEST).elf: $(OBJS) $(DISS) $(LINKER_SCRIPT)
+%.E: %.S
+	$(CC) $(CFLAGS) -E -c $< -o $@
+	grep -Pv '^#|^$$' $@ | tr ';' '\n' > $(notdir $@)
+
+$(TEST).elf: $(OBJS) $(DISS) $(PPRC) $(LINKER_SCRIPT)
 	$(CC) $(LFLAGS) $< -o $@
 
 $(TEST).hex: $(TEST).elf $(SIM)/include/monitor_utils_h.v $(TEST).D

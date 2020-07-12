@@ -13,9 +13,11 @@ STD_OVL = $(UTIL)/std_ovl
 TEST = test_0
 
 ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale -g2012
-#ICARUSFLAGS += -pfileline=1
 VVPFLAGS = -lxt2 
-#VVPFLAGS += +DUMP_REGFILE
+ifdef DEBUG
+ICARUSFLAGS += -pfileline=1
+VVPFLAGS += +DUMP_REGFILE
+endif
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A -a $(SCRIPTS)/tb.gtkw 
 
 .PHONY: all

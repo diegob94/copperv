@@ -77,39 +77,35 @@ copperv dut (
     .iw_data(iw_data),
     .iw_addr(iw_addr)
 );
-native_memory #(.instruction_memory(`TRUE)) i_mem(
+fake_memory u_mem (
     .clk(clk),
     .rst(rst),
-    .r_addr_valid(ir_addr_valid),
-    .r_data_ready(ir_data_ready),
-    .w_data_addr_valid(iw_data_addr_valid),
-    .r_addr(ir_addr),
-    .w_data(iw_data),
-    .w_addr(iw_addr),
-    .w_resp_ready(iw_resp_ready),
-    .w_resp_valid(iw_resp_valid),
-    .w_resp(iw_resp),
-    .r_addr_ready(ir_addr_ready),
-    .r_data_valid(ir_data_valid),
-    .w_data_addr_ready(iw_data_addr_ready),
-    .r_data(ir_data)
-);
-native_memory d_mem(
-    .clk(clk),
-    .rst(rst),
-    .r_addr_valid(dr_addr_valid),
-    .r_data_ready(dr_data_ready),
-    .w_data_addr_valid(dw_data_addr_valid),
-    .r_addr(dr_addr),
-    .w_data(dw_data),
-    .w_addr(dw_addr),
-    .w_resp_ready(dw_resp_ready),
-    .w_resp_valid(dw_resp_valid),
-    .w_resp(dw_resp),
-    .r_addr_ready(dr_addr_ready),
-    .r_data_valid(dr_data_valid),
-    .w_data_addr_ready(dw_data_addr_ready),
-    .r_data(dr_data)
+    .dr_data_valid(dr_data_valid),
+    .dr_addr_ready(dr_addr_ready),
+    .dw_data_addr_ready(dw_data_addr_ready),
+    .dw_resp_valid(dw_resp_valid),
+    .dr_data(dr_data),
+    .ir_data_valid(ir_data_valid),
+    .ir_addr_ready(ir_addr_ready),
+    .iw_data_addr_ready(iw_data_addr_ready),
+    .iw_resp_valid(iw_resp_valid),
+    .ir_data(ir_data),
+    .iw_resp(iw_resp),
+    .dw_resp(dw_resp),
+    .dr_data_ready(dr_data_ready),
+    .dr_addr_valid(dr_addr_valid),
+    .dw_data_addr_valid(dw_data_addr_valid),
+    .dw_resp_ready(dw_resp_ready),
+    .dr_addr(dr_addr),
+    .dw_data(dw_data),
+    .dw_addr(dw_addr),
+    .ir_data_ready(ir_data_ready),
+    .ir_addr_valid(ir_addr_valid),
+    .iw_data_addr_valid(iw_data_addr_valid),
+    .iw_resp_ready(iw_resp_ready),
+    .ir_addr(ir_addr),
+    .iw_data(iw_data),
+    .iw_addr(iw_addr)
 );
 monitor_cpu mon(
     .clk(clk),
@@ -119,7 +115,6 @@ checker_cpu chk(
     .clock(clk),
     .reset(rst)
 );
-
 initial begin
     $dumpfile("tb.lxt");
     $dumpvars(0, tb);

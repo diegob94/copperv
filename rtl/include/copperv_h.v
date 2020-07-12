@@ -5,9 +5,10 @@
 `define PC_WIDTH                32
 `define BUS_WIDTH               32
 `define BUS_RESP_WIDTH          1
-`define RD_DIN_SEL_WIDTH        1
+`define RD_DIN_SEL_WIDTH        2
 `define RD_DIN_SEL_IMM          0
 `define RD_DIN_SEL_ALU          1
+`define RD_DIN_SEL_MEM          2
 `define PC_NEXT_SEL_WIDTH       2
 `define PC_NEXT_SEL_STALL       0
 `define PC_NEXT_SEL_INCR        1
@@ -51,6 +52,7 @@
 `define INST_TYPE_AUIPC    6
 `define INST_TYPE_JAL      7
 `define INST_TYPE_JALR     8
+`define INST_TYPE_LOAD     9
 `define FUNCT_WIDTH        4
 `define FUNCT_ADD          0
 `define FUNCT_SUB          1
@@ -64,7 +66,9 @@
 `define FUNCT_MEM_BYTE     9
 `define FUNCT_MEM_HWORD    10
 `define FUNCT_MEM_WORD     11
-`define FUNCT_JAL          12
+`define FUNCT_MEM_BYTEU    12
+`define FUNCT_MEM_HWORDU   13
+`define FUNCT_JAL          14
 `define OPCODE_LUI         {6'h0D, 2'b11}
 `define OPCODE_JAL         {6'h1B, 2'b11}
 `define OPCODE_JALR        {6'h19, 2'b11}
@@ -73,6 +77,7 @@
 `define OPCODE_INT_REG     {6'h0C, 2'b11}
 `define OPCODE_BRANCH      {6'h18, 2'b11}
 `define OPCODE_STORE       {6'h08, 2'b11}
+`define OPCODE_LOAD        {6'h00, 2'b11}
 `define FUNCT3_WIDTH       3
 `define FUNCT7_WIDTH       7
 

@@ -1,23 +1,24 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Mon Jul  6 01:27:08 2020
+[*] Sun Jul 12 07:49:11 2020
 [*]
 [dumpfile] "/media/diegob/riscv/riscv/work/tb.lxt"
-[dumpfile_mtime] "Mon Jul  6 01:27:01 2020"
-[dumpfile_size] 13880
+[dumpfile_mtime] "Sun Jul 12 07:47:46 2020"
+[dumpfile_size] 4602
 [savefile] "/media/diegob/riscv/riscv/scripts/tb.gtkw"
-[timestart] 242400
+[timestart] 152300
 [size] 1366 711
 [pos] -1 -1
-*-15.708232 349000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-14.655549 235000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb.
-[treeopen] tb.chk.i_raddr_checker.
+[treeopen] tb.chk.u_alu_checker.
 [treeopen] tb.dut.
 [treeopen] tb.dut.alu.
+[treeopen] tb.u_mem.
 [sst_width] 239
 [signals_width] 288
 [sst_expanded] 1
-[sst_vpaned_height] 400
+[sst_vpaned_height] 204
 @28
 tb.dut.clk[0]
 tb.dut.rst[0]
@@ -39,16 +40,6 @@ tb.dut.control.take_branch[0]
 tb.dut.pc_next_sel[1:0]
 @22
 tb.dut.imm[31:0]
-@c00200
--imem
--tb.dut.i_raddr
-@1401200
--group_end
-@28
-tb.i_mem.read_addr_tran[0]
-tb.i_mem.read_data_tran[0]
-@1401200
--imem
 @2024
 ^3 /media/diegob/riscv/riscv/work/state.gtkfilter
 tb.dut.control.state[2:0]
@@ -72,7 +63,7 @@ tb.dut.rd_en[0]
 @22
 tb.dut.regfile.rd_din[31:0]
 @28
-tb.dut.rd_din_sel[0]
+tb.dut.rd_din_sel[1:0]
 tb.dut.alu_din1_sel[1:0]
 @22
 tb.dut.alu.alu_din1[31:0]
@@ -91,11 +82,33 @@ tb.dut.idec.rs1[4:0]
 tb.dut.idec.rs2[4:0]
 @28
 tb.dut.store_data[0]
-tb.d_mem.write_data_addr_tran[0]
 @2024
 ^5 /media/diegob/riscv/riscv/work/funct.gtkfilter
 tb.dut.funct[3:0]
 @c00200
+-imem
+@22
+tb.ir_addr[31:0]
+@28
+tb.ir_addr_ready[0]
+tb.ir_addr_valid[0]
+@22
+tb.ir_data[31:0]
+@28
+tb.ir_data_ready[0]
+tb.ir_data_valid[0]
+@22
+tb.iw_addr[31:0]
+tb.iw_data[31:0]
+@28
+tb.iw_data_addr_ready[0]
+tb.iw_data_addr_valid[0]
+tb.iw_resp[0]
+tb.iw_resp_ready[0]
+tb.iw_resp_valid[0]
+@1401200
+-imem
+@800200
 -dmem
 @28
 tb.dut.dw_resp_valid[0]
@@ -154,7 +167,7 @@ tb.dut.dw_data_addr_tran[0]
 tb.dut.dw_data_addr_valid[0]
 tb.dut.dw_resp[0]
 tb.dut.dw_resp_tran[0]
-@1401200
+@1000200
 -dmem
 @c00200
 -comp
@@ -172,5 +185,31 @@ tb.dut.alu.comp.lt[0]
 tb.dut.alu.comp.ltu[0]
 @1401200
 -comp
+@c00200
+-fake_memory
+@22
+tb.u_mem.u_mem_1.r_addr[31:0]
+@28
+tb.u_mem.u_mem_1.r_addr_ready[0]
+tb.u_mem.u_mem_1.r_addr_valid[0]
+@22
+tb.u_mem.u_mem_1.r_data[31:0]
+@28
+tb.u_mem.u_mem_1.r_data_ready[0]
+tb.u_mem.u_mem_1.r_data_valid[0]
+@22
+tb.u_mem.u_mem_1.w_addr[31:0]
+tb.u_mem.u_mem_1.w_data[31:0]
+@28
+tb.u_mem.u_mem_1.w_data_addr_ready[0]
+tb.u_mem.u_mem_1.w_data_addr_valid[0]
+tb.u_mem.u_mem_1.w_resp[0]
+tb.u_mem.u_mem_1.w_resp_ready[0]
+tb.u_mem.u_mem_1.w_resp_valid[0]
+@1401200
+-fake_memory
+@28
+tb.chk.u_alu_checker.add.antecedent_expr[0]
+tb.chk.u_alu_checker.add.consequent_expr[0]
 [pattern_trace] 1
 [pattern_trace] 0

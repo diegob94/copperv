@@ -47,12 +47,12 @@ RISCV core
 | fence_i |        | Failed   |       |
 | jal     | Passed |          |       |
 | jalr    | Passed |          |       |
-| lb      |        | Failed   |       |
-| lbu     |        | Failed   |       |
-| lh      |        | Failed   |       |
-| lhu     |        | Failed   |       |
+| lb      | Passed |          |       |
+| lbu     | Passed |          |       |
+| lh      | Passed |          |       |
+| lhu     | Passed |          |       |
 | lui     |        | Failed   |       |
-| lw      |        | Failed   |       |
+| lw      | Passed |          |       |
 | or      |        | Failed   |       |
 | ori     |        | Failed   |       |
 | sb      |        |          | Error |
@@ -73,6 +73,6 @@ RISCV core
 | xor     |        | Failed   |       |
 | xori    |        | Failed   |       |
 | Summary | ---    | ---      | ---   |
-| 40      | 16     | 23       | 1     |
-| 100.0%  | 40.0%  | 57.5%    | 2.5%  |
+| 40      | 21     | 18       | 1     |
+| 100.0%  | 52.5%  | 45.0%    | 2.5%  |
 
