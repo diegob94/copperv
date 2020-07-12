@@ -39,6 +39,8 @@
 `define ALU_OP_SRL           6
 `define ALU_OP_XOR           7
 `define ALU_OP_OR            8
+`define ALU_OP_SLT           9
+`define ALU_OP_SLTU          10
 `define ALU_COMP_WIDTH       3
 `define ALU_COMP_EQ          0
 `define ALU_COMP_LT          1

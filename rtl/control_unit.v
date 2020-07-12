@@ -218,17 +218,17 @@ function [`ALU_OP_WIDTH-1:0] get_int_alu_op;
     input [`FUNCT_WIDTH-1:0] funct;
     begin
         case(funct)
-            `FUNCT_ADD: get_int_alu_op = `ALU_OP_ADD;
-            `FUNCT_SUB: get_int_alu_op = `ALU_OP_SUB;
-            `FUNCT_SLL: get_int_alu_op = `ALU_OP_SLL;
-            //`FUNCT_SLT: alu_op = `ALU_OP_SLT;
-            //`FUNCT_SLTU: alu_op = `ALU_OP_STLU;
-            `FUNCT_XOR: get_int_alu_op = `ALU_OP_XOR;
-            `FUNCT_SRL: get_int_alu_op = `ALU_OP_SRL;
-            `FUNCT_SRA: get_int_alu_op = `ALU_OP_SRA;
-            `FUNCT_OR:  get_int_alu_op = `ALU_OP_OR;
-            `FUNCT_AND: get_int_alu_op = `ALU_OP_AND;
-            default:    get_int_alu_op = `ALU_OP_NOP;
+            `FUNCT_ADD:  get_int_alu_op = `ALU_OP_ADD;
+            `FUNCT_SUB:  get_int_alu_op = `ALU_OP_SUB;
+            `FUNCT_SLL:  get_int_alu_op = `ALU_OP_SLL;
+            `FUNCT_SLT:  get_int_alu_op = `ALU_OP_SLT;
+            `FUNCT_SLTU: get_int_alu_op = `ALU_OP_SLTU;
+            `FUNCT_XOR:  get_int_alu_op = `ALU_OP_XOR;
+            `FUNCT_SRL:  get_int_alu_op = `ALU_OP_SRL;
+            `FUNCT_SRA:  get_int_alu_op = `ALU_OP_SRA;
+            `FUNCT_OR:   get_int_alu_op = `ALU_OP_OR;
+            `FUNCT_AND:  get_int_alu_op = `ALU_OP_AND;
+            default:     get_int_alu_op = `ALU_OP_NOP;
         endcase
     end
 endfunction

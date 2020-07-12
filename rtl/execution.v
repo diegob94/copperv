@@ -26,6 +26,8 @@ always @(*) begin
         `ALU_OP_SRA:  alu_dout = $signed(alu_din1) >>> alu_din2[`ALU_SHIFT_DIN2_WIDTH-1:0];
         `ALU_OP_XOR:  alu_dout = alu_din1 ^ alu_din2;
         `ALU_OP_OR:   alu_dout = alu_din1 | alu_din2;
+        `ALU_OP_SLT:  alu_dout = lt;
+        `ALU_OP_SLTU: alu_dout = ltu;
     endcase
 end
 always @(*) begin

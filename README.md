@@ -60,10 +60,10 @@ RISCV core
 | simple  | Passed |          |       |
 | sll     | Passed |          |       |
 | slli    | Passed |          |       |
-| slt     |        |          | Error |
-| slti    |        |          | Error |
-| sltiu   |        |          | Error |
-| sltu    |        |          | Error |
+| slt     | Passed |          |       |
+| slti    | Passed |          |       |
+| sltiu   | Passed |          |       |
+| sltu    | Passed |          |       |
 | sra     | Passed |          |       |
 | srai    | Passed |          |       |
 | srl     | Passed |          |       |
@@ -73,6 +73,6 @@ RISCV core
 | xor     | Passed |          |       |
 | xori    | Passed |          |       |
 | Summary | ---    | ---      | ---   |
-| 40      | 32     | 3        | 5     |
-| 100.0%  | 80.0%  | 7.5%     | 12.5% |
+| 40      | 36     | 3        | 1     |
+| 100.0%  | 90.0%  | 7.5%     | 2.5%  |
 
