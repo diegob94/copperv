@@ -47,22 +47,23 @@ always @(*) begin
         `STATE_FETCH: begin
             if (inst_valid)
                 case(inst_type)
-                    `INST_TYPE_JAL: state_next = `STATE_EXEC;
-                    default: state_next = `STATE_DECODE;
+                    `INST_TYPE_JAL:   state_next = `STATE_EXEC;
+                    default:          state_next = `STATE_DECODE;
                 endcase
             else
                 state_next = `STATE_FETCH;
         end
         `STATE_DECODE: begin
             case (inst_type)
-                `INST_TYPE_IMM: state_next = `STATE_FETCH;
-                default: state_next = `STATE_EXEC;
+                `INST_TYPE_IMM:   state_next = `STATE_FETCH;
+                `INST_TYPE_FENCE: state_next = `STATE_FETCH;
+                default:          state_next = `STATE_EXEC;
             endcase
         end
         `STATE_EXEC: begin
             case (inst_type)
                 `INST_TYPE_STORE: state_next = `STATE_MEM;
-                `INST_TYPE_LOAD: state_next = `STATE_MEM;
+                `INST_TYPE_LOAD:  state_next = `STATE_MEM;
                 default: state_next = `STATE_FETCH;
             endcase
         end
@@ -120,6 +121,9 @@ always @(*) begin
                 `INST_TYPE_JALR: begin
                     rs1_en = 1;
                 end
+                `INST_TYPE_FENCE: begin
+                    pc_next_sel = `PC_NEXT_SEL_INCR;
+                end
             endcase
         end
         `STATE_EXEC: begin
@@ -131,8 +135,11 @@ always @(*) begin
                     alu_din2_sel = `ALU_DIN2_SEL_IMM;
                     pc_next_sel = `PC_NEXT_SEL_INCR;
                     case(funct)
-                        `FUNCT_ADD: alu_op = `ALU_OP_ADD;
-                        `FUNCT_AND: alu_op = `ALU_OP_AND;
+                        `FUNCT_ADD:  alu_op = `ALU_OP_ADD;
+                        `FUNCT_AND:  alu_op = `ALU_OP_AND;
+                        `FUNCT_SLLI: alu_op = `ALU_OP_SLLI;
+                        `FUNCT_SRAI: alu_op = `ALU_OP_SRAI;
+                        `FUNCT_SRLI: alu_op = `ALU_OP_SRLI;
                     endcase
                 end
                 `INST_TYPE_INT_REG: begin

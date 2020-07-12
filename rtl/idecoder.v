@@ -45,6 +45,14 @@ always @(*) begin
             decode_i_type(inst);
             case (funct3)
                 3'd0: funct = `FUNCT_ADD;
+                3'd1: funct = `FUNCT_SLLI;
+                3'd5: begin
+                    imm = imm[4:0];
+                    case(imm[11:5])
+                        7'd0:  funct = `FUNCT_SRLI;
+                        7'd32: funct = `FUNCT_SRAI;
+                    endcase
+                end
                 3'd7: funct = `FUNCT_AND;
             endcase
         end
@@ -89,57 +97,60 @@ always @(*) begin
                 3'd5: funct = `FUNCT_MEM_HWORDU;
             endcase
         end
+        `OPCODE_FENCE: begin
+            inst_type = `INST_TYPE_FENCE;
+        end
     endcase
 end
 task decode_u_type;
-input [`INST_WIDTH-1:0] inst;
-begin
-    imm = {inst[31:12], 12'b0};
-    rd = inst[11:7];
-end
+    input [`INST_WIDTH-1:0] inst;
+    begin
+        imm = {inst[31:12], 12'b0};
+        rd = inst[11:7];
+    end
 endtask
 task decode_j_type;
-input [`INST_WIDTH-1:0] inst;
-begin
-    imm = {{11{inst[31]}}, inst[19:12], inst[20], inst[30:25], inst[24:21], 1'b0};
-    rd = inst[11:7];
-end
+    input [`INST_WIDTH-1:0] inst;
+    begin
+        imm = {{11{inst[31]}}, inst[19:12], inst[20], inst[30:25], inst[24:21], 1'b0};
+        rd = inst[11:7];
+    end
 endtask
 task decode_i_type;
-input [`INST_WIDTH-1:0] inst;
-begin
-    imm = {{21{inst[31]}}, inst[30:20]};
-    rd = inst[11:7];
-    rs1 = inst[19:15];
-    funct3 = inst[14:12];
-end
+    input [`INST_WIDTH-1:0] inst;
+    begin
+        imm = {{21{inst[31]}}, inst[30:20]};
+        rd = inst[11:7];
+        rs1 = inst[19:15];
+        funct3 = inst[14:12];
+    end
 endtask
 task decode_r_type;
-input [`INST_WIDTH-1:0] inst;
-begin
-    rs1 = inst[19:15];
-    rs2 = inst[24:20];
-    rd = inst[11:7];
-    funct7 = inst[31:25];
-    funct3 = inst[14:12];
-end
+    input [`INST_WIDTH-1:0] inst;
+    begin
+        rs1 = inst[19:15];
+        rs2 = inst[24:20];
+        rd = inst[11:7];
+        funct7 = inst[31:25];
+        funct3 = inst[14:12];
+    end
 endtask
 task decode_b_type;
-input [`INST_WIDTH-1:0] inst;
-begin
-    imm = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
-    rs1 = inst[19:15];
-    rs2 = inst[24:20];
-    funct3 = inst[14:12];
-end
+    input [`INST_WIDTH-1:0] inst;
+    begin
+        imm = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
+        rs1 = inst[19:15];
+        rs2 = inst[24:20];
+        funct3 = inst[14:12];
+    end
 endtask
 task decode_s_type;
-input [`INST_WIDTH-1:0] inst;
-begin
-    imm = {{19{inst[31]}}, inst[30:25], inst[11:7]};
-    rs1 = inst[19:15];
-    rs2 = inst[24:20];
-    funct3 = inst[14:12];
-end
+    input [`INST_WIDTH-1:0] inst;
+    begin
+        imm = {{19{inst[31]}}, inst[30:25], inst[11:7]};
+        rs1 = inst[19:15];
+        rs2 = inst[24:20];
+        funct3 = inst[14:12];
+    end
 endtask
 endmodule

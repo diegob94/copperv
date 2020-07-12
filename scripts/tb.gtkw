@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Sun Jul 12 07:49:11 2020
+[*] Sun Jul 12 10:17:44 2020
 [*]
 [dumpfile] "/media/diegob/riscv/riscv/work/tb.lxt"
-[dumpfile_mtime] "Sun Jul 12 07:47:46 2020"
-[dumpfile_size] 4602
+[dumpfile_mtime] "Sun Jul 12 09:41:18 2020"
+[dumpfile_size] 5155
 [savefile] "/media/diegob/riscv/riscv/scripts/tb.gtkw"
-[timestart] 152300
+[timestart] 629200
 [size] 1366 711
 [pos] -1 -1
-*-14.655549 235000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-15.256427 4895000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb.
 [treeopen] tb.chk.u_alu_checker.
 [treeopen] tb.dut.
@@ -49,9 +49,11 @@ tb.dut.control.state_next[2:0]
 @28
 tb.dut.control.state_change[0]
 tb.dut.control.state_change_next[0]
+@2024
+^4 /media/diegob/riscv/riscv/work/funct.gtkfilter
+tb.dut.funct[4:0]
 @22
 tb.dut.regfile.rs1[4:0]
-@23
 tb.dut.regfile.rs1_dout[31:0]
 @28
 tb.dut.regfile.rs1_en[0]
@@ -71,8 +73,8 @@ tb.dut.alu.alu_din1[31:0]
 tb.dut.alu_din2_sel[1:0]
 @22
 tb.dut.alu.alu_din2[31:0]
-@2024
-^4 /media/diegob/riscv/riscv/work/alu_op.gtkfilter
+@2025
+^5 /media/diegob/riscv/riscv/work/alu_op.gtkfilter
 tb.dut.alu.alu_op[3:0]
 @24
 tb.dut.alu.alu_dout[31:0]
@@ -82,9 +84,6 @@ tb.dut.idec.rs1[4:0]
 tb.dut.idec.rs2[4:0]
 @28
 tb.dut.store_data[0]
-@2024
-^5 /media/diegob/riscv/riscv/work/funct.gtkfilter
-tb.dut.funct[3:0]
 @c00200
 -imem
 @22
@@ -108,7 +107,7 @@ tb.iw_resp_ready[0]
 tb.iw_resp_valid[0]
 @1401200
 -imem
-@800200
+@c00200
 -dmem
 @28
 tb.dut.dw_resp_valid[0]
@@ -167,7 +166,7 @@ tb.dut.dw_data_addr_tran[0]
 tb.dut.dw_data_addr_valid[0]
 tb.dut.dw_resp[0]
 tb.dut.dw_resp_tran[0]
-@1000200
+@1401200
 -dmem
 @c00200
 -comp

@@ -33,6 +33,9 @@
 `define ALU_OP_ADD         1
 `define ALU_OP_SUB         2
 `define ALU_OP_AND         3
+`define ALU_OP_SLLI        4
+`define ALU_OP_SRAI        5
+`define ALU_OP_SRLI        6
 `define ALU_COMP_WIDTH     3
 `define ALU_COMP_EQ        0
 `define ALU_COMP_LT        1
@@ -40,7 +43,6 @@
 
 // idecoder
 `define INST_WIDTH         32
-`define OPCODE_WIDTH       7
 `define IMM_WIDTH          32
 `define INST_TYPE_WIDTH    4
 `define INST_TYPE_IMM      0
@@ -53,7 +55,8 @@
 `define INST_TYPE_JAL      7
 `define INST_TYPE_JALR     8
 `define INST_TYPE_LOAD     9
-`define FUNCT_WIDTH        4
+`define INST_TYPE_FENCE    10
+`define FUNCT_WIDTH        5
 `define FUNCT_ADD          0
 `define FUNCT_SUB          1
 `define FUNCT_AND          2
@@ -69,15 +72,20 @@
 `define FUNCT_MEM_BYTEU    12
 `define FUNCT_MEM_HWORDU   13
 `define FUNCT_JAL          14
-`define OPCODE_LUI         {6'h0D, 2'b11}
-`define OPCODE_JAL         {6'h1B, 2'b11}
-`define OPCODE_JALR        {6'h19, 2'b11}
-`define OPCODE_AUIPC       {6'h05, 2'b11}
-`define OPCODE_INT_IMM     {6'h04, 2'b11}
-`define OPCODE_INT_REG     {6'h0C, 2'b11}
-`define OPCODE_BRANCH      {6'h18, 2'b11}
-`define OPCODE_STORE       {6'h08, 2'b11}
-`define OPCODE_LOAD        {6'h00, 2'b11}
+`define FUNCT_SLLI         15
+`define FUNCT_SRAI         16
+`define FUNCT_SRLI         17
+`define OPCODE_WIDTH       7
+`define OPCODE_LOAD        {5'h00, 2'b11}
+`define OPCODE_FENCE       {5'h03, 2'b11}
+`define OPCODE_INT_IMM     {5'h04, 2'b11}
+`define OPCODE_AUIPC       {5'h05, 2'b11}
+`define OPCODE_STORE       {5'h08, 2'b11}
+`define OPCODE_INT_REG     {5'h0C, 2'b11}
+`define OPCODE_LUI         {5'h0D, 2'b11}
+`define OPCODE_BRANCH      {5'h18, 2'b11}
+`define OPCODE_JALR        {5'h19, 2'b11}
+`define OPCODE_JAL         {5'h1B, 2'b11}
 `define FUNCT3_WIDTH       3
 `define FUNCT7_WIDTH       7
 
