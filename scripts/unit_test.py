@@ -22,7 +22,7 @@ for test in [i['test'] for i in tests]:
         log = log_path.read_text()
         if "TEST PASSED" in log:
             res = "passed"
-        elif "TEST FAILED" in log:
+        elif "TEST FAILED" in log or "OVL_FATAL" in log:
             res = "failed"
         else:
             res = "error"
