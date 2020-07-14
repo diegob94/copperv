@@ -12,13 +12,10 @@ module fake_memory(
     input [`BUS_WIDTH-1:0] dr_addr,
     input [`BUS_WIDTH-1:0] dw_data,
     input [`BUS_WIDTH-1:0] dw_addr,
+    input [(`BUS_WIDTH/8)-1:0] dw_strobe,
     input ir_data_ready,
     input ir_addr_valid,
-    input iw_data_addr_valid,
-    input iw_resp_ready,
     input [`BUS_WIDTH-1:0] ir_addr,
-    input [`BUS_WIDTH-1:0] iw_data,
-    input [`BUS_WIDTH-1:0] iw_addr,
     output reg dr_data_valid,
     output dr_addr_ready,
     output dw_data_addr_ready,
@@ -26,10 +23,7 @@ module fake_memory(
     output reg [`BUS_WIDTH-1:0] dr_data,
     output reg ir_data_valid,
     output reg ir_addr_ready,
-    output reg iw_data_addr_ready,
-    output reg iw_resp_valid,
     output reg [`BUS_WIDTH-1:0] ir_data,
-    output reg [`BUS_RESP_WIDTH-1:0] iw_resp,
     output reg [`BUS_RESP_WIDTH-1:0] dw_resp
 );
 // fake_memory inputs
@@ -42,11 +36,11 @@ wire [`BUS_WIDTH-1:0] w_data;
 wire [`BUS_WIDTH-1:0] w_addr;
 assign r_addr_valid = ir_addr_valid | dr_addr_valid;
 assign r_data_ready = ir_data_ready | dr_data_ready;
-assign w_data_addr_valid = iw_data_addr_valid | dw_data_addr_valid;
-assign w_resp_ready = iw_resp_ready | dw_resp_ready;
+assign w_data_addr_valid = dw_data_addr_valid;
+assign w_resp_ready = dw_resp_ready;
 assign r_addr = ir_addr_valid ? ir_addr : dr_addr;
-assign w_data = iw_data_addr_valid ? iw_data : dw_data;
-assign w_addr = iw_data_addr_valid ? iw_addr : dw_addr;
+assign w_data = dw_data;
+assign w_addr = dw_addr;
 // fake_memory outputs
 wire w_resp_valid;
 wire [`BUS_RESP_WIDTH-1:0] w_resp;
@@ -56,14 +50,11 @@ wire w_data_addr_ready;
 wire [`BUS_WIDTH-1:0] r_data;
 
 reg ir_addr_tran;
-reg iw_data_addr_tran;
 always @(posedge clk) begin
     if(!rst) begin
         ir_addr_tran <= 0;
-        iw_data_addr_tran <= 0;
     end else begin
         ir_addr_tran <= ir_addr_valid && ir_addr_ready;
-        iw_data_addr_tran <= iw_data_addr_valid && iw_data_addr_ready;
     end
 end
 
@@ -87,13 +78,6 @@ always @(*) begin
         ir_data_valid = 0;
         ir_data = 0;
     end
-    if(iw_data_addr_tran) begin
-        iw_resp_valid = w_resp_valid;
-        iw_resp = w_resp;
-    end else begin
-        iw_resp_valid = 0;
-        iw_resp = 0;
-    end
     if(dr_addr_tran) begin
         dr_data_valid = r_data_valid;
         dr_data = r_data;
@@ -110,7 +94,6 @@ always @(*) begin
     end
 end
 
-assign iw_data_addr_ready = w_data_addr_ready;
 assign ir_addr_ready = r_addr_ready;
 assign dw_data_addr_ready = w_data_addr_ready;
 assign dr_addr_ready = r_addr_ready;
@@ -130,7 +113,8 @@ memory u_mem_1 (
     .r_addr_ready(r_addr_ready),
     .r_data_valid(r_data_valid),
     .w_data_addr_ready(w_data_addr_ready),
-    .r_data(r_data)
+    .r_data(r_data),
+    .w_strobe(dw_strobe)
 );
 endmodule
 
@@ -147,6 +131,7 @@ module memory #(
     input [`BUS_WIDTH-1:0] w_data,
     input [`BUS_WIDTH-1:0] w_addr,
     input w_resp_ready,
+    input [(`BUS_WIDTH/8)-1:0] w_strobe,
     output reg w_resp_valid,
     output reg [`BUS_RESP_WIDTH-1:0] w_resp,
     output reg r_addr_ready,
@@ -203,10 +188,10 @@ always @(posedge clk) begin
         w_resp <= 0;
         w_resp_valid <= 0;
     end else if(write_data_addr_tran) begin
-        memory[w_addr+3] <= w_data[31:24];
-        memory[w_addr+2] <= w_data[23:16];
-        memory[w_addr+1] <= w_data[15:8];
-        memory[w_addr+0] <= w_data[7:0];
+        if(w_strobe[3]) memory[w_addr+3] <= w_data[31:24];
+        if(w_strobe[2]) memory[w_addr+2] <= w_data[23:16];
+        if(w_strobe[1]) memory[w_addr+1] <= w_data[15:8];
+        if(w_strobe[0]) memory[w_addr+0] <= w_data[7:0];
         w_resp <= `DATA_WRITE_RESP_OK;
         w_resp_valid <= 1;
     end else if(write_resp_tran) begin

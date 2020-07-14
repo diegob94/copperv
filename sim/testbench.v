@@ -14,10 +14,7 @@ wire dw_resp_valid;
 wire [`BUS_WIDTH-1:0] dr_data;
 wire ir_data_valid;
 wire ir_addr_ready;
-wire iw_data_addr_ready;
-wire iw_resp_valid;
 wire [`BUS_WIDTH-1:0] ir_data;
-wire [`BUS_RESP_WIDTH-1:0] iw_resp;
 wire [`BUS_RESP_WIDTH-1:0] dw_resp;
 // copperv outputs
 wire dr_data_ready;
@@ -27,13 +24,10 @@ wire dw_resp_ready;
 wire [`BUS_WIDTH-1:0] dr_addr;
 wire [`BUS_WIDTH-1:0] dw_data;
 wire [`BUS_WIDTH-1:0] dw_addr;
+wire [(`BUS_WIDTH/8)-1:0] dw_strobe;
 wire ir_data_ready;
 wire ir_addr_valid;
-wire iw_data_addr_valid;
-wire iw_resp_ready;
 wire [`BUS_WIDTH-1:0] ir_addr;
-wire [`BUS_WIDTH-1:0] iw_data;
-wire [`BUS_WIDTH-1:0] iw_addr;
 initial begin
     rst = 0;
     clk = 0;
@@ -57,10 +51,7 @@ copperv dut (
     .dr_data(dr_data),
     .ir_data_valid(ir_data_valid),
     .ir_addr_ready(ir_addr_ready),
-    .iw_data_addr_ready(iw_data_addr_ready),
-    .iw_resp_valid(iw_resp_valid),
     .ir_data(ir_data),
-    .iw_resp(iw_resp),
     .dw_resp(dw_resp),
     .dr_data_ready(dr_data_ready),
     .dr_addr_valid(dr_addr_valid),
@@ -69,13 +60,10 @@ copperv dut (
     .dr_addr(dr_addr),
     .dw_data(dw_data),
     .dw_addr(dw_addr),
+    .dw_strobe(dw_strobe),
     .ir_data_ready(ir_data_ready),
     .ir_addr_valid(ir_addr_valid),
-    .iw_data_addr_valid(iw_data_addr_valid),
-    .iw_resp_ready(iw_resp_ready),
-    .ir_addr(ir_addr),
-    .iw_data(iw_data),
-    .iw_addr(iw_addr)
+    .ir_addr(ir_addr)
 );
 fake_memory u_mem (
     .clk(clk),
@@ -87,10 +75,7 @@ fake_memory u_mem (
     .dr_data(dr_data),
     .ir_data_valid(ir_data_valid),
     .ir_addr_ready(ir_addr_ready),
-    .iw_data_addr_ready(iw_data_addr_ready),
-    .iw_resp_valid(iw_resp_valid),
     .ir_data(ir_data),
-    .iw_resp(iw_resp),
     .dw_resp(dw_resp),
     .dr_data_ready(dr_data_ready),
     .dr_addr_valid(dr_addr_valid),
@@ -99,13 +84,10 @@ fake_memory u_mem (
     .dr_addr(dr_addr),
     .dw_data(dw_data),
     .dw_addr(dw_addr),
+    .dw_strobe(dw_strobe),
     .ir_data_ready(ir_data_ready),
     .ir_addr_valid(ir_addr_valid),
-    .iw_data_addr_valid(iw_data_addr_valid),
-    .iw_resp_ready(iw_resp_ready),
-    .ir_addr(ir_addr),
-    .iw_data(iw_data),
-    .iw_addr(iw_addr)
+    .ir_addr(ir_addr)
 );
 monitor_cpu mon(
     .clk(clk),
@@ -121,10 +103,10 @@ initial begin
 end
 always @(posedge clk)
     if(dw_data_addr_valid && dw_data_addr_ready) begin
-        if(dw_addr == 32'd33 && dw_data == 32'd123456789) begin
+        if(dw_addr == (32'd33<<2) && dw_data == 32'd123456789) begin
             test_passed;
         end
-        if(dw_addr == 32'd33 && dw_data == 32'd111111111) begin
+        if(dw_addr == (32'd33<<2) && dw_data == 32'd111111111) begin
             test_failed;
         end
     end

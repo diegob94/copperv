@@ -2,7 +2,7 @@ SHELL = bash
 
 RISCV_TESTS = $(UTIL)/riscv-tests
 LINKER_SCRIPT = $(SIM)/tests/test.ld
-TOOLCHAIN = $(UTIL)/toolchain/bin/riscv32-unknown-elf-
+TOOLCHAIN = $(RISCV)/bin/riscv32-unknown-elf-
 CC = $(TOOLCHAIN)gcc
 OBJDUMP = $(TOOLCHAIN)objdump
 

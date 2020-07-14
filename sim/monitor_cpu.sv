@@ -33,22 +33,17 @@ always @(posedge clk) begin
             $display($time, ": BUS: ir_data tran: 0x%08X", `CPU_INST.ir_data);
         if(`CPU_INST.ir_addr_valid && `CPU_INST.ir_addr_ready)
             $display($time, ": BUS: ir_addr tran: 0x%08X", `CPU_INST.ir_addr);
-        if(`CPU_INST.iw_data_addr_valid && `CPU_INST.iw_data_addr_ready) begin
-            $display($time, ": BUS: iw_data tran: 0x%08X", `CPU_INST.iw_data);
-            $display($time, ": BUS: iw_addr tran: 0x%08X", `CPU_INST.iw_addr);
-        end
-        if(`CPU_INST.iw_resp_valid && `CPU_INST.iw_resp_ready)
-            $display($time, ": BUS: iw_resp tran: 0x%08X", `CPU_INST.iw_resp);
         if(`CPU_INST.dr_data_valid && `CPU_INST.dr_data_ready)
             $display($time, ": BUS: dr_data tran: 0x%08X", `CPU_INST.dr_data);
         if(`CPU_INST.dr_addr_valid && `CPU_INST.dr_addr_ready)
             $display($time, ": BUS: dr_addr tran: 0x%08X", `CPU_INST.dr_addr);
         if(`CPU_INST.dw_data_addr_valid && `CPU_INST.dw_data_addr_ready) begin
-            $display($time, ": BUS: dw_data tran: 0x%08X", `CPU_INST.dw_data);
-            $display($time, ": BUS: dw_addr tran: 0x%08X", `CPU_INST.dw_addr);
+            $display($time, ": BUS: dw_data   : 0x%08X", `CPU_INST.dw_data);
+            $display($time, ": BUS: dw_addr   : 0x%08X", `CPU_INST.dw_addr);
+            $display($time, ": BUS: dw_strobe : 0x%08X", `CPU_INST.dw_strobe);
         end
         if(`CPU_INST.dw_resp_valid && `CPU_INST.dw_resp_ready)
-            $display($time, ": BUS: dw_resp tran: 0x%08X", `CPU_INST.dw_resp);
+            $display($time, ": BUS: dw_resp   : 0x%08X", `CPU_INST.dw_resp);
     end
 end
 always @(`CPU_INST.pc, posedge `CPU_INST.rst) begin

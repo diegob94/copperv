@@ -1,18 +1,17 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Sun Jul 12 21:30:51 2020
+[*] Tue Jul 14 00:55:58 2020
 [*]
 [dumpfile] "/media/diegob/riscv/riscv/work/tb.lxt"
-[dumpfile_mtime] "Sun Jul 12 21:30:51 2020"
-[dumpfile_size] 52988
+[dumpfile_mtime] "Tue Jul 14 00:54:58 2020"
+[dumpfile_size] 6758
 [savefile] "/media/diegob/riscv/riscv/scripts/tb.gtkw"
 [timestart] 0
 [size] 1366 711
 [pos] -1 -1
-*-19.170113 415000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-18.115993 415000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb.
 [treeopen] tb.chk.
-[treeopen] tb.chk.iw_resp_checker.
 [treeopen] tb.chk.u_alu_checker.
 [treeopen] tb.dut.
 [treeopen] tb.dut.alu.
@@ -133,15 +132,6 @@ tb.ir_data[31:0]
 @28
 tb.ir_data_ready[0]
 tb.ir_data_valid[0]
-@22
-tb.iw_addr[31:0]
-tb.iw_data[31:0]
-@28
-tb.iw_data_addr_ready[0]
-tb.iw_data_addr_valid[0]
-tb.iw_resp[0]
-tb.iw_resp_ready[0]
-tb.iw_resp_valid[0]
 @1401200
 -imem
 @800200
@@ -156,6 +146,7 @@ tb.dut.dw_data_addr_valid[0]
 tb.dut.dw_data[31:0]
 tb.dut.dw_addr[31:0]
 @28
+tb.dut.dw_strobe[3:0]
 tb.dut.dr_addr_ready[0]
 tb.dut.dr_addr_valid[0]
 @c00022
@@ -225,7 +216,7 @@ tb.u_mem.u_mem_1.r_addr[31:0]
 @28
 tb.u_mem.u_mem_1.r_addr_ready[0]
 tb.u_mem.u_mem_1.r_addr_valid[0]
-@23
+@22
 tb.u_mem.u_mem_1.r_data[31:0]
 @28
 tb.u_mem.u_mem_1.r_data_ready[0]
@@ -233,6 +224,8 @@ tb.u_mem.u_mem_1.r_data_valid[0]
 @22
 tb.u_mem.u_mem_1.w_addr[31:0]
 tb.u_mem.u_mem_1.w_data[31:0]
+@29
+tb.u_mem.u_mem_1.w_strobe[3:0]
 @28
 tb.u_mem.u_mem_1.w_data_addr_ready[0]
 tb.u_mem.u_mem_1.w_data_addr_valid[0]

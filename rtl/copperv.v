@@ -6,18 +6,18 @@ module copperv #(
 ) (
     input clk,
     input rst,
+    input ir_data_valid,
+    input ir_addr_ready,
+    input [`BUS_WIDTH-1:0] ir_data,
     input dr_data_valid,
     input dr_addr_ready,
     input dw_data_addr_ready,
     input dw_resp_valid,
     input [`BUS_WIDTH-1:0] dr_data,
-    input ir_data_valid,
-    input ir_addr_ready,
-    input iw_data_addr_ready,
-    input iw_resp_valid,
-    input [`BUS_WIDTH-1:0] ir_data,
-    input [`BUS_RESP_WIDTH-1:0] iw_resp,
     input [`BUS_RESP_WIDTH-1:0] dw_resp,
+    output reg ir_data_ready,
+    output ir_addr_valid,
+    output [`BUS_WIDTH-1:0] ir_addr,
     output reg dr_data_ready,
     output reg dr_addr_valid,
     output reg dw_data_addr_valid,
@@ -25,13 +25,7 @@ module copperv #(
     output reg [`BUS_WIDTH-1:0] dr_addr,
     output reg [`BUS_WIDTH-1:0] dw_data,
     output reg [`BUS_WIDTH-1:0] dw_addr,
-    output reg ir_data_ready,
-    output ir_addr_valid,
-    output iw_data_addr_valid,
-    output iw_resp_ready,
-    output [`BUS_WIDTH-1:0] ir_addr,
-    output [`BUS_WIDTH-1:0] iw_data,
-    output [`BUS_WIDTH-1:0] iw_addr
+    output reg [(`BUS_WIDTH/8)-1:0] dw_strobe
 );
 // idecoder begin
 wire [`IMM_WIDTH-1:0] imm;
@@ -73,7 +67,7 @@ wire load_data;
 reg [`DATA_WIDTH-1:0] write_addr;
 reg [`DATA_WIDTH-1:0] write_data;
 reg [`DATA_WIDTH-1:0] read_data;
-reg [`DATA_WIDTH-1:0] read_data_ext;
+reg [`DATA_WIDTH-1:0] ext_read_data;
 reg write_valid;
 wire dw_resp_tran;
 reg dw_data_addr_tran;
@@ -81,9 +75,8 @@ reg dr_addr_tran;
 reg read_valid;
 wire [`BUS_WIDTH-1:0] read_addr;
 wire dr_data_tran;
+reg [(`BUS_WIDTH/8)-1:0] write_strobe;
 // datapath end
-assign iw_data_addr_valid = 0;
-assign iw_resp_ready = 0;
 always @(posedge clk) begin
     if (!rst) begin
         pc <= pc_init;
@@ -123,17 +116,18 @@ always @(posedge clk)
         ir_data_ready <= 1;
     end
 // Write data address
-assign write_data = rs2_dout;
 assign write_addr = alu_dout;
 assign dw_data_addr_tran = store_data && dw_data_addr_ready;
 always @(posedge clk) begin
     if(!rst) begin
         dw_addr <= 0;
         dw_data <= 0;
+        dw_strobe <= 0;
         dw_data_addr_valid <= 0;
     end else if(dw_data_addr_tran) begin
         dw_addr <= write_addr;
         dw_data <= write_data;
+        dw_strobe <= write_strobe;
         dw_data_addr_valid <= 1;
     end else
         dw_data_addr_valid <= 0;
@@ -168,23 +162,45 @@ always @(posedge clk) begin
         read_valid <= 0;
     end
 end
-always @(posedge clk)
+always @(posedge clk) begin
     if(!rst) begin
         dr_data_ready <= 1;
     end
+end
+always @(*) begin
+    case(funct)
+        `FUNCT_MEM_BYTE:   write_strobe = 4'b0001 << imm[1:0];
+        `FUNCT_MEM_HWORD:  write_strobe = 4'b0011 << imm[0];
+        `FUNCT_MEM_WORD:   write_strobe = 4'b1111;
+        `FUNCT_MEM_BYTEU:  write_strobe = 4'b0001 << imm[1:0];
+        `FUNCT_MEM_HWORDU: write_strobe = 4'b0011 << imm[0];
+        default:           write_strobe = 0;
+    endcase
+end
+always @(*) begin
+    case(funct)
+        `FUNCT_MEM_BYTE:  write_data = {{24{rs2_dout[7]}},rs2_dout[7:0]};
+        `FUNCT_MEM_HWORD: write_data = {{16{rs2_dout[15]}},rs2_dout[15:0]};
+        `FUNCT_MEM_WORD:  write_data = rs2_dout;
+        default:          write_data = {`DATA_WIDTH{1'bX}};
+    endcase
+end
+always @(*) begin
+    case(funct)
+        `FUNCT_MEM_BYTE:   ext_read_data = $signed(read_data[7:0] << read_addr[1:0]);
+        `FUNCT_MEM_HWORD:  ext_read_data = $signed(read_data[15:0] << read_addr[0]);
+        `FUNCT_MEM_WORD:   ext_read_data = read_data;
+        `FUNCT_MEM_BYTEU:  ext_read_data = read_data[7:0] << read_addr[1:0];
+        `FUNCT_MEM_HWORDU: ext_read_data = read_data[15:0] << read_addr[0];
+        default:           ext_read_data = {`DATA_WIDTH{1'bX}};
+    endcase
+end
 always @(*) begin
     rd_din = 0;
-    case(funct)
-        `FUNCT_MEM_BYTE:   read_data_ext = {{24{read_data[7]}},read_data[7:0]};
-        `FUNCT_MEM_HWORD:  read_data_ext = {{16{read_data[15]}},read_data[15:0]};
-        `FUNCT_MEM_WORD:   read_data_ext = read_data;
-        `FUNCT_MEM_BYTEU:  read_data_ext = {24'b0,read_data[7:0]};
-        `FUNCT_MEM_HWORDU: read_data_ext = {16'b0,read_data[15:0]};
-    endcase
     case(rd_din_sel)
         `RD_DIN_SEL_IMM: rd_din = imm;
         `RD_DIN_SEL_ALU: rd_din = alu_dout;
-        `RD_DIN_SEL_MEM: rd_din = read_data_ext;
+        `RD_DIN_SEL_MEM: rd_din = ext_read_data;
     endcase
 end
 always @(*) begin

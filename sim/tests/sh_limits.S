@@ -1,3 +1,4 @@
+#include "riscv_test.h"
 
     li t3, 0xFFFF1313   # Data
     li t2, 0x13         # Data LS Byte
@@ -25,14 +26,9 @@
     lb t5, 4(t4)
     bne t5, zero, fail
 pass:
-    li t1, 123456789 # Test passed code
-    li t2, 33        # Test result address
-    sw t1, 0(t2)     # Output test result
-    j loop
+    RVTEST_PASS
 fail:
-    li t1, 111111111 # Test failed code
-    li t2, 33        # Test result address
-    sw t1, 0(t2)     # Output test result
+    RVTEST_FAIL
 loop:
     j loop
 

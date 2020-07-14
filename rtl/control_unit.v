@@ -10,8 +10,8 @@ module control_unit (
     input [`FUNCT_WIDTH-1:0] funct,
     input data_valid,
     output reg inst_fetch,
-    output reg store_data,
     output reg load_data,
+    output reg store_data,
     output reg rd_en,
     output reg rs1_en,
     output reg rs2_en,
@@ -86,9 +86,9 @@ always @(*) begin
     alu_din2_sel = 0;
     pc_next_sel = `PC_NEXT_SEL_STALL;
     alu_op = `ALU_OP_NOP;
-    store_data = 0;
     load_data = 0;
     take_branch = 0;
+    store_data = 0;
     case (state)
         `STATE_FETCH: begin
             inst_fetch = state_change;

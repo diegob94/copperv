@@ -67,24 +67,6 @@ bus_channel_checker #(
     .ready(`CPU_INST.ir_data_ready),
     .valid(`CPU_INST.ir_data_valid)
 );
-bus_channel_checker #(
-    .severity_level(severity_level),
-    .channel_name("iw_data_addr")
-) iw_data_addr_checker (
-    .clock(clock),
-    .reset(reset),
-    .ready(`CPU_INST.iw_data_addr_ready),
-    .valid(`CPU_INST.iw_data_addr_valid)
-);
-bus_channel_checker #(
-    .severity_level(severity_level),
-    .channel_name("iw_resp")
-) iw_resp_checker (
-    .clock(clock),
-    .reset(reset),
-    .ready(`CPU_INST.iw_resp_ready),
-    .valid(`CPU_INST.iw_resp_valid)
-);
 alu_checker #(
     .severity_level(severity_level)
 ) u_alu_checker (
