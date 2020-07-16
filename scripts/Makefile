@@ -37,6 +37,10 @@ sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(TEST).hex $(TEST).hex_dump
 sim: sim.vvp 
 	vvp $< +HEX_FILE=$(TEST).hex $(VVPFLAGS) |& tee sim_run_$(TEST).log
 
+.PHONY: lint
+lint: $(RTL_SOURCES)
+	verilator --lint-only -Wall -Wpedantic $(RTL_SOURCES) -I$(RTL)/include
+
 .PHONY: wave
 wave:
 	gtkwave tb.lxt $(GTKWAVEFLAGS)
