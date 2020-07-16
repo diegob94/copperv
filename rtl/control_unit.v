@@ -205,6 +205,7 @@ always @(*) begin
             endcase
         end
         `STATE_MEM: begin
+            alu_op = `ALU_OP_ADD;
             if(inst_type == `INST_TYPE_LOAD) begin
                 rd_en = state_change_next;
                 rd_din_sel = `RD_DIN_SEL_MEM;

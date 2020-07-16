@@ -68,12 +68,15 @@ reg [`DATA_WIDTH-1:0] write_addr;
 reg [`DATA_WIDTH-1:0] write_data;
 reg [`DATA_WIDTH-1:0] read_data;
 reg [`DATA_WIDTH-1:0] ext_read_data;
+reg [`DATA_WIDTH-1:0] read_data_t;
 reg write_valid;
 wire dw_resp_tran;
 reg dw_data_addr_tran;
 reg dr_addr_tran;
 reg read_valid;
 wire [`BUS_WIDTH-1:0] read_addr;
+reg [2-1:0] write_offset;
+reg [2-1:0] read_offset;
 wire dr_data_tran;
 reg [(`BUS_WIDTH/8)-1:0] write_strobe;
 // datapath end
@@ -125,7 +128,7 @@ always @(posedge clk) begin
         dw_strobe <= 0;
         dw_data_addr_valid <= 0;
     end else if(dw_data_addr_tran) begin
-        dw_addr <= write_addr;
+        dw_addr <= {write_addr[`DATA_WIDTH-1:2],2'b0};
         dw_data <= write_data;
         dw_strobe <= write_strobe;
         dw_data_addr_valid <= 1;
@@ -140,11 +143,15 @@ always @(posedge clk)
 assign read_addr = alu_dout;
 assign dr_addr_tran = load_data && dr_addr_ready;
 always @(posedge clk) begin
+    if(load_data)
+        read_offset <= read_addr[1:0];
+end
+always @(posedge clk) begin
     if(!rst) begin
         dr_addr <= 0;
         dr_addr_valid <= 0;
     end else if(dr_addr_tran) begin
-        dr_addr <= read_addr;
+        dr_addr <= {read_addr[`DATA_WIDTH-1:2],2'b0};
         dr_addr_valid <= 1;
     end else
         dr_addr_valid <= 0;
@@ -168,32 +175,38 @@ always @(posedge clk) begin
     end
 end
 always @(*) begin
+    write_offset = write_addr[1:0];
     case(funct)
-        `FUNCT_MEM_BYTE:   write_strobe = 4'b0001 << imm[1:0];
-        `FUNCT_MEM_HWORD:  write_strobe = 4'b0011 << imm[0];
-        `FUNCT_MEM_WORD:   write_strobe = 4'b1111;
-        `FUNCT_MEM_BYTEU:  write_strobe = 4'b0001 << imm[1:0];
-        `FUNCT_MEM_HWORDU: write_strobe = 4'b0011 << imm[0];
-        default:           write_strobe = 0;
+        `FUNCT_MEM_BYTE: begin
+            write_strobe = 4'b0001 << write_offset;
+            write_data   = rs2_dout[7:0] << {write_offset, 3'b0};
+        end
+        `FUNCT_MEM_HWORD: begin
+            write_strobe = 4'b0011 << write_offset;
+            write_data   = rs2_dout[15:0] << {write_offset, 3'b0};
+        end
+        `FUNCT_MEM_WORD: begin
+            write_strobe = 4'b1111;
+            write_data   = rs2_dout;
+        end
+        default: begin
+            write_strobe = 0;
+            write_data   = {`DATA_WIDTH{1'bX}};
+        end
     endcase
+    $display($time, ": DEBUG: write_data 0x%0x <= rs2_dout 0x%0x write_offset 0x%0x", write_data, rs2_dout, write_offset);
 end
 always @(*) begin
+    read_data_t = read_data >> {read_offset, 3'b0};
     case(funct)
-        `FUNCT_MEM_BYTE:  write_data = {{24{rs2_dout[7]}},rs2_dout[7:0]};
-        `FUNCT_MEM_HWORD: write_data = {{16{rs2_dout[15]}},rs2_dout[15:0]};
-        `FUNCT_MEM_WORD:  write_data = rs2_dout;
-        default:          write_data = {`DATA_WIDTH{1'bX}};
-    endcase
-end
-always @(*) begin
-    case(funct)
-        `FUNCT_MEM_BYTE:   ext_read_data = $signed(read_data[7:0] << read_addr[1:0]);
-        `FUNCT_MEM_HWORD:  ext_read_data = $signed(read_data[15:0] << read_addr[0]);
-        `FUNCT_MEM_WORD:   ext_read_data = read_data;
-        `FUNCT_MEM_BYTEU:  ext_read_data = read_data[7:0] << read_addr[1:0];
-        `FUNCT_MEM_HWORDU: ext_read_data = read_data[15:0] << read_addr[0];
+        `FUNCT_MEM_BYTE:   ext_read_data = $signed(read_data_t[7:0]);
+        `FUNCT_MEM_HWORD:  ext_read_data = $signed(read_data_t[15:0]);
+        `FUNCT_MEM_WORD:   ext_read_data = read_data_t;
+        `FUNCT_MEM_BYTEU:  ext_read_data = read_data_t[7:0];
+        `FUNCT_MEM_HWORDU: ext_read_data = read_data_t[15:0];
         default:           ext_read_data = {`DATA_WIDTH{1'bX}};
     endcase
+//    $display($time, ": DEBUG: ext_read_data 0x%0x <= read_data_byte 0x%0x read_data_hword 0x%0x <= read_data 0x%0x read_offset 0x%0x", ext_read_data, read_data_byte, read_data_hword, read_data, read_offset);
 end
 always @(*) begin
     rd_din = 0;

@@ -27,6 +27,7 @@ RISCV core
 
 ## To Do
 - Write dissassembly monitor in C
+- take_branch X?
 
 ## Unit test results:
 
@@ -46,13 +47,13 @@ RISCV core
 | blt       | Passed |          |      |
 | bltu      | Passed |          |      |
 | bne       | Passed |          |      |
-| fence_i   |        | Failed   |      |
+| fence_i   | Passed |          |      |
 | jal       | Passed |          |      |
 | jalr      | Passed |          |      |
-| lb        |        | Failed   |      |
-| lbu       |        | Failed   |      |
-| lh        |        | Failed   |      |
-| lhu       |        | Failed   |      |
+| lb        | Passed |          |      |
+| lbu       | Passed |          |      |
+| lh        | Passed |          |      |
+| lhu       | Passed |          |      |
 | lui       | Passed |          |      |
 | lw        | Passed |          |      |
 | or        | Passed |          |      |
@@ -75,6 +76,6 @@ RISCV core
 | xor       | Passed |          |      |
 | xori      | Passed |          |      |
 | Summary   | ---    | ---      | ---  |
-| 42        | 37     | 5        | 0    |
-| 100.0%    | 88.1%  | 11.9%    | 0.0% |
+| 42        | 42     | 0        | 0    |
+| 100.0%    | 100.0% | 0.0%     | 0.0% |
 
