@@ -38,8 +38,8 @@ sim: sim.vvp
 	vvp $< +HEX_FILE=$(TEST).hex $(VVPFLAGS) |& tee sim_run_$(TEST).log
 
 .PHONY: lint
-lint: $(RTL_SOURCES)
-	verilator --lint-only -Wall -Wpedantic $(RTL_SOURCES) -I$(RTL)/include
+lint: $(RTL_SOURCES) $(SCRIPTS)/lint.vlt
+	verilator --lint-only -Wall -Wpedantic $(RTL_SOURCES) $(SCRIPTS)/lint.vlt -I$(RTL)/include
 
 .PHONY: wave
 wave:
