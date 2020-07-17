@@ -13,11 +13,9 @@ module register_file #(
     input [`REG_WIDTH-1:0] rs1,
     input [`REG_WIDTH-1:0] rs2,
     input [`DATA_WIDTH-1:0] rd_din,
-    output [`DATA_WIDTH-1:0] rs1_dout,
-    output [`DATA_WIDTH-1:0] rs2_dout
+    output reg [`DATA_WIDTH-1:0] rs1_dout,
+    output reg [`DATA_WIDTH-1:0] rs2_dout
 );
-reg [`DATA_WIDTH-1:0] rs1_dout;
-reg [`DATA_WIDTH-1:0] rs2_dout;
 reg [`DATA_WIDTH-1:0] mem [reg_length-1:0];
 integer i;
 always @(posedge clk) begin

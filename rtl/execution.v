@@ -5,10 +5,9 @@ module arith_logic_unit (
     input [`DATA_WIDTH-1:0] alu_din1,
     input [`DATA_WIDTH-1:0] alu_din2,
     input [`ALU_OP_WIDTH-1:0] alu_op,
-    output [`DATA_WIDTH-1:0] alu_dout,
+    output reg [`DATA_WIDTH-1:0] alu_dout,
     output reg [`ALU_COMP_WIDTH-1:0] alu_comp
 );
-reg [`DATA_WIDTH-1:0] alu_dout;
 reg sign;
 wire eq;
 wire lt;
