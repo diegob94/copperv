@@ -36,11 +36,11 @@ sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(TEST).hex $(TEST).hex_dump
 
 .PHONY: sim
 sim: sim.vvp 
-	vvp $< +HEX_FILE=$(TEST).hex $(VVPFLAGS) |& tee sim_run_$(TEST).log
+	vvp $< +HEX_FILE=$(TEST).hex $(VVPFLAGS) 2>&1 | tee sim_run_$(TEST).log
 
 .PHONY: lint
-lint: $(RTL_SOURCES) $(SCRIPTS)/lint.vlt
-	verilator $(VERILATORFLAGS) $(SCRIPTS)/lint.vlt $(RTL_SOURCES)  
+lint: $(RTL_SOURCES) $(SCRIPTS)/waivers.vlt
+	verilator $(VERILATORFLAGS) $(SCRIPTS)/waivers.vlt $(RTL_SOURCES) 2>&1 | tee lint.log 
 
 .PHONY: wave
 wave:
