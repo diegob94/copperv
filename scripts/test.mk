@@ -25,7 +25,7 @@ endef
 
 %.E: %.S
 	$(CC) $(CFLAGS) -E -c $< -o $@
-	grep -Pv '^#|^$$' $@ | tr ';' '\n' > $(notdir $@)
+	grep -Ev '^#|^$$' $@ | tr ';' '\n' > $(notdir $@)
 
 $(TEST).elf: $(OBJS) $(DISS) $(PPRC) $(LINKER_SCRIPT)
 	$(CC) $(LFLAGS) $< -o $@

@@ -18,23 +18,23 @@ always @(*) begin
     case (opcode)
         `OPCODE_LUI: begin
             inst_type = `INST_TYPE_IMM;
-            decode_u_type(inst[`INST_WIDTH:7]);
+            decode_u_type(inst[`INST_WIDTH-1:7]);
         end
         `OPCODE_JAL: begin
             inst_type = `INST_TYPE_JAL;
-            decode_j_type(inst[`INST_WIDTH:7]);
+            decode_j_type(inst[`INST_WIDTH-1:7]);
         end
         `OPCODE_JALR: begin
             inst_type = `INST_TYPE_JALR;
-            decode_i_type(inst[`INST_WIDTH:7]);
+            decode_i_type(inst[`INST_WIDTH-1:7]);
         end
         `OPCODE_AUIPC: begin
             inst_type = `INST_TYPE_AUIPC;
-            decode_u_type(inst[`INST_WIDTH:7]);
+            decode_u_type(inst[`INST_WIDTH-1:7]);
         end
         `OPCODE_INT_IMM: begin
             inst_type = `INST_TYPE_INT_IMM;
-            decode_i_type(inst[`INST_WIDTH:7]);
+            decode_i_type(inst[`INST_WIDTH-1:7]);
             case (funct3)
                 3'd0: funct = `FUNCT_ADD;
                 3'd1: funct = `FUNCT_SLL;
@@ -56,7 +56,7 @@ always @(*) begin
         end
         `OPCODE_INT_REG: begin 
             inst_type = `INST_TYPE_INT_REG;
-            decode_r_type(inst[`INST_WIDTH:7]);
+            decode_r_type(inst[`INST_WIDTH-1:7]);
             case ({funct7, funct3})
                 {7'd0,  3'd0}: funct = `FUNCT_ADD;
                 {7'd32, 3'd0}: funct = `FUNCT_SUB;
@@ -73,7 +73,7 @@ always @(*) begin
         end
         `OPCODE_BRANCH: begin
             inst_type = `INST_TYPE_BRANCH;
-            decode_b_type(inst[`INST_WIDTH:7]);
+            decode_b_type(inst[`INST_WIDTH-1:7]);
             case (funct3)
                 3'd0: funct = `FUNCT_EQ;
                 3'd1: funct = `FUNCT_NEQ;
@@ -86,7 +86,7 @@ always @(*) begin
         end
         `OPCODE_STORE: begin
             inst_type = `INST_TYPE_STORE;
-            decode_s_type(inst[`INST_WIDTH:7]);
+            decode_s_type(inst[`INST_WIDTH-1:7]);
             case(funct3)
                 3'd0: funct = `FUNCT_MEM_BYTE;
                 3'd1: funct = `FUNCT_MEM_HWORD;
@@ -96,7 +96,7 @@ always @(*) begin
         end
         `OPCODE_LOAD: begin
             inst_type = `INST_TYPE_LOAD;
-            decode_i_type(inst[`INST_WIDTH:7]);
+            decode_i_type(inst[`INST_WIDTH-1:7]);
             case(funct3)
                 3'd0: funct = `FUNCT_MEM_BYTE;
                 3'd1: funct = `FUNCT_MEM_HWORD;

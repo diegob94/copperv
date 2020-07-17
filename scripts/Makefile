@@ -19,6 +19,7 @@ ICARUSFLAGS += -pfileline=1
 VVPFLAGS += +DUMP_REGFILE
 endif
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A -a $(SCRIPTS)/tb.gtkw 
+VERILATORFLAGS = --lint-only -Wall -Wpedantic -I$(RTL)/include
 
 .PHONY: all
 all: sim
@@ -27,11 +28,11 @@ all: sim
 include $(SCRIPTS)/test.mk
 
 .PHONY: test_all
-test_all:
+test_all: clean_all
 	$(SCRIPTS)/unit_test.py
 
 sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(TEST).hex $(TEST).hex_dump 
-	iverilog $(ICARUSFLAGS) -o $@ $(RTL_SOURCES) $(SIM_SOURCES) |& tee sim_compile.log
+	iverilog $(ICARUSFLAGS) -o $@ $(RTL_SOURCES) $(SIM_SOURCES) 2>&1 | tee sim_compile.log
 
 .PHONY: sim
 sim: sim.vvp 
@@ -39,7 +40,7 @@ sim: sim.vvp
 
 .PHONY: lint
 lint: $(RTL_SOURCES) $(SCRIPTS)/lint.vlt
-	verilator --lint-only -Wall -Wpedantic $(RTL_SOURCES) $(SCRIPTS)/lint.vlt -I$(RTL)/include
+	verilator $(VERILATORFLAGS) $(RTL_SOURCES) $(SCRIPTS)/lint.vlt 
 
 .PHONY: wave
 wave:

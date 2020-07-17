@@ -194,7 +194,6 @@ always @(*) begin
             write_data   = {`DATA_WIDTH{1'bX}};
         end
     endcase
-    $display($time, ": DEBUG: write_data 0x%0x <= rs2_dout 0x%0x write_offset 0x%0x", write_data, rs2_dout, write_offset);
 end
 always @(*) begin
     read_data_t = read_data >> {read_offset, 3'b0};
@@ -206,7 +205,6 @@ always @(*) begin
         `FUNCT_MEM_HWORDU: ext_read_data = read_data_t[15:0];
         default:           ext_read_data = {`DATA_WIDTH{1'bX}};
     endcase
-//    $display($time, ": DEBUG: ext_read_data 0x%0x <= read_data_byte 0x%0x read_data_hword 0x%0x <= read_data 0x%0x read_offset 0x%0x", ext_read_data, read_data_byte, read_data_hword, read_data, read_offset);
 end
 always @(*) begin
     rd_din = 0;
