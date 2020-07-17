@@ -40,7 +40,7 @@ sim: sim.vvp
 
 .PHONY: lint
 lint: $(RTL_SOURCES) $(SCRIPTS)/lint.vlt
-	verilator $(VERILATORFLAGS) $(RTL_SOURCES) $(SCRIPTS)/lint.vlt 
+	verilator $(VERILATORFLAGS) $(SCRIPTS)/lint.vlt $(RTL_SOURCES)  
 
 .PHONY: wave
 wave:

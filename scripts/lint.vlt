@@ -46,130 +46,130 @@
 // lint_off -rule DECLFILENAME -file "*../rtl/execution.v" -match "Filename 'execution' does not match MODULE name: 'arith_logic_unit'"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  125 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
-
-// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  132 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  125 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  139 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
-
-// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  148 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  132 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  158 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  139 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  167 |     input [32-1:7] inst;
-      |                    ^~~~
+//  148 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
+//  158 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
+
+// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
+//  167 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/control_unit.v" -match "Declaration of signal hides declaration in upper scope: 'funct'
-  219 |     input [5-1:0] funct;
-      |                   ^~~~~
-
-                    ../rtl/control_unit.v:10:19: ... Location of original declaration
-   10 |     input [5-1:0] funct,
-      |                   ^~~~~
-"
-
-// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  125 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  219 |     input [5-1:0] funct;
+//      |                   ^~~~~
+//
+//                    ../rtl/control_unit.v:10:19: ... Location of original declaration
+//   10 |     input [5-1:0] funct,
+//      |                   ^~~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  132 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
-
-// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  139 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  125 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  148 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
-
-// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  158 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  132 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  167 |     input [32-1:7] inst;
-      |                    ^~~~
+//  139 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
+//  148 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
+
+// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
+//  158 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
+
+// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
+//  167 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/control_unit.v" -match "Declaration of signal hides declaration in upper scope: 'funct'
-  219 |     input [5-1:0] funct;
-      |                   ^~~~~
-
-                    ../rtl/control_unit.v:10:19: ... Location of original declaration
-   10 |     input [5-1:0] funct,
-      |                   ^~~~~
-"
+//  219 |     input [5-1:0] funct;
+//      |                   ^~~~~
+//
+//                    ../rtl/control_unit.v:10:19: ... Location of original declaration
+//   10 |     input [5-1:0] funct,
+//      |                   ^~~~~
+//"
 
 // lint_off -rule SELRANGE -file "*../rtl/idecoder.v" -match "Selection index out of range: 32:7 outside 31:0"
 
@@ -278,128 +278,128 @@
 // lint_off -rule SELRANGE -file "*../rtl/idecoder.v" -match "Selection index out of range: 32:7 outside 31:0"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  125 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
-
-// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  132 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  125 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  139 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
-
-// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  148 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  132 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  158 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  139 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  167 |     input [32-1:7] inst;
-      |                    ^~~~
+//  148 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
+//  158 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
+
+// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
+//  167 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/control_unit.v" -match "Declaration of signal hides declaration in upper scope: 'funct'
-  219 |     input [5-1:0] funct;
-      |                   ^~~~~
-
-                    ../rtl/control_unit.v:10:19: ... Location of original declaration
-   10 |     input [5-1:0] funct,
-      |                   ^~~~~
-"
-
-// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  125 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  219 |     input [5-1:0] funct;
+//      |                   ^~~~~
+//
+//                    ../rtl/control_unit.v:10:19: ... Location of original declaration
+//   10 |     input [5-1:0] funct,
+//      |                   ^~~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  132 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
-
-// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  139 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  125 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  148 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
-
-// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  158 |     input [32-1:7] inst;
-      |                    ^~~~
-
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+//  132 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
-  167 |     input [32-1:7] inst;
-      |                    ^~~~
+//  139 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
-                    ../rtl/idecoder.v:5:20: ... Location of original declaration
-    5 |     input [32-1:0] inst,
-      |                    ^~~~
-"
+// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
+//  148 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
+
+// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
+//  158 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
+
+// lint_off -rule VARHIDDEN -file "*../rtl/idecoder.v" -match "Declaration of signal hides declaration in upper scope: 'inst'
+//  167 |     input [32-1:7] inst;
+//      |                    ^~~~
+//
+//                    ../rtl/idecoder.v:5:20: ... Location of original declaration
+//    5 |     input [32-1:0] inst,
+//      |                    ^~~~
+//"
 
 // lint_off -rule VARHIDDEN -file "*../rtl/control_unit.v" -match "Declaration of signal hides declaration in upper scope: 'funct'
-  219 |     input [5-1:0] funct;
-      |                   ^~~~~
-
-                    ../rtl/control_unit.v:10:19: ... Location of original declaration
-   10 |     input [5-1:0] funct,
-      |                   ^~~~~
-"
+//  219 |     input [5-1:0] funct;
+//      |                   ^~~~~
+//
+//                    ../rtl/control_unit.v:10:19: ... Location of original declaration
+//   10 |     input [5-1:0] funct,
+//      |                   ^~~~~
+//"
 
