@@ -28,7 +28,7 @@ all: sim
 include $(SCRIPTS)/test.mk
 
 .PHONY: test_all
-test_all: clean_all
+test_all: clean_all lint
 	$(SCRIPTS)/unit_test.py
 
 sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(TEST).hex $(TEST).hex_dump 
@@ -41,6 +41,7 @@ sim: sim.vvp
 .PHONY: lint
 lint: $(RTL_SOURCES) $(SCRIPTS)/waivers.vlt
 	verilator $(VERILATORFLAGS) $(SCRIPTS)/waivers.vlt $(RTL_SOURCES) 2>&1 | tee lint.log 
+	! grep -q '^%Error:' lint.log
 
 .PHONY: wave
 wave:
