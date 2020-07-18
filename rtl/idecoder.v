@@ -45,9 +45,9 @@ always @(*) begin
                     case(imm[11:5])
                         7'd0:  funct = `FUNCT_SRL;
                         7'd32: funct = `FUNCT_SRA;
-                        default: funct = 32'bX;
+                        default: funct = 5'bX;
                     endcase
-                    imm = imm[4:0];
+                    imm = `UNSIGNED(imm,32,4,0);
                 end
                 3'd6: funct = `FUNCT_OR;
                 3'd7: funct = `FUNCT_AND;
@@ -122,54 +122,54 @@ always @(*) begin
     endcase
 end
 task decode_u_type;
-    input [`INST_WIDTH-1:7] inst;
+    input [`INST_WIDTH-1:7] inst_t;
     begin
-        imm = {inst[31:12], 12'b0};
-        rd = inst[11:7];
+        imm = {inst_t[31:12], 12'b0};
+        rd = inst_t[11:7];
     end
 endtask
 task decode_j_type;
-    input [`INST_WIDTH-1:7] inst;
+    input [`INST_WIDTH-1:7] inst_t;
     begin
-        imm = {{11{inst[31]}}, inst[19:12], inst[20], inst[30:25], inst[24:21], 1'b0};
-        rd = inst[11:7];
+        imm = {{12{inst_t[31]}}, inst_t[19:12], inst_t[20], inst_t[30:25], inst_t[24:21], 1'b0};
+        rd = inst_t[11:7];
     end
 endtask
 task decode_i_type;
-    input [`INST_WIDTH-1:7] inst;
+    input [`INST_WIDTH-1:7] inst_t;
     begin
-        imm = {{21{inst[31]}}, inst[30:20]};
-        rd = inst[11:7];
-        rs1 = inst[19:15];
-        funct3 = inst[14:12];
+        imm = {{21{inst_t[31]}}, inst_t[30:20]};
+        rd = inst_t[11:7];
+        rs1 = inst_t[19:15];
+        funct3 = inst_t[14:12];
     end
 endtask
 task decode_r_type;
-    input [`INST_WIDTH-1:7] inst;
+    input [`INST_WIDTH-1:7] inst_t;
     begin
-        rs1 = inst[19:15];
-        rs2 = inst[24:20];
-        rd = inst[11:7];
-        funct7 = inst[31:25];
-        funct3 = inst[14:12];
+        rs1 = inst_t[19:15];
+        rs2 = inst_t[24:20];
+        rd = inst_t[11:7];
+        funct7 = inst_t[31:25];
+        funct3 = inst_t[14:12];
     end
 endtask
 task decode_b_type;
-    input [`INST_WIDTH-1:7] inst;
+    input [`INST_WIDTH-1:7] inst_t;
     begin
-        imm = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
-        rs1 = inst[19:15];
-        rs2 = inst[24:20];
-        funct3 = inst[14:12];
+        imm = {{20{inst_t[31]}}, inst_t[7], inst_t[30:25], inst_t[11:8], 1'b0};
+        rs1 = inst_t[19:15];
+        rs2 = inst_t[24:20];
+        funct3 = inst_t[14:12];
     end
 endtask
 task decode_s_type;
-    input [`INST_WIDTH-1:7] inst;
+    input [`INST_WIDTH-1:7] inst_t;
     begin
-        imm = {{21{inst[31]}}, inst[30:25], inst[11:7]};
-        rs1 = inst[19:15];
-        rs2 = inst[24:20];
-        funct3 = inst[14:12];
+        imm = {{21{inst_t[31]}}, inst_t[30:25], inst_t[11:7]};
+        rs1 = inst_t[19:15];
+        rs2 = inst_t[24:20];
+        funct3 = inst_t[14:12];
     end
 endtask
 endmodule

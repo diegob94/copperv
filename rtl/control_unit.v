@@ -216,9 +216,9 @@ always @(*) begin
     endcase
 end
 function [`ALU_OP_WIDTH-1:0] get_int_alu_op;
-    input [`FUNCT_WIDTH-1:0] funct;
+    input [`FUNCT_WIDTH-1:0] funct_t;
     begin
-        case(funct)
+        case(funct_t)
             `FUNCT_ADD:  get_int_alu_op = `ALU_OP_ADD;
             `FUNCT_SUB:  get_int_alu_op = `ALU_OP_SUB;
             `FUNCT_SLL:  get_int_alu_op = `ALU_OP_SLL;
