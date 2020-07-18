@@ -51,7 +51,7 @@ always @(*) begin
                 end
                 3'd6: funct = `FUNCT_OR;
                 3'd7: funct = `FUNCT_AND;
-                default: funct = 32'bX;
+                default: funct = 5'bX;
             endcase
         end
         `OPCODE_INT_REG: begin 
@@ -68,7 +68,7 @@ always @(*) begin
                 {7'd32, 3'd5}: funct = `FUNCT_SRA;
                 {7'd0,  3'd6}: funct = `FUNCT_OR;
                 {7'd0,  3'd7}: funct = `FUNCT_AND;
-                default: funct = 32'bX;
+                default: funct = 5'bX;
             endcase
         end
         `OPCODE_BRANCH: begin
@@ -81,7 +81,7 @@ always @(*) begin
                 3'd5: funct = `FUNCT_GTE;
                 3'd6: funct = `FUNCT_LTU;
                 3'd7: funct = `FUNCT_GTEU;
-                default: funct = 32'bX;
+                default: funct = 5'bX;
             endcase
         end
         `OPCODE_STORE: begin
@@ -91,7 +91,7 @@ always @(*) begin
                 3'd0: funct = `FUNCT_MEM_BYTE;
                 3'd1: funct = `FUNCT_MEM_HWORD;
                 3'd2: funct = `FUNCT_MEM_WORD;
-                default: funct = 32'bX;
+                default: funct = 5'bX;
             endcase
         end
         `OPCODE_LOAD: begin
@@ -103,7 +103,7 @@ always @(*) begin
                 3'd2: funct = `FUNCT_MEM_WORD;
                 3'd4: funct = `FUNCT_MEM_BYTEU;
                 3'd5: funct = `FUNCT_MEM_HWORDU;
-                default: funct = 32'bX;
+                default: funct = 5'bX;
             endcase
         end
         `OPCODE_FENCE: begin

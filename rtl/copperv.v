@@ -179,11 +179,11 @@ always @(*) begin
     case(funct)
         `FUNCT_MEM_BYTE: begin
             write_strobe = 4'b0001 << write_offset;
-            write_data   = rs2_dout[7:0] << {write_offset, 3'b0};
+            write_data   = `UNSIGNED(rs2_dout,32,7,0) << {write_offset, 3'b0};
         end
         `FUNCT_MEM_HWORD: begin
             write_strobe = 4'b0011 << write_offset;
-            write_data   = rs2_dout[15:0] << {write_offset, 3'b0};
+            write_data   = `UNSIGNED(rs2_dout,32,15,0) << {write_offset, 3'b0};
         end
         `FUNCT_MEM_WORD: begin
             write_strobe = 4'b1111;
