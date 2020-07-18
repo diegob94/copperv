@@ -60,10 +60,9 @@
 `define INST_TYPE_STORE    4
 `define INST_TYPE_JAL      5
 `define INST_TYPE_AUIPC    6
-`define INST_TYPE_JAL      7
-`define INST_TYPE_JALR     8
-`define INST_TYPE_LOAD     9
-`define INST_TYPE_FENCE    10
+`define INST_TYPE_JALR     7
+`define INST_TYPE_LOAD     8
+`define INST_TYPE_FENCE    9
 `define FUNCT_WIDTH        5
 `define FUNCT_ADD          0
 `define FUNCT_SUB          1
