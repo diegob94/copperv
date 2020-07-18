@@ -198,11 +198,11 @@ end
 always @(*) begin
     read_data_t = read_data >> {read_offset, 3'b0};
     case(funct)
-        `FUNCT_MEM_BYTE:   ext_read_data = $signed(read_data_t[7:0]);
-        `FUNCT_MEM_HWORD:  ext_read_data = $signed(read_data_t[15:0]);
+        `FUNCT_MEM_BYTE:   ext_read_data = `SIGNED(read_data_t,32,7,0);
+        `FUNCT_MEM_HWORD:  ext_read_data = `SIGNED(read_data_t,32,15,0);
         `FUNCT_MEM_WORD:   ext_read_data = read_data_t;
-        `FUNCT_MEM_BYTEU:  ext_read_data = read_data_t[7:0];
-        `FUNCT_MEM_HWORDU: ext_read_data = read_data_t[15:0];
+        `FUNCT_MEM_BYTEU:  ext_read_data = `UNSIGNED(read_data_t,32,7,0);
+        `FUNCT_MEM_HWORDU: ext_read_data = `UNSIGNED(read_data_t,32,15,0);
         default:           ext_read_data = {`DATA_WIDTH{1'bX}};
     endcase
 end

@@ -257,7 +257,8 @@
 
 // lint_off -rule WIDTH -file "*../rtl/copperv.v" -match "Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's SEL generates 16 bits."
 
-// lint_off -rule UNUSED -file "*../rtl/copperv.v" -match "Signal is not used: 'ir_addr_ready'"
+// Need to implement wait for bus ready in testbench and rtl
+lint_off -rule UNUSED -file "*../rtl/copperv.v" -match "Signal is not used: 'ir_addr_ready'"
 
 // lint_off -rule SELRANGE -file "*../rtl/idecoder.v" -match "Selection index out of range: 32:7 outside 31:0"
 
