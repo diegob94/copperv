@@ -26,7 +26,6 @@ RISCV core
   - make test_all
 
 ## To Do
-- Write dissassembly monitor in C
 - take_branch X?
 
 ## Unit test results:

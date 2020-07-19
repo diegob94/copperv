@@ -13,10 +13,10 @@ STD_OVL = $(UTIL)/std_ovl
 TEST = test_0
 
 ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale -g2012
-VVPFLAGS = -lxt2 
+VVPFLAGS = -lxt2 -M. 
 ifdef DEBUG
 ICARUSFLAGS += -pfileline=1
-VVPFLAGS += +DUMP_REGFILE
+PLUSARGS = +DUMP_REGFILE
 endif
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A -a $(SCRIPTS)/tb.gtkw 
 VERILATORFLAGS = --lint-only -Wall -Wpedantic -I$(RTL)/include
@@ -31,12 +31,18 @@ include $(SCRIPTS)/test.mk
 test_all: clean_all lint
 	$(SCRIPTS)/unit_test.py
 
-sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(TEST).hex $(TEST).hex_dump 
-	iverilog $(ICARUSFLAGS) -o $@ $(RTL_SOURCES) $(SIM_SOURCES) 2>&1 | tee sim_compile.log
+sim.vvp: $(RTL_SOURCES) $(SIM)/include/monitor_utils_h.v $(SIM_SOURCES) $(SIM)/copperv_tools.sft copperv_tools.vpi
+	iverilog $(ICARUSFLAGS) $(filter %.v %.sft %.sv,$^) -o $@ 2>&1 | tee sim_compile.log
+
+$(SIM)/include/monitor_utils_h.v: $(RTL)/include/copperv_h.v $(SCRIPTS)/monitor_utils.py
+	$(SCRIPTS)/monitor_utils.py -monitor $@ $(RTL)/include/copperv_h.v
+
+copperv_tools.vpi: $(SIM)/copperv_tools.c
+	iverilog-vpi $<
 
 .PHONY: sim
-sim: sim.vvp 
-	vvp $< +HEX_FILE=$(TEST).hex $(VVPFLAGS) 2>&1 | tee sim_run_$(TEST).log
+sim: sim.vvp $(TEST).hex $(TEST).D
+	vvp $(VVPFLAGS) -mcopperv_tools $< +HEX_FILE=$(TEST).hex +DISS_FILE=$(TEST).D $(PLUSARGS) 2>&1 | tee sim_run_$(TEST).log
 
 .PHONY: lint
 lint: $(RTL_SOURCES) $(SCRIPTS)/waivers.vlt
@@ -49,9 +55,9 @@ wave:
 
 .PHONY: clean
 clean:
+	rm -fv copperv_tools.o copperv_tools.vpi
 	rm -fv sim.vvp
 
 .PHONY: clean_all
 clean_all: clean clean_test
-	rm -fv sim_run_*.log sim_compile.log tb.lxt
-
+	rm -fv sim_run_*.log sim_compile.log tb.lxt unit_test_*.log

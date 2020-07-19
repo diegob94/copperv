@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from multiprocessing import Pool
 import sys
 from pathlib import Path
 import pexpect
@@ -14,9 +15,8 @@ def run(*args,**kwargs):
 root = Path('../')
 tests = get_all_tests(root)
 
-results = []
-for test in [i['test'] for i in tests]:
-    run(f'make TEST={test}')
+def run_test(test):
+    run(f'make TEST={test}',logfile=Path(f'unit_test_{test}.log').open('wb'))
     log_path = Path(f'sim_run_{test}.log')
     if log_path.exists():
         log = log_path.read_text()
@@ -29,10 +29,15 @@ for test in [i['test'] for i in tests]:
     else:
         res = "error"
     print(f'{test:10s} {res}')
-    results.append(dict(
+    return dict(
         test = test, 
         result = res,
-    ))
+    )
+
+print("Building sim.vvp")
+run(f'make sim.vvp',logfile=Path(f'unit_test_make_sim.log').open('wb'))
+with Pool() as p:
+    results = p.map(run_test, [i['test'] for i in tests])
 
 
 def generate_report(df):

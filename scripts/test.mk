@@ -5,6 +5,7 @@ LINKER_SCRIPT = $(SIM)/tests/test.ld
 TOOLCHAIN = $(RISCV)/bin/riscv32-unknown-elf-
 CC = $(TOOLCHAIN)gcc
 OBJDUMP = $(TOOLCHAIN)objdump
+OBJCOPY = $(TOOLCHAIN)objcopy
 
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
 CFLAGS = -march=rv32i -I$(SIM)/tests -I$(RISCV_TESTS)/isa/macros/scalar
@@ -30,8 +31,8 @@ endef
 $(TEST).elf: $(OBJS) $(DISS) $(PPRC) $(LINKER_SCRIPT)
 	$(CC) $(LFLAGS) $< -o $@
 
-$(TEST).hex: $(TEST).elf $(SIM)/include/monitor_utils_h.v $(TEST).D
-	$(TOOLCHAIN)objcopy -O verilog $< $@
+$(TEST).hex: $(TEST).elf $(TEST).D
+	$(OBJCOPY) -O verilog $< $@
 
 %.D: %.elf
 	$(DISSASSEMBLY)
@@ -42,12 +43,9 @@ $(TEST).hex: $(TEST).elf $(SIM)/include/monitor_utils_h.v $(TEST).D
 $(TEST).hex_dump: $(TEST).hex
 	$(SCRIPTS)/hex_dump.py $< -o $@
 
-$(SIM)/include/monitor_utils_h.v: $(RTL)/include/copperv_h.v $(TEST).D $(SCRIPTS)/monitor_utils.py
-	$(SCRIPTS)/monitor_utils.py -monitor $@ $(RTL)/include/copperv_h.v $(TEST).D
-
 .PHONY: clean_test
 clean_test:
-	rm -fv *.hex *.elf *.hex_dump run_test_*.log 
+	rm -fv *.hex *.elf *.hex_dump
 ifneq ($(ROOT),)
 	find $(RISCV_TESTS) $(SIM) ./ \( -name '*.o' -o -name '*.D' -o -name '*.E' \) -exec rm -fv {} \;
 endif

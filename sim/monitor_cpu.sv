@@ -13,6 +13,7 @@ always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.ir_addr_valid && `CPU_INST.ir_addr_ready) begin
             $display($time, ": INST_FETCH: addr 0x%08X", `CPU_INST.ir_addr);
+            $display($time, ": DISSASSEMBLY: %0s", $get_diss(`CPU_INST.pc));
             raddr_queue.push_front(`CPU_INST.ir_addr);
         end
         if(`CPU_INST.ir_data_valid && `CPU_INST.ir_data_ready)
@@ -46,11 +47,13 @@ always @(posedge clk) begin
             $display($time, ": BUS: dw_resp   : 0x%08X", `CPU_INST.dw_resp);
     end
 end
-always @(`CPU_INST.pc, posedge `CPU_INST.rst) begin
-    if (rst) begin
-        $display($time, ": PC: 0x%08X", `CPU_INST.pc);
-        $display($time, ": DISSASSEMBLY: %0s", dissassembly(`CPU_INST.pc));
+always @(posedge clk) begin
+    if (rst && `CPU_INST.pc_en) begin
+        monitor_pc;
     end
+end
+always @(posedge rst) begin
+    monitor_pc;
 end
 always @(posedge clk) begin
     if (rst) begin
@@ -86,6 +89,12 @@ always @(posedge clk) begin
             $display($time, ": ALU: din1 0x%08X din2 0x%08X dout 0x%08X comp 0x%01X op 0x%01X/%0s", `CPU_INST.alu_din1, `CPU_INST.alu_din2, `CPU_INST.alu_dout, `CPU_INST.alu_comp, `CPU_INST.alu_op, alu_op(`CPU_INST.alu_op));
     end
 end
+
+task monitor_pc;
+begin
+    $display($time, ": PC: 0x%08X", `CPU_INST.pc_next); 
+end
+endtask
 
 task regfile_dump;
 integer i;
