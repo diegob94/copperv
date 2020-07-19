@@ -7,16 +7,18 @@ RTL = $(ROOT)/rtl
 SIM = $(ROOT)/sim
 UTIL = $(ROOT)/util
 
-RTL_SOURCES = $(wildcard $(RTL)/*.v)
-SIM_SOURCES = $(wildcard $(SIM)/*.v) $(wildcard $(SIM)/*.sv)
+RTL_SOURCES := $(wildcard $(RTL)/*.v)
+SIM_SOURCES := $(wildcard $(SIM)/*.v) $(wildcard $(SIM)/*.sv) 
+HEADER_SOURCES := $(wildcard $(RTL)/include/*.v) $(wildcard $(SIM)/include/*.v)
 STD_OVL = $(UTIL)/std_ovl
 TEST = test_0
 
 ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale -g2012
-VVPFLAGS = -lxt2 -M. 
+VVPFLAGS = -M. 
+PLUSARGS = -lxt2
 ifdef DEBUG
 ICARUSFLAGS += -pfileline=1
-PLUSARGS = +DUMP_REGFILE
+PLUSARGS += +DUMP_REGFILE
 endif
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A -a $(SCRIPTS)/tb.gtkw 
 VERILATORFLAGS = --lint-only -Wall -Wpedantic -I$(RTL)/include
@@ -31,8 +33,8 @@ include $(SCRIPTS)/test.mk
 test_all: clean_all lint
 	$(SCRIPTS)/unit_test.py
 
-sim.vvp: $(RTL_SOURCES) $(SIM)/include/monitor_utils_h.v $(SIM_SOURCES) $(SIM)/copperv_tools.sft copperv_tools.vpi
-	iverilog $(ICARUSFLAGS) $(filter %.v %.sft %.sv,$^) -o $@ 2>&1 | tee sim_compile.log
+sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(HEADER_SOURCES) $(SIM)/copperv_tools.sft copperv_tools.vpi
+	iverilog $(ICARUSFLAGS) $(RTL_SOURCES) $(SIM_SOURCES) -o $@ 2>&1 | tee sim_compile.log
 
 $(SIM)/include/monitor_utils_h.v: $(RTL)/include/copperv_h.v $(SCRIPTS)/monitor_utils.py
 	$(SCRIPTS)/monitor_utils.py -monitor $@ $(RTL)/include/copperv_h.v

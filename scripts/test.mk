@@ -20,6 +20,9 @@ $(OBJDUMP) -D -Mno-aliases $< -j .text > $@
 -$(OBJDUMP) -s $< -j .data >> $@
 endef
 
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
 #	$(TOOLCHAIN)objcopy -O elf32-littleriscv -R .riscv.attributes $@
@@ -47,7 +50,7 @@ $(TEST).hex_dump: $(TEST).hex
 clean_test:
 	rm -fv *.hex *.elf *.hex_dump
 ifneq ($(ROOT),)
-	find $(RISCV_TESTS) $(SIM) ./ \( -name '*.o' -o -name '*.D' -o -name '*.E' \) -exec rm -fv {} \;
+	find -L $(RISCV_TESTS) $(SIM) ./ \( -name '*.o' -o -name '*.D' -o -name '*.E' \) -exec rm -fv {} \;
 endif
 
 
