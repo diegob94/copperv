@@ -13,7 +13,7 @@ always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.ir_addr_valid && `CPU_INST.ir_addr_ready) begin
             $display($time, ": INST_FETCH: addr 0x%08X", `CPU_INST.ir_addr);
-            $display($time, ": DISSASSEMBLY: %0s", $get_diss(`CPU_INST.pc));
+            $mon_diss(`CPU_INST.pc);
             raddr_queue.push_front(`CPU_INST.ir_addr);
         end
         if(`CPU_INST.ir_data_valid && `CPU_INST.ir_data_ready)

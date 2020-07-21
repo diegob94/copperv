@@ -3,9 +3,12 @@
 from multiprocessing import Pool
 import sys
 from pathlib import Path
+from functools import partial
+
 import pexpect
 import tabulate
 import pandas as pd
+
 from get_test import get_all_tests
 
 def run(*args,**kwargs):
@@ -15,7 +18,7 @@ def run(*args,**kwargs):
 root = Path('../')
 tests = get_all_tests(root)
 
-def run_test(test):
+def run_test(padding,test):
     run(f'make TEST={test}',logfile=Path(f'unit_test_{test}.log').open('wb'))
     log_path = Path(f'sim_run_{test}.log')
     if log_path.exists():
@@ -28,7 +31,7 @@ def run_test(test):
             res = "error"
     else:
         res = "error"
-    print(f'{test:10s} {res}')
+    print(f'{test:{padding}s} {res}')
     return dict(
         test = test, 
         result = res,
@@ -36,8 +39,10 @@ def run_test(test):
 
 print("Building sim.vvp")
 run(f'make sim.vvp',logfile=Path(f'unit_test_make_sim.log').open('wb'))
+test_list = [i['test'] for i in tests]
+test_list_len = [len(i) for i in test_list]
 with Pool() as p:
-    results = p.map(run_test, [i['test'] for i in tests])
+    results = p.map(partial(run_test, max(test_list_len)+1), test_list)
 
 
 def generate_report(df):

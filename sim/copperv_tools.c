@@ -11,10 +11,10 @@
 #define STR_SIZE 1023
 
 typedef struct Diss_data { 
-    char msg_prefix[STR_SIZE];
     char* buf[BUF_SIZE];
     PLI_UINT32 min_addr;
     PLI_UINT32 max_addr;
+    double time;
 } Diss_data_s, *Diss_data_p;
 
 static void sim_log(const char *fmt, ...) {
@@ -23,7 +23,7 @@ static void sim_log(const char *fmt, ...) {
     char buf[STR_SIZE];
     va_start(args, fmt);
     vsprintf(buf,fmt, args);
-    vpi_printf("%s: %s\n", diss_data->msg_prefix, buf);
+    vpi_printf("%20.0lf: DISSASSEMBLY: %s\n", diss_data->time, buf);
     va_end(args);
 }
 
@@ -47,7 +47,6 @@ static void read_file(char* file_name, char** buf, PLI_UINT32* min_addr, PLI_UIN
         if((ssize_t)i != r){
             addr = strtol(line,&pch,16);
             if(pch == line + i) {
-                //printf("%d -> %s\n",addr,line);
                 if(addr < *min_addr)
                     *min_addr = addr;
                 if(addr > *max_addr)
@@ -55,19 +54,18 @@ static void read_file(char* file_name, char** buf, PLI_UINT32* min_addr, PLI_UIN
                 buf[addr>>2] = (char*)malloc(r);
                 line[r-1] = '\0';
                 strcpy(buf[addr>>2],line);
+//              printf("%d -> %s\n",addr,buf[addr>>2]);
             }
         }
     }
-//    printf("0 -> %s\n", buf[0]);
     free(line);
     fclose(fp);
 }
 
-static PLI_INT32 get_diss_compiletf(PLI_BYTE8* user_data) {
+static PLI_INT32 mon_diss_compiletf(PLI_BYTE8* user_data) {
     (void)user_data;
     Diss_data_p diss_data = (Diss_data_p) malloc(sizeof(Diss_data_s));
     tf_setworkarea((PLI_BYTE8*) diss_data);
-    strcpy(diss_data->msg_prefix,"GET_DISS_VPI");
     char* file_name = NULL;
     file_name = mc_scan_plusargs("DISS_FILE=");
     if(file_name == NULL) {
@@ -90,9 +88,9 @@ static PLI_INT32 get_diss_compiletf(PLI_BYTE8* user_data) {
 //        }
 //        tfarg_type = vpi_get(vpiType, arg_handle);
 //        if(tfarg_type == vpiNet) {
-//            vpi_printf("get_diss: arg is net\n");
+//            vpi_printf("mon_diss: arg is net\n");
 //        } else if(tfarg_type == vpiReg) {
-//            vpi_printf("get_diss: arg is reg\n");
+//            vpi_printf("mon_diss: arg is reg\n");
 //        }
 //    }
 //}
@@ -106,11 +104,11 @@ static PLI_UINT32 getArgs(vpiHandle systf_handle) {
     arg_iterator = vpi_iterate(vpiArgument, systf_handle);
     arg_handle = vpi_scan(arg_iterator);
     if(arg_handle == NULL){
-        sim_error("$get_diss(PC) arg missing");
+        sim_error("$mon_diss(PC) arg missing");
     }
     tfarg_type = vpi_get(vpiType, arg_handle);
     if(tfarg_type != vpiReg) {
-        sim_error("$get_diss(PC) arg should be reg type");
+        sim_error("$mon_diss(PC) arg should be reg type");
     }
     vpi_get_value(arg_handle, &value_s);
     pc = value_s.value.integer;
@@ -118,36 +116,37 @@ static PLI_UINT32 getArgs(vpiHandle systf_handle) {
     return pc;
 }
 
-static PLI_INT32 get_diss_calltf(PLI_BYTE8* user_data) {
+static PLI_INT32 mon_diss_calltf(PLI_BYTE8* user_data) {
     (void)user_data;
+    s_vpi_time current_time;
     PLI_UINT32 pc = 0;
-    s_vpi_value value_s;
     vpiHandle systf_handle;
     Diss_data_p diss_data = (Diss_data_p)tf_getworkarea();
     systf_handle = vpi_handle(vpiSysTfCall, NULL);
     pc = getArgs(systf_handle);
-    value_s.format = vpiStringVal;
+    current_time.type = vpiScaledRealTime;
+    vpi_get_time(systf_handle, &current_time);
+    diss_data->time = current_time.real;
     if(pc >= diss_data->min_addr && pc <= diss_data->max_addr){
-        value_s.value.str = diss_data->buf[pc>>2];
+        sim_log("%s",diss_data->buf[pc>>2]);
     } else {
-        value_s.value.str = "ADDRESS OUT OF RANGE";
+        sim_log("%s","ADDRESS OUT OF RANGE");
     }
-    vpi_put_value(systf_handle, &value_s, NULL, vpiNoDelay);
     return 0;
 }
 
-void get_diss_register(void) {
+void mon_diss_register(void) {
       s_vpi_systf_data tf_data;
-      tf_data.type      = vpiSysFunc;
-      tf_data.tfname    = "$get_diss";
-      tf_data.calltf    = get_diss_calltf;
-      tf_data.compiletf = get_diss_compiletf;
+      tf_data.type      = vpiSysTask;
+      tf_data.tfname    = "$mon_diss";
+      tf_data.calltf    = mon_diss_calltf;
+      tf_data.compiletf = mon_diss_compiletf;
       tf_data.sizetf    = 0;
       tf_data.user_data = NULL;
       vpi_register_systf(&tf_data);
 }
 
 void (*vlog_startup_routines[])(void) = {
-    get_diss_register,
+    mon_diss_register,
     0
 };
