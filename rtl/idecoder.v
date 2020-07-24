@@ -14,6 +14,14 @@ reg [`OPCODE_WIDTH-1:0] opcode;
 reg [`FUNCT3_WIDTH-1:0] funct3;
 reg [`FUNCT7_WIDTH-1:0] funct7;
 always @(*) begin
+    inst_type = 0;
+    funct = 0;
+    imm = 0;
+    rs1 = 0;
+    rs2 = 0;
+    rd = 0;
+    funct3 = 0;
+    funct7 = 0;
     opcode = inst[6:0];
     case (opcode)
         `OPCODE_LUI: begin
@@ -109,16 +117,7 @@ always @(*) begin
         `OPCODE_FENCE: begin
             inst_type = `INST_TYPE_FENCE;
         end
-        default: begin
-            inst_type = 0;
-            funct = 0;
-            imm = 0;
-            rs1 = 0;
-            rs2 = 0;
-            rd = 0;
-            funct3 = 0;
-            funct7 = 0;
-        end
+        default: ;
     endcase
 end
 task decode_u_type;
