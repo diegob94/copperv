@@ -42,6 +42,13 @@ $(SIM)/include/monitor_utils_h.v: $(RTL)/include/copperv_h.v $(SCRIPTS)/monitor_
 copperv_tools.vpi: $(SIM)/copperv_tools.c
 	iverilog-vpi $<
 
+copperv.synth.json: $(RTL_SOURCES) $(HEADER_SOURCES)
+	yosys -p "read_verilog -I$(RTL)/include $(RTL_SOURCES); synth -top copperv; write_json $@"
+
+.PHONY: synth_check
+synth_checks: copperv.synth.json
+	$(SCRIPTS)/find_latches.py $<
+
 .PHONY: sim
 sim: sim.vvp $(TEST).hex $(TEST).D
 	vvp $(VVPFLAGS) -mcopperv_tools $< +HEX_FILE=$(TEST).hex +DISS_FILE=$(TEST).D $(PLUSARGS) 2>&1 | tee sim_run_$(TEST).log
