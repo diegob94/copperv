@@ -9,7 +9,8 @@ UTIL = $(ROOT)/util
 
 RTL_SOURCES := $(wildcard $(RTL)/*.v)
 SIM_SOURCES := $(wildcard $(SIM)/*.v) $(wildcard $(SIM)/*.sv) 
-HEADER_SOURCES := $(wildcard $(RTL)/include/*.v) $(wildcard $(SIM)/include/*.v)
+RTL_HEADER_SOURCES := $(wildcard $(RTL)/include/*.v)
+SIM_HEADER_SOURCES := $(wildcard $(SIM)/include/*.v)
 STD_OVL = $(UTIL)/std_ovl
 TEST = test_0
 
@@ -33,7 +34,7 @@ include $(SCRIPTS)/test.mk
 test_all: clean_all lint_all
 	$(SCRIPTS)/unit_test.py
 
-sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(HEADER_SOURCES) $(SIM)/copperv_tools.sft copperv_tools.vpi
+sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(RTL_HEADER_SOURCES) $(SIM_HEADER_SOURCES) $(SIM)/copperv_tools.sft copperv_tools.vpi
 	iverilog $(ICARUSFLAGS) $(RTL_SOURCES) $(SIM_SOURCES) -o $@ 2>&1 | tee sim_compile.log
 
 $(SIM)/include/monitor_utils_h.v: $(RTL)/include/copperv_h.v $(SCRIPTS)/monitor_utils.py
@@ -42,7 +43,7 @@ $(SIM)/include/monitor_utils_h.v: $(RTL)/include/copperv_h.v $(SCRIPTS)/monitor_
 copperv_tools.vpi: $(SIM)/copperv_tools.c
 	iverilog-vpi $<
 
-copperv.synth.json: $(RTL_SOURCES) $(HEADER_SOURCES)
+copperv.synth.json: $(RTL_SOURCES) $(RTL_HEADER_SOURCES)
 	yosys -p "read_verilog -I$(RTL)/include $(RTL_SOURCES); synth -top copperv; write_json $@" 2>&1 | tee yosys.log
 
 .PHONY: synth_check
