@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-from pyyosys import DesignTree
+import sys
 import argparse
+
+from pyyosys import DesignTree
 
 parser = argparse.ArgumentParser(description='Find latches in a sythesized netlist.')
 parser.add_argument('netlist_json', type=str, help='Netlist in JSON format')
@@ -12,5 +14,10 @@ def _find_latches(leaf):
 design = DesignTree(args.netlist_json)
 latches = design.map_tree_leafs(_find_latches)
 
-print('Latches:')
-print('\n'.join(set(latches)))
+if len(latches)>1:
+    print('Warning: Latches found in design, RTL tracing:')
+    print('  ' + '\n  '.join(set(latches)))
+    sys.exit(1)
+else:
+    print('Info: no latches found in design')
+    sys.exit(0)

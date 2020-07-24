@@ -30,7 +30,7 @@ all: sim
 include $(SCRIPTS)/test.mk
 
 .PHONY: test_all
-test_all: clean_all lint
+test_all: clean_all lint_all
 	$(SCRIPTS)/unit_test.py
 
 sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(HEADER_SOURCES) $(SIM)/copperv_tools.sft copperv_tools.vpi
@@ -47,7 +47,7 @@ copperv.synth.json: $(RTL_SOURCES) $(HEADER_SOURCES)
 
 .PHONY: synth_check
 synth_checks: copperv.synth.json
-	grep '^Warning' yosys.log
+	! grep '^Warning' yosys.log
 	$(SCRIPTS)/find_latches.py $<
 
 .PHONY: sim
@@ -58,6 +58,9 @@ sim: sim.vvp $(TEST).hex $(TEST).D
 lint: $(RTL_SOURCES) $(SCRIPTS)/waivers.vlt
 	verilator $(VERILATORFLAGS) $(SCRIPTS)/waivers.vlt $(RTL_SOURCES) 2>&1 | tee lint.log 
 	! grep -q '^%Error:' lint.log
+
+.PHONY: lint_all
+lint_all: lint synth_checks
 
 .PHONY: wave
 wave:
@@ -70,4 +73,5 @@ clean:
 
 .PHONY: clean_all
 clean_all: clean clean_test
-	rm -fv sim_run_*.log sim_compile.log tb.lxt unit_test_*.log
+	rm -fv sim_run_*.log sim_compile.log tb.lxt unit_test_*.log copperv.synth.json
+
