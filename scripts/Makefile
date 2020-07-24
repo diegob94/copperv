@@ -43,10 +43,11 @@ copperv_tools.vpi: $(SIM)/copperv_tools.c
 	iverilog-vpi $<
 
 copperv.synth.json: $(RTL_SOURCES) $(HEADER_SOURCES)
-	yosys -p "read_verilog -I$(RTL)/include $(RTL_SOURCES); synth -top copperv; write_json $@"
+	yosys -p "read_verilog -I$(RTL)/include $(RTL_SOURCES); synth -top copperv; write_json $@" 2>&1 | tee yosys.log
 
 .PHONY: synth_check
 synth_checks: copperv.synth.json
+	grep '^Warning' yosys.log
 	$(SCRIPTS)/find_latches.py $<
 
 .PHONY: sim
