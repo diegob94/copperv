@@ -1,6 +1,0 @@
-[submodule "util/pyosys"]
-	path = util/pyosys
-	url = https://github.com/diegob94/pyosys.git
-[submodule "util/std_ovl"]
-	path = util/std_ovl
-	url = https://github.com/diegob94/std_ovl.git
