@@ -65,7 +65,7 @@ copperv dut (
     .ir_addr_valid(ir_addr_valid),
     .ir_addr(ir_addr)
 );
-fake_memory u_mem (
+sim_crossbar u_xbar (
     .clk(clk),
     .rst(rst),
     .dr_data_valid(dr_data_valid),
@@ -93,32 +93,50 @@ monitor_cpu mon(
     .clk(clk),
     .rst(rst)
 );
+`ifdef ENABLE_CHECKER
 checker_cpu chk(
     .clock(clk),
     .reset(rst)
 );
+`endif
+integer f;
 initial begin
-    $dumpfile("tb.lxt");
+    $dumpfile("tb.vcd");
     $dumpvars(0, tb);
+    f = $fopen("fake_uart.log","w");
 end
 always @(posedge clk)
     if(dw_data_addr_valid && dw_data_addr_ready) begin
-        if(dw_addr == (32'd33<<2) && dw_data == 32'd123456789) begin
-            test_passed;
-        end
-        if(dw_addr == (32'd33<<2) && dw_data == 32'd111111111) begin
-            test_failed;
-        end
+        case (dw_addr)
+            32'h8000: begin
+                case (dw_data)
+                    32'h01000001: test_passed;
+                    32'h02000001: test_failed;
+                    default: test_failed;
+                endcase
+            end
+            32'h8004: $fwrite(f, "%c", dw_data[7:0]);
+        endcase
     end
+
 task test_passed;
 begin
     $display($time, ": TEST PASSED");
-    $finish;
+    finish_sim;
 end
 endtask
 task test_failed;
+reg [`DATA_WIDTH-1:0] test_id;
 begin
-    $display($time, ": TEST FAILED");
+    test_id = `CPU_INST.regfile.mem[`REG_T3];
+    $display($time, ": TEST FAILED: instruction_id: %0d test_id: %0d", test_id[31:16], test_id[15:0]);
+    finish_sim;
+end
+endtask
+task finish_sim;
+begin
+    $fwrite(f, "\n");
+    $fclose(f);  
     $finish;
 end
 endtask

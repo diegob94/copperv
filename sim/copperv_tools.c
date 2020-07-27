@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <unistd.h>
 
 #define BUF_SIZE 32767
 #define STR_SIZE 1023
@@ -69,10 +70,14 @@ static PLI_INT32 mon_diss_compiletf(PLI_BYTE8* user_data) {
     char* file_name = NULL;
     file_name = mc_scan_plusargs("DISS_FILE=");
     if(file_name == NULL) {
-        sim_log("No dissassembly file given, monitor is disabled: vvp sim.vvp +DISS_FILE=test.D");
+        sim_log("No file given, monitor disabled. Usage example: vvp sim.vvp +DISS_FILE=test.D");
         return 0;
     }
-    sim_log("Reading %s", file_name);
+    if(access(file_name, F_OK | R_OK) == -1) {
+        sim_log("Cannot read file \"%s\", monitor disabled.", file_name);
+        return 0;
+    }
+    sim_log("Reading file \"%s\"", file_name);
     read_file(file_name, diss_data->buf, &diss_data->min_addr, &diss_data->max_addr);
     sim_log("Reading done: min_addr 0x%X max_addr 0x%X", diss_data->min_addr, diss_data->max_addr);
     return 0;

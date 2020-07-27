@@ -1,30 +1,23 @@
-set ROOT [exec readlink -f ../]
-set RTL_FILES [glob -directory $ROOT/rtl/ *.v]
-set INCLUDE_DIR $ROOT/rtl/include
+yosys -import
+echo on
+set ROOT [file normalize ../]
+source ${ROOT}/scripts/common_setup.tcl
 
-# read design 
-foreach RTL_FILE $RTL_FILES {
-#    puts "Reading Verilog: $RTL_FILE"
-    yosys read_verilog -I$INCLUDE_DIR $RTL_FILE
-}
-#yosys proc
-#yosys check
-#yosys write_verilog rtl.v
-#yosys json -o rtl.json
-#yosys write_firrtl rtl.fir
-#puts exit
+#lmap LIB $LIB_FILES { read_liberty -lib -ignore_miss_func $LIB }
+lmap RTL $RTL_FILES { read_verilog -I $INCLUDE_DIR $RTL }
 
-# generic synthesis
-yosys synth -top copperv
+#hierarchy -check -top $TOP_MODULE
+synth -top $DESIGN_NAME
+#share -aggressive
+#opt
+#opt_clean -purge
+dfflibmap -liberty $LIB_FILE
+abc -liberty $LIB_FILE
+#hilomap -hicell sky130_fd_sc_hd__conb_1 HI -locell sky130_fd_sc_hd__conb_1 LO
+#setundef -zero
+#splitnets
+#opt_clean -purge
+insbuf -buf sky130_fd_sc_hd__buf_2 A X
 
-yosys scc
-exit
-
-# mapping to mycells.lib
-#yosys dfflibmap -liberty mycells.lib
-#yosys abc -liberty mycells.lib
-#yosys clean
-
-# write synthesized design
-yosys write_verilog synth.v
-yosys json -o synth.json
+write_verilog ${RESULTS_DIR}/copperv.synth.v
+#yosys json -o synth.json

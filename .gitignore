@@ -5,3 +5,4 @@ work/
 *.swp
 __pycache__/
 sim/include/monitor_utils_h.v
+*.log

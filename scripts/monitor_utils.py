@@ -4,7 +4,6 @@ import re
 import argparse
 import sys
 from datetime import datetime
-from tabulate import tabulate
 
 parser = argparse.ArgumentParser(description='Generate testbench')
 parser.add_argument('header', type=Path, help='RTL header file')
@@ -42,19 +41,6 @@ endfunction
         width = width, 
         entries_str = entries_str
     )
-
-#def generate_dissassembly_printer(dis):
-#    inst = {}
-#    with dis.open('r') as f:
-#        for line in f:
-#            m=re.search('^\s+(\w+):\s+(\w+)\s+([\w.]+)\s+(.*)$',line)
-#            if m:
-#                inst["32'h"+m[1]] = [m[1]+':',m[2],m[3],m[4]]
-#    program = [v for v in inst.values()]
-#    table = tabulate(program,tablefmt='plain').split('\n')
-#    entries = [{'entry':k,'entry_name':v} for k,v in zip(inst.keys(),table)]
-#    printer_code = generate_printer('dissassembly','PC_WIDTH',entries)
-#    return printer_code
 
 def generated(path):
     print(f"Generated {path.resolve()}")
@@ -101,7 +87,7 @@ monitor_code = generate_monitor_code(args.header)
 args.monitor.write_text('\n\n'.join(monitor_code['printers']) + '\n')
 
 for name,gtkwave in monitor_code['gtkwave'].items():
-    path = (Path.cwd()/name).with_suffix('.gtkfilter')
+    path = (Path.cwd()/name).with_suffix('.gtkwfilter')
     generated(path)
     path.write_text('\n'.join(gtkwave) + '\n')
 

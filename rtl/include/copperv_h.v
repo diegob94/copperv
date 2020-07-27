@@ -31,6 +31,7 @@
 
 // regfile
 `define REG_WIDTH          5
+`define REG_T3             28
 
 // alu
 `define ALU_SHIFT_DIN2_WIDTH 5
