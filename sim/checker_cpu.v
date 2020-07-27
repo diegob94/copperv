@@ -56,7 +56,8 @@ bus_channel_checker #(
     .clock(clock),
     .reset(reset),
     .ready(`CPU_INST.ir_addr_ready),
-    .valid(`CPU_INST.ir_addr_valid)
+    .valid(`CPU_INST.ir_addr_valid),
+    .payload(`CPU_INST.ir_addr)
 );
 bus_channel_checker #(
     .severity_level(severity_level),
@@ -65,7 +66,51 @@ bus_channel_checker #(
     .clock(clock),
     .reset(reset),
     .ready(`CPU_INST.ir_data_ready),
-    .valid(`CPU_INST.ir_data_valid)
+    .valid(`CPU_INST.ir_data_valid),
+    .payload(`CPU_INST.ir_data)
+);
+bus_channel_checker #(
+    .severity_level(severity_level),
+    .channel_name("dr_data"),
+    .range_property_type(`OVL_ASSERT_2STATE)
+) dr_data_checker (
+    .clock(clock),
+    .reset(reset),
+    .ready(`CPU_INST.dr_data_ready),
+    .valid(`CPU_INST.dr_data_valid),
+    .payload(`CPU_INST.dr_data)
+);
+bus_channel_checker #(
+    .severity_level(severity_level),
+    .channel_name("dr_addr")
+) dr_addr_checker (
+    .clock(clock),
+    .reset(reset),
+    .ready(`CPU_INST.dr_addr_ready),
+    .valid(`CPU_INST.dr_addr_valid),
+    .payload(`CPU_INST.dr_addr)
+);
+bus_channel_checker #(
+    .payload_max(2**`FAKE_MEM_ADDR_WIDTH),
+    .severity_level(severity_level),
+    .channel_name("dw_data_addr")
+) dw_data_addr_checker (
+    .clock(clock),
+    .reset(reset),
+    .ready(`CPU_INST.dw_data_addr_ready),
+    .valid(`CPU_INST.dw_data_addr_valid),
+    .payload(`CPU_INST.dw_addr)
+);
+bus_channel_checker #(
+    .payload_width(`BUS_RESP_WIDTH),
+    .severity_level(severity_level),
+    .channel_name("dw_resp")
+) dw_resp_checker (
+    .clock(clock),
+    .reset(reset),
+    .ready(`CPU_INST.dw_resp_ready),
+    .valid(`CPU_INST.dw_resp_valid),
+    .payload(`CPU_INST.dw_resp)
 );
 alu_checker #(
     .severity_level(severity_level)
@@ -75,13 +120,19 @@ alu_checker #(
 );
 endmodule
 
-module bus_channel_checker(
+module bus_channel_checker #(
+    parameter payload_width = `BUS_WIDTH
+) (
     input clock,
     input reset,
     input valid,
     input ready,
+    input [payload_width-1:0] payload,
     output wor [`OVL_FIRE_WIDTH-1:0] fire
 );
+parameter range_property_type = `OVL_ASSERT;
+parameter payload_min = 0;
+parameter payload_max = {payload_width{1'b1}};
 parameter severity_level = `OVL_ERROR;
 parameter channel_name = "UNKNOWN";
 parameter msg_prefix = {"BUS: ",channel_name,": "};
@@ -154,6 +205,24 @@ ovl_never_unknown #(
     .enable(1'b1), 
     .qualifier(1'b1),
     .test_expr(valid), 
+    .fire(fire)
+);
+ovl_range #(
+    .severity_level(severity_level),
+    .width(payload_width),
+    .min(payload_min),
+    .max(payload_max),
+    .property_type(range_property_type),
+    .msg({msg_prefix,"payload out of range"}),
+    .coverage_level(`OVL_COVER_NONE),
+    .clock_edge(`OVL_POSEDGE),
+    .reset_polarity(`OVL_ACTIVE_LOW),
+    .gating_type(`OVL_GATE_CLOCK)
+) payload_range (
+    .clock(clock),
+    .reset(reset),
+    .enable(ready && valid),
+    .test_expr(payload),
     .fire(fire)
 );
 endmodule

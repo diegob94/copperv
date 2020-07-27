@@ -32,7 +32,7 @@ RISCV core
 
 | Test        |        | Result   |      |
 |-------------|--------|----------|------|
-| hello_world |        | Failed   |      |
+| hello_world | Passed |          |      |
 | sb_limits   | Passed |          |      |
 | sh_limits   | Passed |          |      |
 | test_0      | Passed |          |      |
@@ -76,6 +76,6 @@ RISCV core
 | xor         | Passed |          |      |
 | xori        | Passed |          |      |
 | Summary     | ---    | ---      | ---  |
-| 43          | 42     | 1        | 0    |
-| 100.0%      | 97.7%  | 2.3%     | 0.0% |
+| 43          | 43     | 0        | 0    |
+| 100.0%      | 100.0% | 0.0%     | 0.0% |
 

@@ -1,4 +1,6 @@
+`ifdef __ICARUS__
 `default_nettype none
+`endif
 
 `define SIGNED(x,wlhs,high,low)   {{(wlhs-(high-low+1)){x[high]}},x[high:low]}
 `define UNSIGNED(x,wlhs,high,low) {{(wlhs-(high-low+1)){1'b0}},x[high:low]}
