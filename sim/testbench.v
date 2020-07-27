@@ -65,7 +65,7 @@ copperv dut (
     .ir_addr_valid(ir_addr_valid),
     .ir_addr(ir_addr)
 );
-fake_memory u_mem (
+sim_crossbar u_xbar (
     .clk(clk),
     .rst(rst),
     .dr_data_valid(dr_data_valid),
@@ -97,28 +97,40 @@ checker_cpu chk(
     .clock(clk),
     .reset(rst)
 );
+integer f;
 initial begin
     $dumpfile("tb.lxt");
     $dumpvars(0, tb);
+    f = $fopen("fake_uart.txt","w");
 end
 always @(posedge clk)
     if(dw_data_addr_valid && dw_data_addr_ready) begin
-        if(dw_addr == (32'd33<<2) && dw_data == 32'd123456789) begin
+        if(dw_addr == 32'h8000 && dw_data == 32'd123456789) begin
             test_passed;
         end
-        if(dw_addr == (32'd33<<2) && dw_data == 32'd111111111) begin
+        if(dw_addr == 32'h8000 && dw_data == 32'd111111111) begin
             test_failed;
+        end
+        if(dw_addr == 32'h8004) begin
+            $fwrite(f, "%c", dw_data[7:0]);
         end
     end
 task test_passed;
 begin
     $display($time, ": TEST PASSED");
-    $finish;
+    finish_sim;
 end
 endtask
 task test_failed;
 begin
     $display($time, ": TEST FAILED");
+    finish_sim;
+end
+endtask
+task finish_sim;
+begin
+    $fwrite(f, "\n");
+    $fclose(f);  
     $finish;
 end
 endtask

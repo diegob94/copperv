@@ -2,7 +2,7 @@
 `include "testbench_h.v"
 `include "copperv_h.v"
 
-module fake_memory(
+module sim_crossbar(
     input clk,
     input rst,
     input dr_data_ready,
@@ -98,7 +98,7 @@ assign ir_addr_ready = r_addr_ready;
 assign dw_data_addr_ready = w_data_addr_ready;
 assign dr_addr_ready = r_addr_ready;
 
-memory u_mem_1 (
+fake_memory u_mem (
     .clk(clk),
     .rst(rst),
     .r_addr_valid(r_addr_valid),
@@ -118,8 +118,8 @@ memory u_mem_1 (
 );
 endmodule
 
-module memory #(
-    parameter address_width = 16,
+module fake_memory #(
+    parameter address_width = `FAKE_MEM_ADDR_WIDTH,
     parameter length = (2**address_width)
 ) (
     input clk,
@@ -188,10 +188,10 @@ always @(posedge clk) begin
         w_resp <= 0;
         w_resp_valid <= 0;
     end else if(write_data_addr_tran) begin
-        if(w_strobe[3]) memory[w_addr+3] <= w_data[31:24];
-        if(w_strobe[2]) memory[w_addr+2] <= w_data[23:16];
-        if(w_strobe[1]) memory[w_addr+1] <= w_data[15:8];
-        if(w_strobe[0]) memory[w_addr+0] <= w_data[7:0];
+        memory[w_addr+3] <= w_strobe[3] ? w_data[31:24] : memory[w_addr+3];
+        memory[w_addr+2] <= w_strobe[2] ? w_data[23:16] : memory[w_addr+2];
+        memory[w_addr+1] <= w_strobe[1] ? w_data[15:8]  : memory[w_addr+1];
+        memory[w_addr+0] <= w_strobe[0] ? w_data[7:0]   : memory[w_addr+0];
         w_resp <= `DATA_WRITE_RESP_OK;
         w_resp_valid <= 1;
     end else if(write_resp_tran) begin

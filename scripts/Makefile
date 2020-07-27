@@ -36,6 +36,7 @@ test_all: clean_all lint_all
 
 sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(RTL_HEADER_SOURCES) $(SIM_HEADER_SOURCES) $(SIM)/copperv_tools.sft copperv_tools.vpi
 	iverilog $(ICARUSFLAGS) $(RTL_SOURCES) $(SIM_SOURCES) -o $@ 2>&1 | tee sim_compile.log
+	! grep -qF 'error(s) during elaboration.' sim_compile.log
 
 $(SIM)/include/monitor_utils_h.v: $(RTL)/include/copperv_h.v $(SCRIPTS)/monitor_utils.py
 	$(SCRIPTS)/monitor_utils.py -monitor $@ $(RTL)/include/copperv_h.v
@@ -47,6 +48,7 @@ copperv.synth.json: $(RTL_SOURCES) $(RTL_HEADER_SOURCES)
 	yosys -p "read_verilog -I$(RTL)/include $(RTL_SOURCES); synth -top copperv; write_json $@" 2>&1 | tee yosys.log
 
 .PHONY: synth_check
+synth_checks: export PYTHONPATH = $(UTIL)/pyosys
 synth_checks: copperv.synth.json
 	! grep '^Warning' yosys.log
 	$(SCRIPTS)/find_latches.py $<
