@@ -2,19 +2,14 @@
 RISCV core
 
 ## Usage
-- https://github.com/riscv/riscv-gnu-toolchain
-  - Clone to ./util/riscv-gnu-toolchain
+- Install RISCV GCC and export RISCV env variable like: $RISCV/bin/riscv32-unknown-elf-gcc
   - ./configure --prefix=$RISCV --with-arch=rv32i
-  - Add as submodule?
-- https://github.com/riscv/riscv-tests
-  - Clone to ./util/riscv-tests
-  - Add as submodule?
-- https://www.accellera.org/downloads/standards/ovl
-  - Download to ./util/std_ovl
-  - Optional?
-- http://iverilog.icarus.com/
-- Python 3:
-  - Pyenv is recommended to install latest python
+- Dependencies:
+  - Icarus Verilog
+  - Verilator
+  - Yosys
+  - GTKWave
+  - Python 3.8
   - pip install -r requirements.txt
 - Basic simulation:
   - mkdir work
@@ -24,6 +19,10 @@ RISCV core
 - Run unit tests:
   - cd work
   - make test_all
+- Hello World:
+  - cd work
+  - make TEST=hello_world
+  - cat fake_uart.txt
 
 ## To Do
 - take_branch X?
