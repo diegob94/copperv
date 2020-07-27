@@ -5,3 +5,7 @@ work/
 *.swp
 __pycache__/
 sim/include/monitor_utils_h.v
+util/pyosys
+util/riscv-opcodes
+util/riscv-tests
+util/std_ovl

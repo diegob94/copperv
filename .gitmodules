@@ -4,3 +4,9 @@
 [submodule "util/std_ovl"]
 	path = util/std_ovl
 	url = https://github.com/diegob94/std_ovl.git
+[submodule "util/riscv-tests"]
+	path = util/riscv-tests
+	url = https://github.com/riscv/riscv-tests.git
+[submodule "util/riscv-opcodes"]
+	path = util/riscv-opcodes
+	url = https://github.com/riscv/riscv-opcodes.git
