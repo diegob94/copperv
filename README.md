@@ -11,12 +11,12 @@ RISCV core
   - GTKWave
   - Python 3.8
     - pip install -r requirements.txt
-- Basic simulation:
+- Run simulation:
   - mkdir work
   - ln -s ../scripts/Makefile work/Makefile
   - cd work
   - make
-- Run unit tests:
+- Run regression tests:
   - cd work
   - make test_all
 - Hello World:
@@ -27,7 +27,7 @@ RISCV core
 ## To Do
 - take_branch X?
 
-## Unit test results:
+## Regression results:
 
 | Test        |        | Result   |      |
 |-------------|--------|----------|------|
