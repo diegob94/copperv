@@ -10,7 +10,7 @@ RISCV core
   - Yosys
   - GTKWave
   - Python 3.8
-  - pip install -r requirements.txt
+    - pip install -r requirements.txt
 - Basic simulation:
   - mkdir work
   - ln -s ../scripts/Makefile work/Makefile
