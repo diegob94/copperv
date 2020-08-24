@@ -3,13 +3,13 @@ SHELL = bash
 SDK = $(ROOT)/sdk
 RISCV_TESTS = $(UTIL)/riscv-tests
 LINKER_SCRIPT = $(SDK)/linker.ld
-TOOLCHAIN = $(RISCV)/bin/riscv32-unknown-elf-
+TOOLCHAIN = riscv32-unknown-elf-
 CC = $(TOOLCHAIN)gcc
 OBJDUMP = $(TOOLCHAIN)objdump
 OBJCOPY = $(TOOLCHAIN)objcopy
 
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
-CFLAGS = -march=rv32i -I$(SDK) -I$(SIM)/tests -I$(RISCV_TESTS)/isa/macros/scalar
+CFLAGS = -march=rv32i -mabi=ilp32 -I$(SDK) -I$(SIM)/tests -I$(RISCV_TESTS)/isa/macros/scalar
 
 TEST_DEPS := $(shell ../scripts/get_test.py $(TEST) $(SDK))
 

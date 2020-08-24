@@ -6,17 +6,18 @@ SCRIPTS = $(ROOT)/scripts
 RTL = $(ROOT)/rtl
 SIM = $(ROOT)/sim
 UTIL = $(ROOT)/util
+LOGS_DIR = ./logs
 
 RTL_SOURCES := $(wildcard $(RTL)/*.v)
 SIM_SOURCES := $(wildcard $(SIM)/*.v) $(wildcard $(SIM)/*.sv) 
 RTL_HEADER_SOURCES := $(wildcard $(RTL)/include/*.v)
-SIM_HEADER_SOURCES := $(wildcard $(SIM)/include/*.v)
+SIM_HEADER_SOURCES := $(wildcard $(SIM)/include/*.v) $(SIM)/include/monitor_utils_h.v
 STD_OVL = $(UTIL)/std_ovl
 TEST = test_0
 
 ICARUSFLAGS = -I$(STD_OVL) -y$(STD_OVL) -I$(RTL)/include -I$(SIM)/include -Wall -Wno-timescale -g2012
 VVPFLAGS = -M. 
-PLUSARGS = -lxt2
+PLUSARGS = 
 ifdef DEBUG
 ICARUSFLAGS += -pfileline=1
 PLUSARGS += +DUMP_REGFILE
@@ -24,15 +25,18 @@ endif
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A -a $(SCRIPTS)/tb.gtkw 
 VERILATORFLAGS = --lint-only -Wall -Wpedantic -I$(RTL)/include
 
-.PHONY: all
 all: sim
+
+.PHONY: test
+test: clean_all lint_all
+	$(SCRIPTS)/unit_test.py
 
 # Test compile
 include $(SCRIPTS)/test.mk
 
-.PHONY: test_all
-test_all: clean_all lint_all
-	$(SCRIPTS)/unit_test.py
+setup:
+	test -d $(LOGS_DIR) || mkdir $(LOGS_DIR)
+	date > $@
 
 sim.vvp: $(RTL_SOURCES) $(SIM_SOURCES) $(RTL_HEADER_SOURCES) $(SIM_HEADER_SOURCES) $(SIM)/copperv_tools.sft copperv_tools.vpi
 	iverilog $(ICARUSFLAGS) $(RTL_SOURCES) $(SIM_SOURCES) -o $@ 2>&1 | tee sim_compile.log
@@ -44,14 +48,18 @@ $(SIM)/include/monitor_utils_h.v: $(RTL)/include/copperv_h.v $(SCRIPTS)/monitor_
 copperv_tools.vpi: $(SIM)/copperv_tools.c
 	iverilog-vpi $<
 
-copperv.synth.json: $(RTL_SOURCES) $(RTL_HEADER_SOURCES)
-	yosys -p "read_verilog -I$(RTL)/include $(RTL_SOURCES); synth -top copperv; write_json $@" 2>&1 | tee yosys.log
+synth: $(SCRIPTS)/yosys.tcl setup
+	yosys -c $< 2>&1 | tee ${LOGS_DIR}/$@.log
+	! grep -q '^Error' -i ${LOGS_DIR}/$@.log
+	date > $@
 
-.PHONY: synth_check
-synth_checks: export PYTHONPATH = $(UTIL)/pyosys
-synth_checks: copperv.synth.json
-	! grep '^Warning' yosys.log
-	$(SCRIPTS)/find_latches.py $<
+sta: $(SCRIPTS)/sta.tcl setup synth
+	sta -exit $< 2>&1 | tee ${LOGS_DIR}/$@.log
+	! grep -q '^Error' ${LOGS_DIR}/$@.log
+	date > $@
+
+.PHONY: synth_checks
+synth_checks: sta
 
 .PHONY: sim
 sim: sim.vvp $(TEST).hex $(TEST).D
@@ -63,7 +71,7 @@ lint: $(RTL_SOURCES) $(SCRIPTS)/waivers.vlt
 	! grep -q '^%Error:' lint.log
 
 .PHONY: lint_all
-lint_all: lint synth_checks
+lint_all: lint # synth_checks
 
 .PHONY: wave
 wave:
@@ -76,5 +84,5 @@ clean:
 
 .PHONY: clean_all
 clean_all: clean clean_test
-	rm -fv sim_run_*.log sim_compile.log tb.lxt unit_test_*.log copperv.synth.json
+	rm -fv sim_run_*.log sim_compile.log tb.vcd unit_test_*.log copperv.synth.json fake_uart.log
 

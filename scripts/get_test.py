@@ -8,6 +8,7 @@ def tests_paths(root):
     return [
         root/'sim/tests', 
         root/'util/riscv-tests/isa/rv32ui',
+        root/'util/riscv-tests/benchmarks/dhrystone',
     ]
 
 def get_all_tests(root):

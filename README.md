@@ -2,15 +2,8 @@
 RISCV core
 
 ## Usage
-- Install RISCV GCC and export RISCV env variable like: $RISCV/bin/riscv32-unknown-elf-gcc
-  - ./configure --prefix=$RISCV --with-arch=rv32i
-- Dependencies:
-  - Icarus Verilog
-  - Verilator
-  - Yosys
-  - GTKWave
-  - Python 3.8
-    - pip install -r requirements.txt
+- Install environment:
+  - conda env create -f environment.yml
 - Run simulation:
   - mkdir work
   - ln -s ../scripts/Makefile work/Makefile
@@ -18,7 +11,7 @@ RISCV core
   - make
 - Run regression tests:
   - cd work
-  - make test_all
+  - make test
 - Hello World:
   - cd work
   - make TEST=hello_world

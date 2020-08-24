@@ -99,9 +99,9 @@ checker_cpu chk(
 );
 integer f;
 initial begin
-    $dumpfile("tb.lxt");
+    $dumpfile("tb.vcd");
     $dumpvars(0, tb);
-    f = $fopen("fake_uart.txt","w");
+    f = $fopen("fake_uart.log","w");
 end
 always @(posedge clk)
     if(dw_data_addr_valid && dw_data_addr_ready) begin
