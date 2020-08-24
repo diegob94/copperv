@@ -18,5 +18,6 @@ RISCV core
   - cat fake_uart.log
 
 ## To Do
+- OpenSTA conda package
 - take_branch X?
 
