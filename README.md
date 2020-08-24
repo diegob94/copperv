@@ -15,7 +15,7 @@ RISCV core
 - Hello World:
   - cd work
   - make TEST=hello_world
-  - cat fake_uart.txt
+  - cat fake_uart.log
 
 ## To Do
 - take_branch X?
