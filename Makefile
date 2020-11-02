@@ -26,10 +26,10 @@ SIM_EXEC_OPTS += +bscvcd
 SIM_EXEC_OPTS += +bsccycle
 
 # Root dir:
-ROOT      = $(realpath .)
-BSV_DIR   = $(ROOT)/bsv
-TESTS_DIR = $(ROOT)/sim/tests
-WORK_DIR  = $(ROOT)/work
+export ROOT = $(realpath .)
+TEST_DIR = $(ROOT)/sim/basic
+BSV_DIR  = $(ROOT)/bsv
+WORK_DIR = $(ROOT)/work
 
 # Work dir:
 TEMP_DIR        = $(WORK_DIR)/tmp
@@ -65,6 +65,7 @@ $(SIM_EXEC): $(WORK_DIR)
 	bsc -e $(SIM_TOP) -o $(SIM_EXEC) -vsearch +:$(VERILOG_SIM_DIR) -verilog
 
 sim: $(SIM_EXEC) 
+	cd $(TEMP_DIR) && $(MAKE) -f $(ROOT)/scripts/test.mk SIM_DIR=$(ROOT)/sim TEST_DIR=$(TEST_DIR)
 	cd $(TEMP_DIR) && $(SIM_EXEC) $(SIM_EXEC_OPTS) |& tee $(LOGS_DIR)/sim_run.log
 
 wave:
