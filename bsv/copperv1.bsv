@@ -16,7 +16,7 @@ package copperv1;
   module mkCopperv1(Copperv1_if);
     FIFO#(Bus_r_req) bus_ir_req <- mkFIFO;
     FIFO#(Bus_r_resp) bus_ir_resp <- mkFIFO;
-    Reg#(int) pc <- mkReg(0);
+    Reg#(Addr_t) pc <- mkReg(0);
 
     rule incr_pc;
       pc <= pc + 4;

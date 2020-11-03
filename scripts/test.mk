@@ -26,7 +26,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.S
 
 $(OBJ_DIR)/%.E: $(SRC_DIR)/%.S
 	$(CC) $(CFLAGS) -E -c $< -o $@
-	grep -Ev '^#|^$$' $@ | tr ';' '\n' > $(notdir $@)
+	grep -Ev '^#|^$$' $@ | tr ';' '\n' > $@1
 
 $(OBJ_DIR)/test.elf: $(OBJ_FILES) $(PREPROC_FILES) $(LINKER_SCRIPT)
 	$(CC) $(LFLAGS) $(OBJ_FILES) -o $@
