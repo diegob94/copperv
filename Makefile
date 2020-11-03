@@ -49,8 +49,6 @@ OBJ_TEST_DIR    = $(SIM_DIR)/tests/$(TEST_NAME)
 TEST_NAME       = $(shell basename $(TEST_DIR))
 
 # Synthesis
-BSV_FILES = $(wildcard $(BSV_DIR)/*.bsv)
-RTL_FILES = $(wildcard $(RTL_DIR)/*.v)
 VERILOG_RTL_FILES = $(wildcard $(VERILOG_RTL_DIR)/*.v)
 
 .PHONY: all sim rtl clean
@@ -68,14 +66,12 @@ $(WORK_DIR):
 rtl: $(WORK_DIR)
 	bsc $(BSC_VERILOG_RTL_OPTS) -verilog $(BSV_RTL_FILE) |& tee $(LOGS_DIR)/bsc_rtl.log
 
-$(SIM_EXEC): $(RTL_FILES) $(BSV_FILES) $(WORK_DIR)
+sim: $(WORK_DIR)
 	bsc $(BSC_VERILOG_SIM_OPTS) -verilog $(BSV_SIM_FILE) |& tee $(LOGS_DIR)/bsc_sim.log
-	bsc $(BSC_VERILOG_SIM_LINK_OPTS) -verilog -o $@ |& tee $(LOGS_DIR)/bsc_sim_link.log
-
-sim: $(SIM_EXEC) 
+	bsc $(BSC_VERILOG_SIM_LINK_OPTS) -verilog -o $(SIM_EXEC) |& tee $(LOGS_DIR)/bsc_sim_link.log
 	test -d $(OBJ_TEST_DIR) || mkdir -p $(OBJ_TEST_DIR)
 	$(MAKE) -f $(ROOT)/scripts/test.mk ROOT=$(ROOT) SRC_DIR=$(TEST_DIR) \
-		OBJ_DIR=$(OBJ_TEST_DIR) > $(LOGS_DIR)/test_compile_$(TEST_NAME).log
+		OBJ_DIR=$(OBJ_TEST_DIR) |& tee $(LOGS_DIR)/test_compile_$(TEST_NAME).log
 	cd $(TEMP_DIR) && $(SIM_EXEC) $(SIM_EXEC_OPTS) |& tee $(LOGS_DIR)/sim_run.log
 
 wave:
