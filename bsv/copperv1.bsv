@@ -25,6 +25,7 @@ package copperv1;
     rule fetch;
       bus_ir_req.enq(Bus_r_req {addr: pc});
     endrule
+
     rule receive;
       let rec = bus_ir_resp.first; bus_ir_resp.deq;
       $display("copperv1: received:",rec);
