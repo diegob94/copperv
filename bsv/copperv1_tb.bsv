@@ -14,19 +14,23 @@ package copperv1_tb;
 //    interface Server#(Bus_w_req,Bus_w_resp) bus_w;
   endinterface: Mem_if
 
+  (* synthesize *)
   module mkMemory(Mem_if);
     FIFO#(Bus_r_req) bus_r_req <- mkFIFO;
     FIFO#(Bus_r_resp) bus_r_resp <- mkFIFO;
     SRAM_Ifc#(UInt#(16), Data_t) mem <- mkSRAM_wrapper(`HEX_FILE);
+    Reg#(Bool) pending <- mkReg(False);
 
     rule read_mem;
       let req = bus_r_req.first; bus_r_req.deq;
       mem.request(truncate(req.addr>>2), 0, False);
+      pending <= True;
     endrule
 
-    rule send_response;
+    rule send_response (pending);
       let word = mem.read_response;
       bus_r_resp.enq(Bus_r_resp { data: word });
+      pending <= False;
     endrule
 
     interface Server bus_r = toGPServer(asIfc(bus_r_req), asIfc(bus_r_resp));
