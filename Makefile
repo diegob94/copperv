@@ -75,7 +75,7 @@ sim: $(WORK_DIR)
 	cd $(TEMP_DIR) && $(SIM_EXEC) $(SIM_EXEC_OPTS) |& tee $(LOGS_DIR)/sim_run.log
 
 wave:
-	gtkwave --autosavename --rcvar "splash_disable on" $(SIM_DIR)/dump.vcd
+	gtkwave --autosavename --rcvar "splash_disable on" $(TEMP_DIR)/dump.vcd
 
 show: rtl
 	yosys -c $(ROOT)/scripts/yosys.tcl $(VERILOG_RTL_FILES) |& tee $(LOGS_DIR)/yosys.log

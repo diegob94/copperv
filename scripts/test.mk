@@ -19,7 +19,11 @@ PREPROC_FILES = $(OBJ_DIR)/$(notdir $(SRC_FILES:.S=.E))
 
 .SUFFIXES:
 
-all: $(OBJ_DIR)/test.hex
+banner:
+	@printf "\n\n################# Compiling test: $(OBJ_DIR) #################\n\n\n"
+
+all: banner $(OBJ_DIR)/test.hex
+	@printf "\n\n#################### Compiling test done #####################\n\n\n"
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.S
 	$(CC) $(CFLAGS) -c $< -o $@
