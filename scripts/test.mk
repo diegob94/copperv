@@ -1,50 +1,63 @@
 SHELL = bash
 
+SIM_DIR=$(ROOT)/sim
 SDK = $(ROOT)/sdk
-RISCV_TESTS = $(UTIL)/riscv-tests
+
 LINKER_SCRIPT = $(SDK)/linker.ld
-TOOLCHAIN = riscv32-unknown-elf-
-CC = $(TOOLCHAIN)gcc
+TOOLCHAIN = riscv64-unknown-elf-
+CC      = $(TOOLCHAIN)gcc
 OBJDUMP = $(TOOLCHAIN)objdump
 OBJCOPY = $(TOOLCHAIN)objcopy
 
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
-CFLAGS = -march=rv32i -mabi=ilp32 -I$(SDK) -I$(SIM)/tests -I$(RISCV_TESTS)/isa/macros/scalar
+CFLAGS = -march=rv32i -mabi=ilp32 -I$(SDK) -I$(SIM_DIR)/include
+# -I$(RISCV_TESTS)/isa/macros/scalar
 
-TEST_DEPS := $(shell ../scripts/get_test.py $(TEST) $(SDK))
+SRC_FILES = $(wildcard $(SRC_DIR)/*.S)
+OBJ_FILES = $(OBJ_DIR)/$(notdir $(SRC_FILES:.S=.o))
+PREPROC_FILES = $(OBJ_DIR)/$(notdir $(SRC_FILES:.S=.E))
 
-%.o: %.c
+.SUFFIXES:
+.PHONY: all banner
+
+all: banner $(OBJ_DIR)/test.hex
+	@echo
+	@echo '----------------------------------------------------------------------------'
+	@echo
+	@echo "Compiling test done: $(OBJ_DIR)"
+	@echo
+	@echo '----------------------------------------------------------------------------'
+
+banner:
+	@echo '----------------------------------------------------------------------------'
+	@echo
+	@echo "Compiling test: $(OBJ_DIR)"
+	@echo
+	@echo '----------------------------------------------------------------------------'
+	@echo
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.S
 	$(CC) $(CFLAGS) -c $< -o $@
 
-%.o: %.S
-	$(CC) $(CFLAGS) -c $< -o $@
-#	$(TOOLCHAIN)objcopy -O elf32-littleriscv -R .riscv.attributes $@
-
-%.E: %.S
+$(OBJ_DIR)/%.E: $(SRC_DIR)/%.S
 	$(CC) $(CFLAGS) -E -c $< -o $@
-	grep -Ev '^#|^$$' $@ | tr ';' '\n' > $(notdir $@)
+	grep -Ev '^#|^$$' $@ | tr ';' '\n' > $@1
 
-%.E: %.c
-	$(CC) $(CFLAGS) -E -c $< -o $@
+$(OBJ_DIR)/test.elf: $(OBJ_FILES) $(PREPROC_FILES) $(LINKER_SCRIPT)
+	$(CC) $(LFLAGS) $(OBJ_FILES) -o $@
 
-$(TEST).elf: $(TEST_DEPS) $(LINKER_SCRIPT)
-	$(CC) $(LFLAGS) $(filter %.o, $^) -o $@
-
-$(TEST).hex: $(TEST).elf $(TEST).D
+$(OBJ_DIR)/test.hex: $(OBJ_DIR)/test.elf
 	$(OBJCOPY) -O verilog $< $@
 
-%.D: %.elf
-	$(SCRIPTS)/dissassembly.py $<
+#%.o: %.c
+#	$(CC) $(CFLAGS) -c $< -o $@
 
-%.D: %.o
-	$(SCRIPTS)/dissassembly.py $<
+#%.E: %.c
+#	$(CC) $(CFLAGS) -E -c $< -o $@
 
-.PHONY: clean_test
-clean_test:
-	rm -fv *.hex *.elf
-ifneq ($(ROOT),)
-	find -L $(RISCV_TESTS) $(SIM) $(SDK) ./ \( -name '*.o' -o -name '*.D' -o -name '*.E' \) -exec rm -fv {} \;
-endif
+#%.D: %.elf
+#	$(SCRIPTS)/dissassembly.py $<
 
-
+#%.D: %.o
+#	$(SCRIPTS)/dissassembly.py $<
 
