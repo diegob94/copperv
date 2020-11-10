@@ -4,3 +4,4 @@ work/
 *.D
 *.swp
 __pycache__/
+*.log
