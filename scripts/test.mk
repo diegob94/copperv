@@ -1,52 +1,61 @@
 SHELL = bash
 
-SIM_DIR=$(ROOT)/sim
-SDK = $(ROOT)/sdk
+INCLUDE_DIR = $(realpath $(SRC_DIR)/../include)
 
 LINKER_SCRIPT = $(SDK)/linker.ld
+STARTUP_ROUTINE = $(SDK)/crt0.S
 TOOLCHAIN = riscv64-unknown-elf-
 CC      = $(TOOLCHAIN)gcc
 OBJDUMP = $(TOOLCHAIN)objdump
 OBJCOPY = $(TOOLCHAIN)objcopy
 
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
-CFLAGS = -march=rv32i -mabi=ilp32 -I$(SDK) -I$(SIM_DIR)/include
+CFLAGS = -march=rv32i -mabi=ilp32 -I$(SDK) -I$(INCLUDE_DIR)
 # -I$(RISCV_TESTS)/isa/macros/scalar
 
-SRC_FILES = $(wildcard $(SRC_DIR)/*.S)
-OBJ_FILES = $(OBJ_DIR)/$(notdir $(SRC_FILES:.S=.o))
-PREPROC_FILES = $(OBJ_DIR)/$(notdir $(SRC_FILES:.S=.E))
+BIN_NAME    = $(shell basename $(SRC_DIR))
+SRC_FILES = $(STARTUP_ROUTINE)
+SRC_FILES += $(wildcard $(SRC_DIR)/*.S)
+SRC_FILES_NOT_DIR = $(notdir $(SRC_FILES))
+
+OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(SRC_FILES_NOT_DIR:.S=.o))
+PREPROC_FILES = $(addprefix $(OBJ_DIR)/,$(SRC_FILES_NOT_DIR:.S=.E))
 
 .SUFFIXES:
 .PHONY: all banner
 
-all: banner $(OBJ_DIR)/test.hex
+all: banner $(OBJ_DIR)/$(BIN_NAME).hex
 	@echo
 	@echo '----------------------------------------------------------------------------'
 	@echo
-	@echo "Compiling test done: $(OBJ_DIR)"
+	@echo "Copperv cross compile done: $(OBJ_DIR)"
 	@echo
 	@echo '----------------------------------------------------------------------------'
 
 banner:
 	@echo '----------------------------------------------------------------------------'
 	@echo
-	@echo "Compiling test: $(OBJ_DIR)"
+	@echo "Copperv cross compile: $(OBJ_DIR)"
+	@echo "Source files:"
+	@echo $(SRC_FILES) | xargs | tr ' ' '\n' | sed 's/^/  - /'
+	@echo
+	@echo "Object files:"
+	@echo $(OBJ_FILES) | xargs | tr ' ' '\n' | sed 's/^/  - /'
 	@echo
 	@echo '----------------------------------------------------------------------------'
 	@echo
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.S
+$(OBJ_FILES): $(SRC_FILES)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.E: $(SRC_DIR)/%.S
+$(PREPROC_FILES): $(SRC_FILES)
 	$(CC) $(CFLAGS) -E -c $< -o $@
 	grep -Ev '^#|^$$' $@ | tr ';' '\n' > $@1
 
-$(OBJ_DIR)/test.elf: $(OBJ_FILES) $(PREPROC_FILES) $(LINKER_SCRIPT)
+$(OBJ_DIR)/$(BIN_NAME).elf: $(OBJ_FILES) $(PREPROC_FILES) $(LINKER_SCRIPT)
 	$(CC) $(LFLAGS) $(OBJ_FILES) -o $@
 
-$(OBJ_DIR)/test.hex: $(OBJ_DIR)/test.elf
+$(OBJ_DIR)/$(BIN_NAME).hex: $(OBJ_DIR)/$(BIN_NAME).elf
 	$(OBJCOPY) -O verilog $< $@
 
 #%.o: %.c
