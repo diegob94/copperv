@@ -65,6 +65,7 @@ $(WORK_DIR):
 
 rtl: $(WORK_DIR)
 	bsc $(BSC_VERILOG_RTL_OPTS) -verilog $(BSV_RTL_FILE) |& tee $(LOGS_DIR)/bsc_rtl.log
+	! grep -q '^Error:' $(LOGS_DIR)/bsc_rtl.log
 
 sim: $(WORK_DIR)
 	bsc $(BSC_VERILOG_SIM_OPTS) -verilog $(BSV_SIM_FILE) |& tee $(LOGS_DIR)/bsc_sim.log

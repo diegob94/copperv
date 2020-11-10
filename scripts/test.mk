@@ -18,12 +18,19 @@ OBJ_FILES = $(OBJ_DIR)/$(notdir $(SRC_FILES:.S=.o))
 PREPROC_FILES = $(OBJ_DIR)/$(notdir $(SRC_FILES:.S=.E))
 
 .SUFFIXES:
-
-banner:
-	@printf "\n\n################# Compiling test: $(OBJ_DIR) #################\n\n\n"
+.PHONY: all banner
 
 all: banner $(OBJ_DIR)/test.hex
-	@printf "\n\n#################### Compiling test done #####################\n\n\n"
+	@echo
+	@echo
+	@echo "Compiling test done: $(OBJ_DIR)"
+	@echo '----------------------------------------------------------------------------'
+
+banner:
+	@echo '----------------------------------------------------------------------------'
+	@echo "Compiling test: $(OBJ_DIR)"
+	@echo
+	@echo
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.S
 	$(CC) $(CFLAGS) -c $< -o $@

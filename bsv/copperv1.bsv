@@ -22,13 +22,18 @@ package copperv1;
       pc <= pc + 4;
     endrule
 
-    rule fetch;
+    rule fetch_req;
       bus_ir_req.enq(Bus_r_req {addr: pc});
     endrule
 
-    rule receive;
+    rule fetch_resp;
       let rec = bus_ir_resp.first; bus_ir_resp.deq;
       $display("copperv1: received:",rec);
+      Instruction instr = unpack(pack(rec.data));
+      $display(fshow(instr));
+      //case (instr) matches
+        //tagged U_type {imm: .imm, rd: .rd, opc: .opc} : $display("U_type: imm=0x%X rd=", imm, fshow(rd)," opc=0x%X", opc);
+      //endcase
     endrule
 
     interface Client bus_ir = toGPClient(asIfc(bus_ir_req), asIfc(bus_ir_resp));
