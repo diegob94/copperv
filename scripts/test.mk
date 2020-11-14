@@ -1,4 +1,4 @@
-SHELL = bash
+SHELL = bash -o pipefail
 
 INCLUDE_DIR = $(realpath $(SRC_DIR)/../include)
 
@@ -13,8 +13,8 @@ LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding
 CFLAGS = -march=rv32i -mabi=ilp32 -I$(SDK) -I$(INCLUDE_DIR)
 # -I$(RISCV_TESTS)/isa/macros/scalar
 
-BIN_NAME    = $(shell basename $(SRC_DIR))
-SRC_FILES = $(STARTUP_ROUTINE)
+BIN_NAME = $(shell basename $(SRC_DIR))
+#SRC_FILES = $(STARTUP_ROUTINE)
 SRC_FILES += $(wildcard $(SRC_DIR)/*.S)
 SRC_FILES_NOT_DIR = $(notdir $(SRC_FILES))
 
@@ -45,10 +45,17 @@ banner:
 	@echo '----------------------------------------------------------------------------'
 	@echo
 
-$(OBJ_FILES): $(SRC_FILES)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.S
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(PREPROC_FILES): $(SRC_FILES)
+$(OBJ_DIR)/%.o: $(SDK)/%.S
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.E: $(SRC_DIR)/%.S
+	$(CC) $(CFLAGS) -E -c $< -o $@
+	grep -Ev '^#|^$$' $@ | tr ';' '\n' > $@1
+
+$(OBJ_DIR)/%.E: $(SDK)/%.S
 	$(CC) $(CFLAGS) -E -c $< -o $@
 	grep -Ev '^#|^$$' $@ | tr ';' '\n' > $@1
 

@@ -93,10 +93,12 @@ monitor_cpu mon(
     .clk(clk),
     .rst(rst)
 );
+`ifdef ENABLE_CHECKER
 checker_cpu chk(
     .clock(clk),
     .reset(rst)
 );
+`endif
 integer f;
 initial begin
     $dumpfile("tb.vcd");

@@ -69,7 +69,7 @@ static PLI_INT32 mon_diss_compiletf(PLI_BYTE8* user_data) {
     char* file_name = NULL;
     file_name = mc_scan_plusargs("DISS_FILE=");
     if(file_name == NULL) {
-        sim_log("No dissassembly file given, monitor is disabled: vvp sim.vvp +DISS_FILE=test.D");
+        sim_log("No dissassembly file given, monitor disabled. Usage example: vvp sim.vvp +DISS_FILE=test.D");
         return 0;
     }
     sim_log("Reading %s", file_name);

@@ -1,4 +1,4 @@
-SHELL = bash
+SHELL = bash -o pipefail
 
 INFO = @echo "`tput setaf 2``tput bold`copperv-make:`tput init`"
 
@@ -14,6 +14,7 @@ SIM_BUILD_DIR = $(WORK_DIR)/sim
 
 RTL_FILES := $(wildcard $(RTL_DIR)/*.v)
 SIM_FILES := $(wildcard $(SIM_DIR)/*.v) $(wildcard $(SIM_DIR)/*.sv) 
+SIM_FILES := $(filter-out %checker_cpu.v, $(SIM_FILES))
 RTL_HEADER_FILES := $(wildcard $(RTL)/include/*.v)
 SIM_HEADER_FILES := $(wildcard $(SIM_DIR)/include/*.v) $(SIM_DIR)/include/monitor_utils_h.v
 #STD_OVL      = $(UTIL)/std_ovl
@@ -56,7 +57,10 @@ $(WORK_DIR):
 $(SIM_BUILD_DIR)/sim.vvp: $(RTL_FILES) $(SIM_FILES) $(RTL_HEADER_FILES) $(SIM_HEADER_FILES) $(SIM_BUILD_DIR)/copperv_tools.vpi
 	$(INFO) "Compiling and linking Verilog simulation"
 	iverilog $(ICARUSFLAGS) $(RTL_FILES) $(SIM_FILES) -o $@ 2>&1 | tee $(LOGS_DIR)/compile_sim.log
-	! grep -qF 'error(s) during elaboration.' $(LOGS_DIR)/compile_sim.log
+	if grep -qP 'error\(s\) during elaboration.|Include file .*? not found' $(LOGS_DIR)/compile_sim.log; then \
+		rm -f $@; \
+		false; \
+	fi
 
 $(SIM_DIR)/include/monitor_utils_h.v: $(RTL_DIR)/include/copperv_h.v $(SCRIPTS)/monitor_utils.py
 	cd $(TEMP_DIR); $(SCRIPTS)/monitor_utils.py -monitor $@ $(RTL_DIR)/include/copperv_h.v
