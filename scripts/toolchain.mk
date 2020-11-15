@@ -32,37 +32,8 @@ PREPROC_FILES += $(addprefix $(OBJ_DIR)/,$(SRC_FILES_C_NAMES:.c=.E))
 DEBUG = 0
 
 .SUFFIXES:
-.PHONY: all banner
-.NOTPARALLEL: all banner
-
-all: banner $(OBJ_DIR)/$(BIN_NAME).hex
-	@echo
-	@echo '----------------------------------------------------------------------------'
-	@echo
-	@echo "Copperv cross compile done: $(OBJ_DIR)"
-	@echo
-	@echo '----------------------------------------------------------------------------'
-
-banner:
-	@echo '----------------------------------------------------------------------------'
-	@echo
-	@echo "Copperv cross compile: $(OBJ_DIR)"
-ifneq ($(DEBUG),0)
-	@echo
-	@echo 'Debug mode'
-	@echo
-	@echo "Source files:"
-	@echo $(SRC_FILES) | xargs | tr ' ' '\n' | sed 's/^/  - /'
-	@echo
-	@echo "Object files:"
-	@echo $(OBJ_FILES) | xargs | tr ' ' '\n' | sed 's/^/  - /'
-	@echo
-	@echo "Startup_routine:"
-	@echo '  - $(STARTUP_ROUTINE)'
-endif
-	@echo
-	@echo '----------------------------------------------------------------------------'
-	@echo
+.PHONY: all
+all: $(OBJ_DIR)/$(BIN_NAME).hex
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.S
 ifneq ($(DEBUG),0)
@@ -98,6 +69,16 @@ $(OBJ_DIR)/$(BIN_NAME).elf: $(OBJ_FILES) $(PREPROC_FILES) $(LINKER_SCRIPT)
 
 ## Simulation inputs
 $(OBJ_DIR)/$(BIN_NAME).hex: $(OBJ_DIR)/$(BIN_NAME).elf $(OBJ_DIR)/$(BIN_NAME).D
+ifneq ($(DEBUG),0)
+	@echo "Source files:"
+	@echo $(SRC_FILES) | xargs | tr ' ' '\n' | sed 's/^/  - /'
+	@echo
+	@echo "Object files:"
+	@echo $(OBJ_FILES) | xargs | tr ' ' '\n' | sed 's/^/  - /'
+	@echo
+	@echo "Startup_routine:"
+	@echo '  - $(STARTUP_ROUTINE)'
+endif
 	$(OBJCOPY) -O verilog $< $@
 
 $(OBJ_DIR)/$(BIN_NAME).D: $(OBJ_DIR)/$(BIN_NAME).elf
