@@ -4,20 +4,11 @@ RISCV core
 ## Usage
 - Install environment:
   - conda env create -f environment.yml
-- Run simulation:
-  - mkdir work
-  - ln -s ../scripts/Makefile work/Makefile
-  - cd work
+- Run ISA tests:
   - make
-- Run regression tests:
-  - cd work
-  - make test
-- Hello World:
-  - cd work
-  - make TEST=hello_world
-  - cat fake_uart.log
 
 ## To Do
+- Move all dependencies to conda?
 - OpenSTA conda package
 - take_branch X?
 
