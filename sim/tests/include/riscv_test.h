@@ -2,13 +2,7 @@
 #define RVTEST_RV32U
 #define TESTNUM x28
 
-#define RVTEST_CODE_BEGIN \
-    .section .init, "ax"; \
-    .global _start;       \
-    _start:
-
-//    .option push;         
-//    .option norelax;      
+#define RVTEST_CODE_BEGIN
 
 #define T_ADDR 0x8000
 #define T_PASS 123456789
