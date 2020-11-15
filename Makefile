@@ -1,9 +1,19 @@
 SHELL = bash -o pipefail
+DEBUG = 0
 
-#TEST_DIR = $(SIM_DIR)/tests/simple
+#TEST = SIMPLE
+TEST = ISA
+#TEST = DHRYSTONE
+
+ifeq ($(TEST),SIMPLE)
+TEST_DIR = $(SIM_DIR)/tests/simple
+else ifeq ($(TEST),ISA)
 TEST_DIR = $(SIM_DIR)/tests/isa/rv32ui
 STARTUP_ROUTINE = $(SIM_DIR)/tests/isa/crt0.S
 CFLAGS = -I$(SIM_DIR)/tests/isa
+else ifeq ($(TEST),DHRYSTONE)
+TEST_DIR = $(SIM_DIR)/tests/dhrystone
+endif
 
 INFO = @echo "`tput setaf 2``tput bold`copperv-make:`tput init`"
 
@@ -38,7 +48,7 @@ ICARUSFLAGS +=-Wno-timescale
 ICARUSFLAGS += -g2012
 VVPFLAGS += -M. -mcopperv_tools 
 PLUSARGS += +HEX_FILE=$(HEX_FILE) +DISS_FILE=$(DISS_FILE)
-ifdef DEBUG
+ifneq ($(DEBUG),0)
 ICARUSFLAGS += -pfileline=1
 PLUSARGS += +DUMP_REGFILE
 MAX_CORES = 1
@@ -70,6 +80,7 @@ $(HEX_FILE):
 		OBJ_DIR=$(OBJ_TEST_DIR) \
 		CFLAGS='-I$(SIM_DIR)/tests/include $(CFLAGS)' \
 		STARTUP_ROUTINE=$(STARTUP_ROUTINE) \
+		DEBUG=$(DEBUG) \
 		SDK=$(SDK_DIR) |& tee $(LOGS_DIR)/compile_test_$(TEST_NAME).log
 
 $(MONITOR_UTIL_H): $(RTL_DIR)/include/copperv_h.v $(SCRIPTS)/monitor_utils.py
