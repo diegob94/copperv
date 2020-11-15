@@ -1,5 +1,9 @@
 SHELL = bash -o pipefail
 
+#TEST_DIR = $(SIM_DIR)/tests/simple
+TEST_DIR = $(SIM_DIR)/tests/isa/rv32ui
+STARTUP_ROUTINE = $(SIM_DIR)/tests/isa/crt0.S
+
 INFO = @echo "`tput setaf 2``tput bold`copperv-make:`tput init`"
 
 ROOT = $(realpath ./)
@@ -21,7 +25,6 @@ MONITOR_UTIL_H := $(SIM_BUILD_DIR)/monitor_utils_h.v
 TOOLS_VPI := $(SIM_BUILD_DIR)/copperv_tools.vpi
 VVP_FILE := $(SIM_BUILD_DIR)/sim.vvp
 #STD_OVL      = $(UTIL)/std_ovl
-TEST_DIR     = $(SIM_DIR)/tests/simple
 OBJ_TEST_DIR = $(SIM_BUILD_DIR)/tests/$(TEST_NAME)
 TEST_NAME    = $(shell basename $(TEST_DIR))
 HEX_FILE  = $(OBJ_TEST_DIR)/$(TEST_NAME).hex
@@ -61,6 +64,8 @@ $(HEX_FILE):
 		ROOT=$(ROOT) \
 		SRC_DIR=$(TEST_DIR) \
 		OBJ_DIR=$(OBJ_TEST_DIR) \
+		CFLAGS=-I$(SIM_DIR)/tests/include \
+		STARTUP_ROUTINE=$(STARTUP_ROUTINE) \
 		SDK=$(SDK_DIR) |& tee $(LOGS_DIR)/compile_test_$(TEST_NAME).log
 
 $(MONITOR_UTIL_H): $(RTL_DIR)/include/copperv_h.v $(SCRIPTS)/monitor_utils.py

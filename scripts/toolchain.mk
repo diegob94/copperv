@@ -1,7 +1,5 @@
 SHELL = bash -o pipefail
 
-INCLUDE_DIR = $(realpath $(SRC_DIR)/../include)
-
 LINKER_SCRIPT = $(SDK)/linker.ld
 STARTUP_ROUTINE = $(SDK)/crt0.S
 TOOLCHAIN = riscv64-unknown-elf-
@@ -12,11 +10,10 @@ OBJCOPY = $(TOOLCHAIN)objcopy
 SCRIPTS = $(ROOT)/scripts
 
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
-CFLAGS = -march=rv32i -mabi=ilp32 -I$(SDK) -I$(INCLUDE_DIR)
-# -I$(RISCV_TESTS)/isa/macros/scalar
+override CFLAGS += -march=rv32i -mabi=ilp32 -I$(SDK)
 
 BIN_NAME = $(shell basename $(SRC_DIR))
-#SRC_FILES = $(STARTUP_ROUTINE)
+SRC_FILES = $(STARTUP_ROUTINE)
 SRC_FILES += $(wildcard $(SRC_DIR)/*.S)
 SRC_FILES_NOT_DIR = $(notdir $(SRC_FILES))
 
@@ -38,11 +35,13 @@ banner:
 	@echo '----------------------------------------------------------------------------'
 	@echo
 	@echo "Copperv cross compile: $(OBJ_DIR)"
+ifdef $(DEBUG)
 	@echo "Source files:"
 	@echo $(SRC_FILES) | xargs | tr ' ' '\n' | sed 's/^/  - /'
 	@echo
 	@echo "Object files:"
 	@echo $(OBJ_FILES) | xargs | tr ' ' '\n' | sed 's/^/  - /'
+endif
 	@echo
 	@echo '----------------------------------------------------------------------------'
 	@echo
@@ -50,7 +49,7 @@ banner:
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.S
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(SDK)/%.S
+$(OBJ_DIR)/%.o: $(STARTUP_ROUTINE)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.E: $(SRC_DIR)/%.S
