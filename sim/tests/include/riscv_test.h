@@ -1,3 +1,5 @@
+#ifndef RISCV_TEST_H
+#define RISCV_TEST_H
 
 #define RVTEST_RV32U
 #define TESTNUM x28
@@ -23,3 +25,4 @@
 #define RVTEST_DATA_BEGIN
 #define RVTEST_DATA_END
 
+#endif // RISCV_TEST_H
