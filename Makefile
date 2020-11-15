@@ -3,6 +3,7 @@ SHELL = bash -o pipefail
 #TEST_DIR = $(SIM_DIR)/tests/simple
 TEST_DIR = $(SIM_DIR)/tests/isa/rv32ui
 STARTUP_ROUTINE = $(SIM_DIR)/tests/isa/crt0.S
+CFLAGS = -I$(SIM_DIR)/tests/isa
 
 INFO = @echo "`tput setaf 2``tput bold`copperv-make:`tput init`"
 
@@ -40,6 +41,9 @@ PLUSARGS += +HEX_FILE=$(HEX_FILE) +DISS_FILE=$(DISS_FILE)
 ifdef DEBUG
 ICARUSFLAGS += -pfileline=1
 PLUSARGS += +DUMP_REGFILE
+MAX_CORES = 1
+else
+MAX_CORES = $(shell nproc)
 endif
 GTKWAVEFLAGS = --rcvar 'splash_disable on' -A -a $(SCRIPTS)/tb.gtkw 
 VERILATORFLAGS += --lint-only 
@@ -60,11 +64,11 @@ $(WORK_DIR):
 $(HEX_FILE):
 	$(INFO) "Compiling test: $(TEST_DIR)"
 	test -d $(OBJ_TEST_DIR) || mkdir -p $(OBJ_TEST_DIR)
-	$(MAKE) -j$(nproc) -f $(ROOT)/scripts/toolchain.mk \
+	$(MAKE) -j$(MAX_CORES) -f $(ROOT)/scripts/toolchain.mk \
 		ROOT=$(ROOT) \
 		SRC_DIR=$(TEST_DIR) \
 		OBJ_DIR=$(OBJ_TEST_DIR) \
-		CFLAGS=-I$(SIM_DIR)/tests/include \
+		CFLAGS='-I$(SIM_DIR)/tests/include $(CFLAGS)' \
 		STARTUP_ROUTINE=$(STARTUP_ROUTINE) \
 		SDK=$(SDK_DIR) |& tee $(LOGS_DIR)/compile_test_$(TEST_NAME).log
 
