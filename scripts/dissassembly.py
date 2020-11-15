@@ -16,6 +16,9 @@ def j_opt(sections):
 
 inst_sections = ['.init', '.text']
 obj = Path(sys.argv[1])
+if not obj.exists():
+    print("Error: cannot read input file")
+    sys.exit(1)
 
 r = run(f'{objdump} -D -Mno-aliases {obj} {j_opt(inst_sections)}')
 
@@ -28,4 +31,4 @@ r += run(f'{objdump} -s {obj} {j_opt(non_inst_sections)}')
 
 out = obj.with_suffix('.D')
 out.write_text(r)
-print(f"Dissassembly: {out}")
+print(f'Generated dissassembly file: "{out}"')

@@ -9,6 +9,8 @@ CC      = $(TOOLCHAIN)gcc
 OBJDUMP = $(TOOLCHAIN)objdump
 OBJCOPY = $(TOOLCHAIN)objcopy
 
+SCRIPTS = $(ROOT)/scripts
+
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
 CFLAGS = -march=rv32i -mabi=ilp32 -I$(SDK) -I$(INCLUDE_DIR)
 # -I$(RISCV_TESTS)/isa/macros/scalar
@@ -62,18 +64,17 @@ $(OBJ_DIR)/%.E: $(SDK)/%.S
 $(OBJ_DIR)/$(BIN_NAME).elf: $(OBJ_FILES) $(PREPROC_FILES) $(LINKER_SCRIPT)
 	$(CC) $(LFLAGS) $(OBJ_FILES) -o $@
 
-$(OBJ_DIR)/$(BIN_NAME).hex: $(OBJ_DIR)/$(BIN_NAME).elf
+## Simulation inputs
+$(OBJ_DIR)/$(BIN_NAME).hex: $(OBJ_DIR)/$(BIN_NAME).elf $(OBJ_DIR)/$(BIN_NAME).D
 	$(OBJCOPY) -O verilog $< $@
 
+$(OBJ_DIR)/$(BIN_NAME).D: $(OBJ_DIR)/$(BIN_NAME).elf
+	$(SCRIPTS)/dissassembly.py $<
+
+## Note: STARTUP_ROUTINE is needed for C only
 #%.o: %.c
 #	$(CC) $(CFLAGS) -c $< -o $@
 
 #%.E: %.c
 #	$(CC) $(CFLAGS) -E -c $< -o $@
-
-#%.D: %.elf
-#	$(SCRIPTS)/dissassembly.py $<
-
-#%.D: %.o
-#	$(SCRIPTS)/dissassembly.py $<
 

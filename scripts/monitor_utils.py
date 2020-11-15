@@ -87,7 +87,7 @@ monitor_code = generate_monitor_code(args.header)
 args.monitor.write_text('\n\n'.join(monitor_code['printers']) + '\n')
 
 for name,gtkwave in monitor_code['gtkwave'].items():
-    path = (Path.cwd()/name).with_suffix('.gtkfilter')
+    path = (Path.cwd()/name).with_suffix('.gtkwfilter')
     generated(path)
     path.write_text('\n'.join(gtkwave) + '\n')
 
