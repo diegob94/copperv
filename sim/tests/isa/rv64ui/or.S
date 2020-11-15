@@ -12,6 +12,7 @@
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
+#define RVTEST_NUMBER 25
 
   #-------------------------------------------------------------
   # Logical tests

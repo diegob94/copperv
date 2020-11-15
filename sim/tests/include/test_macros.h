@@ -11,10 +11,15 @@
 #define MASK_XLEN(x) ((x) & ((1 << (__riscv_xlen - 1) << 1) - 1))
 
 #define TEST_CASE( testnum, testreg, correctval, code... ) \
-test_ ## testnum: \
+  _TEST_CASE(RVTEST_NUMBER, testnum, testreg, correctval, code)
+
+#define _TEST_CASE(...) __TEST_CASE(__VA_ARGS__)
+
+#define __TEST_CASE( rvtestnum, testnum, testreg, correctval, code... ) \
+test_ ## rvtestnum ## _ ## testnum: \
     code; \
     li  x7, MASK_XLEN(correctval); \
-    li  TESTNUM, testnum; \
+    li  TESTNUM, (((rvtestnum & 0xFFFF) << 16) | (testnum & 0xFFFF)); \
     bne testreg, x7, fail;
 
 # We use a macro hack to simpify code generation for various numbers

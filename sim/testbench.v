@@ -107,10 +107,10 @@ initial begin
 end
 always @(posedge clk)
     if(dw_data_addr_valid && dw_data_addr_ready) begin
-        if(dw_addr == 32'h8000 && dw_data == 32'd123456789) begin
+        if(dw_addr == 32'h8000 && dw_data == 32'h01000000) begin
             test_passed;
         end
-        if(dw_addr == 32'h8000 && dw_data == 32'd111111111) begin
+        if(dw_addr == 32'h8000 && dw_data == 32'h02000000) begin
             test_failed;
         end
         if(dw_addr == 32'h8004) begin
