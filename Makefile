@@ -8,7 +8,15 @@ TEST = ISA
 ifeq ($(TEST),SIMPLE)
 TEST_DIR = $(SIM_DIR)/tests/simple
 else ifeq ($(TEST),ISA)
-TEST_DIR = $(SIM_DIR)/tests/isa/rv32ui
+ifndef TEST_DIR
+all: user_level supervisor_level 
+user_level:
+	$(MAKE) TEST_DIR=$(SIM_DIR)/tests/isa/rv32ui
+	$(INFO) "User level ISA test done"
+supervisor_level:
+	$(MAKE) TEST_DIR=$(SIM_DIR)/tests/isa/rv32si
+	$(INFO) "Supervisor level ISA test done"
+endif
 STARTUP_ROUTINE = $(SIM_DIR)/tests/isa/crt0.S
 CFLAGS = -I$(SIM_DIR)/tests/isa
 else ifeq ($(TEST),DHRYSTONE)
