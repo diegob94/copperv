@@ -12,7 +12,7 @@
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define RVTEST_NUMBER 22
+#define INSTRUCTION_ID 22
 
   #-------------------------------------------------------------
   # Basic tests

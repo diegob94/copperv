@@ -60,7 +60,7 @@ $(WORK_DIR):
 $(HEX_FILE):
 	$(INFO) "Compiling test: $(TEST_DIR)"
 	test -d $(OBJ_TEST_DIR) || mkdir -p $(OBJ_TEST_DIR)
-	$(MAKE) -f $(ROOT)/scripts/toolchain.mk \
+	$(MAKE) -j$(nproc) -f $(ROOT)/scripts/toolchain.mk \
 		ROOT=$(ROOT) \
 		SRC_DIR=$(TEST_DIR) \
 		OBJ_DIR=$(OBJ_TEST_DIR) \

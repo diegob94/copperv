@@ -12,7 +12,7 @@
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define RVTEST_NUMBER 9
+#define INSTRUCTION_ID 9
 
   #-------------------------------------------------------------
   # Branch tests

@@ -12,7 +12,7 @@
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define RVTEST_NUMBER 45
+#define INSTRUCTION_ID 45
 
   #-------------------------------------------------------------
   # Arithmetic tests

@@ -12,7 +12,7 @@ always @(*) begin
     alu_dout = 0;
     case (alu_op)
         `ALU_OP_NOP:  alu_dout = {`DATA_WIDTH{1'bx}};
-        `ALU_OP_ADD:  alu_dout = alu_din1 + alu_din2 + 1;
+        `ALU_OP_ADD:  alu_dout = alu_din1 + alu_din2; 
         `ALU_OP_SUB:  alu_dout = alu_din1 - alu_din2;
         `ALU_OP_AND:  alu_dout = alu_din1 & alu_din2;
         `ALU_OP_SLL:  alu_dout = alu_din1 << alu_din2[`ALU_SHIFT_DIN2_WIDTH-1:0];

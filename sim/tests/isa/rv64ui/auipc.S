@@ -12,7 +12,7 @@
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define RVTEST_NUMBER 6
+#define INSTRUCTION_ID 6
 
   TEST_CASE(2, a0, 10000, \
     .align 3; \

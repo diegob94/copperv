@@ -107,16 +107,18 @@ initial begin
 end
 always @(posedge clk)
     if(dw_data_addr_valid && dw_data_addr_ready) begin
-        if(dw_addr == 32'h8000 && dw_data == 32'h01000000) begin
-            test_passed;
-        end
-        if(dw_addr == 32'h8000 && dw_data == 32'h02000000) begin
-            test_failed;
-        end
-        if(dw_addr == 32'h8004) begin
-            $fwrite(f, "%c", dw_data[7:0]);
-        end
+        case (dw_addr)
+            32'h8000: begin
+                case (dw_data)
+                    32'h01000001: test_passed;
+                    32'h02000001: test_failed;
+                    default: test_failed;
+                endcase
+            end
+            32'h8004: $fwrite(f, "%c", dw_data[7:0]);
+        endcase
     end
+
 task test_passed;
 begin
     $display($time, ": TEST PASSED");
@@ -124,8 +126,10 @@ begin
 end
 endtask
 task test_failed;
+reg [`DATA_WIDTH-1:0] test_id;
 begin
-    $display($time, ": TEST FAILED");
+    test_id = `CPU_INST.regfile.mem[`REG_T3];
+    $display($time, ": TEST FAILED: instruction_id: %0d test_id: %0d", test_id[31:16], test_id[15:0]);
     finish_sim;
 end
 endtask

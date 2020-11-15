@@ -12,7 +12,7 @@
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define RVTEST_NUMBER 13
+#define INSTRUCTION_ID 13
 
 li a3, 111
 lh a0, insn

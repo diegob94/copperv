@@ -8,8 +8,8 @@
 #define RVTEST_CODE_BEGIN
 
 #define T_ADDR 0x8000
-#define T_PASS 0x01000000
-#define T_FAIL 0x02000000
+#define T_PASS 0x01000001
+#define T_FAIL 0x02000001
 
 #define RVTEST_PASS \
     li t1, T_PASS;  \
