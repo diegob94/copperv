@@ -12,9 +12,11 @@ ifndef TEST_DIR
 all: user_level supervisor_level 
 user_level:
 	$(MAKE) TEST_DIR=$(SIM_DIR)/tests/isa/rv32ui
+	grep -q 'TEST PASSED' $(LOGS_DIR)/run_sim_rv32ui.log
 	$(INFO) "User level ISA test done"
 supervisor_level:
 	$(MAKE) TEST_DIR=$(SIM_DIR)/tests/isa/rv32si
+	grep -q 'TEST PASSED' $(LOGS_DIR)/run_sim_rv32si.log
 	$(INFO) "Supervisor level ISA test done"
 endif
 STARTUP_ROUTINE = $(SIM_DIR)/tests/isa/crt0.S
@@ -37,19 +39,23 @@ SIM_BUILD_DIR = $(WORK_DIR)/sim
 
 RTL_FILES := $(wildcard $(RTL_DIR)/*.v)
 SIM_FILES := $(wildcard $(SIM_DIR)/*.v) $(wildcard $(SIM_DIR)/*.sv) 
+ifndef STD_OVL
 SIM_FILES := $(filter-out %checker_cpu.v, $(SIM_FILES))
+endif
 RTL_HEADER_FILES := $(wildcard $(RTL_DIR)/include/*.v)
 SIM_HEADER_FILES := $(wildcard $(SIM_DIR)/include/*.v) $(MONITOR_UTIL_H)
 MONITOR_UTIL_H := $(SIM_BUILD_DIR)/monitor_utils_h.v
 TOOLS_VPI := $(SIM_BUILD_DIR)/copperv_tools.vpi
 VVP_FILE := $(SIM_BUILD_DIR)/sim.vvp
-#STD_OVL      = $(UTIL)/std_ovl
 OBJ_TEST_DIR = $(SIM_BUILD_DIR)/tests/$(TEST_NAME)
-TEST_NAME    = $(shell basename $(TEST_DIR))
+TEST_NAME := $(shell basename $(TEST_DIR))
 HEX_FILE  = $(OBJ_TEST_DIR)/$(TEST_NAME).hex
 DISS_FILE = $(OBJ_TEST_DIR)/$(TEST_NAME).D
 
-#ICARUSFLAGS += -I$(STD_OVL) -y$(STD_OVL)
+ifdef STD_OVL
+ICARUSFLAGS += -I$(STD_OVL) -y$(STD_OVL)
+ICARUSFLAGS += -DENABLE_CHECKER
+endif
 ICARUSFLAGS += -I$(RTL_DIR)/include -I$(SIM_DIR)/include
 ICARUSFLAGS += -Wall 
 ICARUSFLAGS +=-Wno-timescale

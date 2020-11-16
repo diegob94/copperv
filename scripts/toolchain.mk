@@ -15,7 +15,7 @@ SCRIPTS = $(ROOT)/scripts
 LFLAGS = -Wl,-T,$(LINKER_SCRIPT),--strip-debug,-Bstatic -nostdlib -ffreestanding  
 override CFLAGS += -march=rv32i -mabi=ilp32 -I$(SDK)
 
-BIN_NAME = $(shell basename $(SRC_DIR))
+BIN_NAME := $(shell basename $(SRC_DIR))
 SRC_FILES_ASM = $(STARTUP_ROUTINE)
 SRC_FILES_ASM += $(wildcard $(SRC_DIR)/*.S)
 SRC_FILES_C += $(wildcard $(SRC_DIR)/*.c)
