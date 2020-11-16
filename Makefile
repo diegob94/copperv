@@ -9,15 +9,17 @@ ifeq ($(TEST),SIMPLE)
 TEST_DIR = $(SIM_DIR)/tests/simple
 else ifeq ($(TEST),ISA)
 ifndef TEST_DIR
+TEST_DIR = $(SIM_DIR)/tests/isa
+.PHONY: user_level supervisor_level
 all: user_level supervisor_level 
 user_level:
+	$(INFO) "User level ISA test"
 	$(MAKE) TEST_DIR=$(SIM_DIR)/tests/isa/rv32ui
 	grep -q 'TEST PASSED' $(LOGS_DIR)/run_sim_rv32ui.log
-	$(INFO) "User level ISA test done"
 supervisor_level:
+	$(INFO) "Supervisor level ISA test"
 	$(MAKE) TEST_DIR=$(SIM_DIR)/tests/isa/rv32si
 	grep -q 'TEST PASSED' $(LOGS_DIR)/run_sim_rv32si.log
-	$(INFO) "Supervisor level ISA test done"
 endif
 STARTUP_ROUTINE = $(SIM_DIR)/tests/isa/crt0.S
 CFLAGS = -I$(SIM_DIR)/tests/isa
