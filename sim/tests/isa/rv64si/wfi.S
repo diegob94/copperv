@@ -12,6 +12,7 @@
 
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
+#define INSTRUCTION_ID 6
 
   # Make sure wfi doesn't halt the hart, even if interrupts are disabled
   csrc sstatus, SSTATUS_SIE

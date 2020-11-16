@@ -12,6 +12,7 @@
 
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
+#define INSTRUCTION_ID 4
 
 #ifdef __MACHINE_MODE
   #define sscratch mscratch
@@ -19,7 +20,7 @@ RVTEST_CODE_BEGIN
   #define scause mcause
   #define sepc mepc
   #define sret mret
-  #define stvec_handler mtvec_handler
+  #define stvec_handler_4 mtvec_handler_4
 #endif
 
   li TESTNUM, 2
@@ -31,8 +32,8 @@ do_break:
   TEST_PASSFAIL
 
   .align 2
-  .global stvec_handler
-stvec_handler:
+  .global stvec_handler_4
+stvec_handler_4:
   li t1, CAUSE_BREAKPOINT
   csrr t0, scause
   bne t0, t1, fail

@@ -12,6 +12,7 @@
 
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
+#define INSTRUCTION_ID 5
 
 #ifdef __MACHINE_MODE
   #define sscratch mscratch
@@ -19,7 +20,7 @@ RVTEST_CODE_BEGIN
   #define scause mcause
   #define sepc mepc
   #define sret mret
-  #define stvec_handler mtvec_handler
+  #define stvec_handler_5 mtvec_handler_5
   #undef SSTATUS_SPP
   #define SSTATUS_SPP MSTATUS_MPP
 #endif
@@ -64,8 +65,8 @@ do_scall:
 # Either way, we'll get the coverage we desire: such a handler must check
 # both mcause and TESTNUM, just like the following handler.
   .align 2
-  .global stvec_handler
-stvec_handler:
+  .global stvec_handler_5
+stvec_handler_5:
   csrr t0, scause
   bne t0, t1, fail
   la t2, do_scall

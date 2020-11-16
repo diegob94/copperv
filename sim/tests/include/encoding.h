@@ -225,10 +225,25 @@
 #define rdcycle() read_csr(cycle)
 #define rdinstret() read_csr(instret)
 
-#endif
+#endif // __GNUC__
 
-#endif
+#endif // __ASSEMBLER__
 
-#endif
+#endif // __riscv
 
-#endif
+#define CAUSE_MISALIGNED_FETCH      0
+#define CAUSE_FETCH_ACCESS          1
+#define CAUSE_ILLEGAL_INSTRUCTION   2
+#define CAUSE_BREAKPOINT            3
+#define CAUSE_MISALIGNED_LOAD       4
+#define CAUSE_LOAD_ACCESS           5
+#define CAUSE_MISALIGNED_STORE	    6
+#define CAUSE_STORE_ACCESS		      7
+#define CAUSE_USER_ECALL		        8
+#define CAUSE_SUPERVISOR_ECALL      9
+#define CAUSE_MACHINE_ECALL         11
+#define CAUSE_FETCH_PAGE_FAULT      12
+#define CAUSE_LOAD_PAGE_FAULT       13
+#define CAUSE_STORE_PAGE_FAULT      15
+
+#endif // RISCV_CSR_ENCODING_H

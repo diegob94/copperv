@@ -1,7 +1,11 @@
 #ifndef RISCV_TEST_H
 #define RISCV_TEST_H
 
+#include "encoding.h"
+
 #define RVTEST_RV32U
+#define RVTEST_RV32M
+#define RVTEST_RV32S
 // Register for test identification in monitor
 #define TESTNUM x28
 

@@ -12,6 +12,7 @@
 
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
+#define INSTRUCTION_ID 0
 
 #ifdef __MACHINE_MODE
   #define sscratch mscratch
@@ -19,7 +20,7 @@ RVTEST_CODE_BEGIN
   #define scause mcause
   #define sepc mepc
   #define sret mret
-  #define stvec_handler mtvec_handler
+  #define stvec_handler_0 mtvec_handler_0
   #undef SSTATUS_SPP
   #define SSTATUS_SPP MSTATUS_MPP
 #endif
@@ -117,8 +118,8 @@ finish:
   TEST_PASSFAIL
 
   .align 2
-  .global stvec_handler
-stvec_handler:
+  .global stvec_handler_0
+stvec_handler_0:
   # Trapping on tests 13-15 is good news.
   # Note that since the test didn't complete, TESTNUM is smaller by 1.
   li t0, 12

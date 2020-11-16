@@ -15,6 +15,7 @@
 
 RVTEST_RV64M
 RVTEST_CODE_BEGIN
+#define INSTRUCTION_ID 2
 
   li TESTNUM, 2
 
@@ -108,8 +109,8 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
   .align 2
-  .global mtvec_handler
-mtvec_handler:
+  .global mtvec_handler_2
+mtvec_handler_2:
   csrr t0, mcause
   add t0, t0, -CAUSE_STORE_PAGE_FAULT
   bnez t0, fail
