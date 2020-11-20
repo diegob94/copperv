@@ -1,0 +1,4 @@
+
+def build(bld):
+    bld.stlib(export_includes='.', target = 'crt0', source = 'crt0.S')
+
