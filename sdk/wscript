@@ -1,4 +1,0 @@
-
-def build(bld):
-    bld.stlib(target = 'crt0', source = 'crt0.S')
-

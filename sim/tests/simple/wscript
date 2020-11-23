@@ -1,4 +1,0 @@
-
-def build(bld):
-    bld(features = 'c cprogram', use = 'crt0', source='test_0.S', target='simple.elf')
-

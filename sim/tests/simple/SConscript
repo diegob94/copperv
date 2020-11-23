@@ -1,0 +1,4 @@
+Import('env')
+
+env.Program('simple',['test_0.S']+env['CRT0'],CFLAGS='-I.')
+
