@@ -1,4 +1,4 @@
 Import('env')
 
-env.Hexfile('simple',['test_0.S']+env['CRT0'],CFLAGS='-I.')
+env.Test('simple',['test_0.S']+env['CRT0'])
 

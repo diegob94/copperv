@@ -11,6 +11,7 @@ def generated(path):
     print(f"Generated {path.resolve()}")
 
 def generate_dissassembly_file(dis,obj,objdump):
+    dis = Path(dis)
     def run(cmd):
         print(cmd)
         return pexpect.run(cmd).decode("utf-8")
@@ -24,7 +25,8 @@ def generate_dissassembly_file(dis,obj,objdump):
     non_inst_sections = [i for i in all_sections if not i in inst_sections]
     r += run(f'{objdump} -s {obj} {j_opt(non_inst_sections)}')
     dis.write_text(r)
-    generated(dis)
+    print(f"generate_dissassembly_file done -> {dis.resolve()}")
+    return dis
 
 def generate_printer(name, width, entries):
     printer_template = """
