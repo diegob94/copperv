@@ -1,0 +1,4 @@
+Import('env')
+
+env.MonitorPrinter('include/monitor_utils_h.v','#rtl/include/copperv_h.v')
+

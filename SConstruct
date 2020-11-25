@@ -17,8 +17,13 @@ env['ASFLAGS'] = env['CFLAGS']
 test_paths = [
     'sim/tests/common',
     'sim/tests/simple',
+    'sim'
 ]
 
 for test_path in test_paths:
-    SConscript(f'#{test_path}/SConscript', variant_dir=f'#work/{test_path}', duplicate = False, exports = 'env')
+    SConscript(f'#{test_path}/SConscript',
+        variant_dir=f'#work/{test_path}',
+        duplicate = False,
+        exports = 'env'
+    )
 

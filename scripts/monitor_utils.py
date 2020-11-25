@@ -25,7 +25,7 @@ def generate_dissassembly_file(dis,obj,objdump):
     non_inst_sections = [i for i in all_sections if not i in inst_sections]
     r += run(f'{objdump} -s {obj} {j_opt(non_inst_sections)}')
     dis.write_text(r)
-    print(f"generate_dissassembly_file done -> {dis.resolve()}")
+    print("generate_dissassembly_file done ->", dis.resolve())
     return dis
 
 def generate_printer(name, width, entries):
@@ -100,7 +100,7 @@ def generate_monitor_printer(monitor,rtl_header):
     monitor = Path(monitor)
     monitor_code = generate_monitor_code(rtl_header)
     monitor.write_text('\n\n'.join(monitor_code['printers']) + '\n')
-    generated(args.monitor)
+    print('generate_monitor_printer ->',monitor.resolve())
     return monitor
 
 def generate_gtkwave_filters(gtkwave_dir,rtl_header):
