@@ -3,4 +3,5 @@ work/
 __pycache__/
 *.log
 .sconsign.dblite
+*.vcd
 
