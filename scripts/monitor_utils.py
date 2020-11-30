@@ -4,17 +4,14 @@ import re
 import argparse
 import sys
 from datetime import datetime
-import pexpect
 import os
-
-def generated(path):
-    print(f"Generated {path.resolve()}")
+import subprocess as sp
 
 def generate_dissassembly_file(dis,obj,objdump):
     dis = Path(dis)
     def run(cmd):
-        print(cmd)
-        return pexpect.run(cmd).decode("utf-8")
+        print('generate_dissassembly_file:',cmd)
+        return sp.run(cmd,capture_output=True,encoding="utf-8",shell=True,check=True).stdout
     def j_opt(sections):
         return ' '.join([f'-j {s}' for s in sections])
     inst_sections = ['.init', '.text']
@@ -25,7 +22,6 @@ def generate_dissassembly_file(dis,obj,objdump):
     non_inst_sections = [i for i in all_sections if not i in inst_sections]
     r += run(f'{objdump} -s {obj} {j_opt(non_inst_sections)}')
     dis.write_text(r)
-    print("generate_dissassembly_file done ->", dis.resolve())
     return dis
 
 def generate_printer(name, width, entries):
@@ -100,7 +96,6 @@ def generate_monitor_printer(monitor,rtl_header):
     monitor = Path(monitor)
     monitor_code = generate_monitor_code(rtl_header)
     monitor.write_text('\n\n'.join(monitor_code['printers']) + '\n')
-    print('generate_monitor_printer ->',monitor.resolve())
     return monitor
 
 def generate_gtkwave_filters(gtkwave_dir,rtl_header):
@@ -110,7 +105,6 @@ def generate_gtkwave_filters(gtkwave_dir,rtl_header):
     for name,gtkwave_filter in monitor_code['gtkwave'].items():
         path = (gtkwave_dir/name).with_suffix('.gtkwfilter')
         path.write_text('\n'.join(gtkwave_filter) + '\n')
-        generated(path)
         out_files.append(path)
     return out_files
 
