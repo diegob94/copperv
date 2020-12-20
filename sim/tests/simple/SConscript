@@ -1,5 +1,0 @@
-Import('env')
-
-test_outputs = env.Test('simple',['test_0.S']+env['CRT0'])
-
-Return('test_outputs')
