@@ -57,19 +57,19 @@ class BuildParams(WriterParams):
     variables: dict = None
 
 class Writer:
-    def __init__(self, output_path, target_dir, source_dir):
+    def __init__(self, output_path, target_dir, source_dir, command):
         self.output_path = output_path
         self.rules = []
         self.builds = []
         self.source_dir = Path(source_dir).resolve()
         self.target_dir = Path(target_dir).resolve()
+        self.command = command
     def rule(self, rule):
         new = RuleParams(
             command = rule.command,
             name = rule.name,
             depfile = rule.depfile,
         )
-        print(new)
         self.rules.append(new)
     def build(self, rule, target, source, variables):
         new = BuildParams(
@@ -78,7 +78,6 @@ class Writer:
             inputs = str(source),
             variables = variables
         )
-        print(new)
         self.builds.append(new)
     def write(self):
         print(self.rules)
@@ -86,7 +85,7 @@ class Writer:
 
 class NinjaWriter(Writer):
     def __init__(self, target_dir, source_dir):
-        super().__init__(target_dir/'build.ninja',target_dir,source_dir)
+        super().__init__(target_dir/'build.ninja',target_dir,source_dir,'ninja')
     def write(self):
         with self.output_path.open('w') as f:
             writer = ninja.Writer(f)
@@ -171,4 +170,7 @@ class Build:
         if key != 'builders' and key in self.builders:
             return self.builders[key]
         return self.__getattribute__(key)
+    def run(self):
+        self.write_script()
+        sp.run(self.writer.command,shell=True,check=True,encoding='utf-8',cwd=self.target_dir)
 
