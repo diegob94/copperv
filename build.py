@@ -1,256 +1,56 @@
-#!/usr/bin/env python
-import sys
-from pathlib import Path
-from scripts.build_tools import Environment, Builder, run, get_root
+from scripts.build_tools import Rule, Builder, Build
 import dataclasses
+
+
+def c_rules(build):
+    build.rules['object'] = Rule(
+        command = '$cc $cflags -MD -MF $out.d -c $in -o $out',
+        depfile = '$out.d',
+        variables = ['cc','cflags'],
+    )
+    build.rules['link'] = Rule(
+        command = '$cc $linkflags $in -o $out',
+        variables = ['cc','linkflags'],
+    )
+
+def test_builders(build):
+    build.builders['test_object'] = Builder(
+        rule = 'object',
+        cc = 'riscv64-unknown-elf-gcc',
+        cflags = lambda **kwargs: '-march=rv32i -mabi=ilp32' + ''.join([f' -I{i}' for i in kwargs['inc_dir']]),
+        kwargs = ['inc_dir'],
+    )
+    linker_script = build.root/'sim/tests/common/linker.ld'
+    build.builders['test_link'] = Builder(
+        rule = 'link',
+        cc='riscv64-unknown-elf-gcc',
+        linkflags = f'-Wl,-T,{linker_script},--strip-debug,-Bstatic -nostdlib -ffreestanding',
+    )
+
+build = Build(rules=c_rules,builders=test_builders)
 
 @dataclasses.dataclass
 class Test:
     target: str
     source: list
     inc_dir: list = dataclasses.field(default_factory=list)
-
-config = dict(
-    root = get_root(),
-    build_dir = '$root/work',
-)
-
-source_dir = config['root']
-target_dir = config['root']/'work'
-
-sim_env = dict(
-    CFLAGS = run('iverilog-vpi --cflags'),
-    LINKFLAGS = run('iverilog-vpi --ldflags'),
-    LIBFLAGS = run('iverilog-vpi --ldlibs'),
-    VPPPATH = [source_dir/'rtl/include', source_dir/'sim/include', target_dir/"sim/include"],
-    IVERILOGFLAGS = [
-        '-Wall',
-        '-Wno-timescale',
-        '-g2012',
-    ],
-    VPIPATH = target_dir/'sim',
-    VPIS='copperv_tools',
-    PLUSARGS = {
-        'HEX_FILE':'{HEX_FILE}',
-        'DISS_FILE':'{DISS_FILE}',
-    },
-)
-
-#ICARUSFLAGS += -I$(STD_OVL) -y$(STD_OVL)
-#ICARUSFLAGS += -DENABLE_CHECKER
-#ICARUSFLAGS += -pfileline=1
-
-test_env_vars = dict(
-    OBJCOPY='riscv64-unknown-elf-objcopy',
-    OBJDUMP='riscv64-unknown-elf-objdump',
-    tests = '$root/sim/tests',
-)
-
-test_root = Path(test_env_vars['tests'])
+test_root = build.root/'sim/tests'
 test = Test(
     target = 'simple.hex',
     source = [test_root/'common/asm/crt0.S',test_root/'simple/test_0.S'],
     inc_dir = [test_root/'common'],
 )
 
-root = 'aaaaaaaaaaaaaa'
-
-build = Build(rules=default_rules,builders=test_builders)
-def default_rules(build):
-    build.rules['object'] = Rule(
-        command = '$cc $cflags -MD -MF $out.d -c $in -o $out',
-        depfile = '$out.d',
-        vars = ['cc','cflags'],
-    )
-    build.rules['link'] = Rule(
-        command = '$cc $linkflags $in -o $out',
-        vars= ['cc','linkflags'],
-    )
-def test_builders(build):
-    build.builders['test_object'] = Builder(
-        rule = 'object',
-        vars = dict(
-            cc='riscv64-unknown-elf-gcc',
-            cflags='-march=rv32i -mabi=ilp32',
-        )
-    )
-    linker_script=f'{root}/sim/tests/common/linker.ld',
-    build.builders['test_link'] = Builder(
-        rule = 'link',
-        vars = dict(
-            cc='riscv64-unknown-elf-gcc',
-            linkflags = f'-Wl,-T,{linker_script},--strip-debug,-Bstatic -nostdlib -ffreestanding',
-        )
-    )
-
 test_objs = build.test_object(
-    target = lambda _in: _in.with_suffix('.o'),
-    source = test.source
+    target = lambda target_dir, input_file: target_dir/'test'/input_file.with_suffix('.o').name,
+    source = test.source,
+    inc_dir = test.inc_dir,
 )
+print('debug',test_objs)
 build.test_link(
-    target = test.target,
-    source = test_objs
+    target = lambda target_dir, _: target_dir/'test'/test.target,
+    source = test_objs,
 )
 
-#
-#class TestEnvironment(Environment):
-#
-#def HexFileBuilder(env, target, source):
-#    suffix = '.hex_file'
-#    src_suffix = '.elf'
-#    return '$OBJCOPY -O verilog $SOURCE $TARGET'
-#
-#dissassembly = Builder(
-#    action = dissassembly_file_builder,
-#    suffix = '.D',
-#    src_suffix = '.elf',
-#)
-#
-#def dissassembly_file_builder(env, target, source):
-#    generate_dissassembly_file(target[0], source[0], env['OBJDUMP'])
-#    return target
-#
-#def test(env, target, source):
-#    program = env.Link(f'{target}.elf', source)
-#    hf = env.HexfileBuilder(program)
-#    diss = env.Dissassembly(program)
-#    return hf+diss
-#
-#
+build.write_script()
 
-#sys.exit()
-#
-#env['CRT0'] = env.Object('asm/crt0.S')
-#ext_map = {'.hex_file':'HEX_FILE','.D':'DISS_FILE'}
-#
-#
-#test_outputs = env.Test('simple',['test_0.S']+env['CRT0'])
-#
-#test_outputs = {ext_map[f.suffix]:f for f in test_outputs}
-#
-#env.MonitorPrinter('include/monitor_utils_h.v','#rtl/include/copperv_h.v')
-#env.Program('copperv_tools.vpi','copperv_tools.c')
-#
-#sim_src = Glob('*.v')+Glob('*.sv')
-#sim_src = [f for f in sim_src if f.name != 'checker_cpu.v']
-#rtl_src = Glob('#rtl/*.v')
-#
-#vvp = env.IVerilog('sim.vvp',sim_src + rtl_src)
-#
-#vcd_file = 'sim.vcd'
-#env.Append(PLUSARGS = {'VCD_FILE':vcd_file})
-#vcd = env.VVP(vcd_file,vvp)
-#
-#env.Depends(vcd, env['HEX_FILE'])
-#env.Depends(vcd, env['DISS_FILE'])
-#
-##(base) ➜  copperv git:(master) ✗ cat ./sim/SConscript
-##Import('env')
-##
-##env.MonitorPrinter('include/monitor_utils_h.v','#rtl/include/copperv_h.v')
-##env.Program('copperv_tools.vpi','copperv_tools.c')
-##
-##sim_src = Glob('*.v')+Glob('*.sv')
-#sim_src = [f for f in sim_src if f.name != 'checker_cpu.v']
-#rtl_src = Glob('#rtl/*.v')
-#
-#vvp = env.IVerilog('sim.vvp',sim_src + rtl_src)
-#
-#vcd_file = 'sim.vcd'
-#env.Append(PLUSARGS = {'VCD_FILE':vcd_file})
-#vcd = env.VVP(vcd_file,vvp)
-#
-#env.Depends(vcd, env['HEX_FILE'])
-#env.Depends(vcd, env['DISS_FILE'])
-
-#(base) ➜  copperv git:(master) ✗ cat ./sim/tests/common/SConscript
-#Import('env')
-#
-#
-#
-#ase) ➜  copperv git:(master) ✗ cat ./sim/tests/simple/SConscript
-#Import('env')
-#
-#
-#Return('test_outputs')
-#
-
-
-#from SCons.Script import Builder, Scanner, FindPathDirs, FindFile
-#from pathlib import Path
-#import re
-#
-#try:
-#    from scripts.monitor_utils import generate_monitor_printer
-#except ImportError:
-#    def exists(env): return False
-#else:
-#    def exists(env): return True
-#
-#def generate(env):
-#    monitor_printer = Builder(
-#        action = monitor_printer_builder,
-#        suffix = '.v',
-#        src_suffix = '.v',
-#    )
-#    vscan = Scanner(
-#        function = verilog_scan,
-#        skeys = ['.v'],
-#        path_function = FindPathDirs('VPPPATH')
-#    )
-#    iverilog = Builder(
-#        action = 'iverilog $IVERILOGFLAGS $_IVERILOGINCDIRS $SOURCES -o $TARGET',
-#        suffix = '.vvp',
-#        src_suffix = '.v',
-#        source_scanner = vscan,
-#    )
-#    env.Append(_IVERILOGINCDIRS = ' '.join([f'-I{env.Dir(p)}' for p in env['VPPPATH']]))
-#    vvpscan = Scanner(
-#        function = vvp_scan,
-#        path_function = FindPathDirs('VPIPATH')
-#    )
-#    vvp = Builder(
-#        action = 'vvp $VVPFLAGS $_VPIS $SOURCE $_PLUSARGS',
-#        suffix = '.vcd',
-#        src_suffix = '.vvp',
-#        target_scanner = vvpscan,
-#    )
-#    env.Append(BUILDERS = {
-#        'MonitorPrinter' : monitor_printer,
-#        'IVerilog' : iverilog,
-#        'VVP' : vvp,
-#    })
-#
-#def monitor_printer_builder(target, source, env):
-#    """ SCons Builder wrapper """
-#    generate_monitor_printer(str(target[0]), str(source[0]))
-#    return None
-#
-#include_re = re.compile(r'`include\s+"(\S+)"')
-#def verilog_scan(node, env, path, arg = None):
-#    contents = node.get_text_contents()
-#    includes = include_re.findall(contents)
-#    files = [FindFile(i,path) for i in includes]
-#    return files
-#
-#def vvp_scan(node, env, path, arg = None):
-#    vpis = env['VPIS']
-#    if isinstance(vpis,str):
-#        vpis = [vpis]
-#    flags = []
-#    files = []
-#    for vpi in vpis:
-#        vpi = str(Path(vpi).with_suffix('.vpi'))
-#        file = FindFile(vpi,path)
-#        if file is not None:
-#            file_p = Path(file.abspath)
-#            flags.append(f'-M{env.Dir(file_p.parent).path}')
-#            flags.append(f'-m{file_p.stem}')
-#            files.append(file)
-#    env.AppendUnique(_VPIS = flags)
-#    plusargs = env['PLUSARGS']
-#    if isinstance(plusargs,str):
-#        plusargs = {plusargs:None}
-#    env.Append(_PLUSARGS = [f'+{k}' if v is None else f'+{k}={v}' for k,v in plusargs.items()])
-#    return files
-#
