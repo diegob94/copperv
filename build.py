@@ -6,30 +6,29 @@ import dataclasses
 
 @dataclasses.dataclass
 class Test:
-    target: list
+    target: str
     source: list
     inc_dir: list = dataclasses.field(default_factory=list)
-    def subst(self,env):
-        self.target = [env.subst_var('target',t) for t in self.target]
-        self.source = [env.subst_var('source',t) for t in self.source]
-        self.inc_dir = [env.subst_var('inc_dir',t) for t in self.inc_dir]
 
 config = dict(
     root = get_root(),
     build_dir = '$root/work',
 )
 
+source_dir = config['root']
+target_dir = config['root']/'work'
+
 sim_env = dict(
     CFLAGS = run('iverilog-vpi --cflags'),
     LINKFLAGS = run('iverilog-vpi --ldflags'),
-    _LIBFLAGS = run('iverilog-vpi --ldlibs'),
-    VPPPATH = ['#rtl/include', '#sim/include', "#work/sim/include"],
+    LIBFLAGS = run('iverilog-vpi --ldlibs'),
+    VPPPATH = [source_dir/'rtl/include', source_dir/'sim/include', target_dir/"sim/include"],
     IVERILOGFLAGS = [
         '-Wall',
         '-Wno-timescale',
         '-g2012',
     ],
-    VPIPATH = '#work/sim',
+    VPIPATH = target_dir/'sim',
     VPIS='copperv_tools',
     PLUSARGS = {
         'HEX_FILE':'{HEX_FILE}',
@@ -44,53 +43,54 @@ sim_env = dict(
 test_env_vars = dict(
     OBJCOPY='riscv64-unknown-elf-objcopy',
     OBJDUMP='riscv64-unknown-elf-objdump',
-    cc='riscv64-unknown-elf-gcc',
-    cflags='-march=rv32i -mabi=ilp32',
-    LINKER_SCRIPT='$root/sim/tests/common/linker.ld',
-    linkflags = '-Wl,-T,$LINKER_SCRIPT,--strip-debug,-Bstatic -nostdlib -ffreestanding',
     tests = '$root/sim/tests',
 )
 
+test_root = Path(test_env_vars['tests'])
 test = Test(
-    target = ['$tests/simple/simple.elf'],
-    source = ['$tests/common/asm/crt0.S','$tests/simple/test_0.S'],
-    inc_dir = ['$tests/common'],
+    target = 'simple.hex',
+    source = [test_root/'common/asm/crt0.S',test_root/'simple/test_0.S'],
+    inc_dir = [test_root/'common'],
 )
 
-env = Environment(**config)
-def object_env(env):
-    if 'inc_dir' in env:
-        inc_dir = env['inc_dir']
-        if isinstance(inc_dir,str):
-            inc_dir = [inc_dir]
-        env['cflags'] += ''.join([f' -I{i}' for i in inc_dir])
-    return env
-env.addBuilder(
-    object = Builder(
+root = 'aaaaaaaaaaaaaa'
+
+build = Build(rules=default_rules,builders=test_builders)
+def default_rules(build):
+    build.rules['object'] = Rule(
         command = '$cc $cflags -MD -MF $out.d -c $in -o $out',
         depfile = '$out.d',
-        get_env = object_env,
-    ),
-    link = Builder(
+        vars = ['cc','cflags'],
+    )
+    build.rules['link'] = Rule(
         command = '$cc $linkflags $in -o $out',
-    ),
-)
-test_env = env.copy(**test_env_vars)
+        vars= ['cc','linkflags'],
+    )
+def test_builders(build):
+    build.builders['test_object'] = Builder(
+        rule = 'object',
+        vars = dict(
+            cc='riscv64-unknown-elf-gcc',
+            cflags='-march=rv32i -mabi=ilp32',
+        )
+    )
+    linker_script=f'{root}/sim/tests/common/linker.ld',
+    build.builders['test_link'] = Builder(
+        rule = 'link',
+        vars = dict(
+            cc='riscv64-unknown-elf-gcc',
+            linkflags = f'-Wl,-T,{linker_script},--strip-debug,-Bstatic -nostdlib -ffreestanding',
+        )
+    )
 
-test.subst(test_env)
-test_env['inc_dir'] = test.inc_dir
-
-test_objs = test_env.object(
+test_objs = build.test_object(
     target = lambda _in: _in.with_suffix('.o'),
     source = test.source
 )
-test_env.link(
+build.test_link(
     target = test.target,
     source = test_objs
 )
-
-test_env.write()
-
 
 #
 #class TestEnvironment(Environment):

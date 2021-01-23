@@ -4,4 +4,6 @@ __pycache__/
 *.log
 .sconsign.dblite
 *.vcd
+*.o
+*.o.d
 
