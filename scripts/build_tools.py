@@ -1,10 +1,10 @@
-import io
+from collections.abc import Iterable
 from pathlib import Path
 import subprocess as sp
-import ninja
-from string import Template
 import inspect
 import dataclasses
+
+import ninja
 
 def get_root():
     main = inspect.stack()[-1][1]
@@ -51,15 +51,15 @@ class RuleParams(WriterParams):
 
 @dataclasses.dataclass
 class BuildParams(WriterParams):
-    outputs: str
+    outputs: list
     rule: str
-    inputs: str = None
+    inputs: list = None
     variables: dict = None
 
 class Writer:
     def __init__(self, output_path, target_dir, source_dir, command):
         self.output_path = output_path
-        self.rules = []
+        self.rules = {}
         self.builds = []
         self.source_dir = Path(source_dir).resolve()
         self.target_dir = Path(target_dir).resolve()
@@ -70,12 +70,12 @@ class Writer:
             name = rule.name,
             depfile = rule.depfile,
         )
-        self.rules.append(new)
+        self.rules[rule.name] = new
     def build(self, rule, target, source, variables):
         new = BuildParams(
-            outputs = str(target),
+            outputs = [str(i) for i in target],
             rule = rule.name,
-            inputs = str(source),
+            inputs = [str(i) for i in source],
             variables = variables
         )
         self.builds.append(new)
@@ -85,12 +85,12 @@ class Writer:
 
 class NinjaWriter(Writer):
     def __init__(self, target_dir, source_dir):
-        super().__init__(target_dir/'build.ninja',target_dir,source_dir,'ninja')
+        super().__init__(target_dir/'build.ninja',target_dir,source_dir,'ninja -v')
     def write(self):
         with self.output_path.open('w') as f:
             writer = ninja.Writer(f)
             writer.comment("Rules")
-            for rule in self.rules:
+            for rule in self.rules.values():
                 writer.rule(**rule.to_dict())
             writer.newline()
             writer.comment("Build targets")
@@ -135,14 +135,18 @@ class Builder:
             else:
                 build_variables[name] = value
         self.writer.rule(self.rule)
-        if isinstance(source, str):
+        if not isinstance(source, Iterable):
             source = [source]
-        if isinstance(target, str) or callable(target):
+        if not isinstance(target, Iterable):
             target = [target]
-        target = [tgt if not callable(tgt) else tgt(self.target_dir,Path(src)) for src,tgt in zip(source,target)]
+        actual_target = []
         for src,tgt in zip(source,target):
-            self.writer.build(self.rule,tgt,src,build_variables)
-        return target
+            if callable(tgt):
+                actual_target.append(tgt(self.target_dir,Path(src)))
+            else:
+                actual_target.append(tgt)
+        self.writer.build(self.rule,actual_target,source,build_variables)
+        return actual_target
 
 class Build:
     def __init__(self, rules, builders):

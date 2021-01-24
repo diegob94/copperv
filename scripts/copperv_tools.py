@@ -33,12 +33,14 @@ test_root = build.root/'sim/tests'
 
 @dataclasses.dataclass
 class Test:
+    name: str
     target: str
     source: list
     inc_dir: list = dataclasses.field(default_factory=list)
 
 tests = dict(
     simple = Test(
+        name = 'simple',
         target = 'simple.hex',
         source = [test_root/'common/asm/crt0.S',test_root/'simple/test_0.S'],
         inc_dir = [test_root/'common'],
