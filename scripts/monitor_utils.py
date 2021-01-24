@@ -7,22 +7,22 @@ from datetime import datetime
 import os
 import subprocess as sp
 
-def generate_dissassembly_file(dis,obj,objdump):
-    dis = Path(dis)
+def generate_dissassembly_file(diss,elf,objdump):
+    diss = Path(diss)
     def run(cmd):
         print('generate_dissassembly_file:',cmd)
         return sp.run(cmd,capture_output=True,encoding="utf-8",shell=True,check=True).stdout
     def j_opt(sections):
         return ' '.join([f'-j {s}' for s in sections])
     inst_sections = ['.init', '.text']
-    r = run(f'{objdump} -D -Mno-aliases {obj} {j_opt(inst_sections)}')
-    all_sections = run(f'{objdump} -h {obj}').splitlines()
+    r = run(f'{objdump} -D -Mno-aliases {elf} {j_opt(inst_sections)}')
+    all_sections = run(f'{objdump} -h {elf}').splitlines()
     start = next((i for i,line in enumerate(all_sections) if line.startswith('Sections:')),None)
     all_sections = [line.split()[1] for line in all_sections[start:] if re.search('^\s+\d',line)]
     non_inst_sections = [i for i in all_sections if not i in inst_sections]
-    r += run(f'{objdump} -s {obj} {j_opt(non_inst_sections)}')
-    dis.write_text(r)
-    return dis
+    r += run(f'{objdump} -s {elf} {j_opt(non_inst_sections)}')
+    diss.write_text(r)
+    return diss
 
 def generate_printer(name, width, entries):
     printer_template = """
@@ -109,19 +109,32 @@ def generate_gtkwave_filters(gtkwave_dir,rtl_header):
     return out_files
 
 if __name__=='__main__':
+    header_params = dict(
+        metavar='RTL_HEADER_PATH',
+        type=Path,
+        help='RTL header file input for monitor and gtkwave filter',
+    )
     parser = argparse.ArgumentParser(description='Generate testbench')
-    parser.add_argument('-header',   type=Path, help='RTL header file')
-    parser.add_argument('-monitor',  type=Path, help='Pretty print header file for monitor_cpu output')
-    parser.add_argument('-gtkwave',  type=Path, help='Gtkwave filters output directory')
-    parser.add_argument('-elf',      type=Path, help='ELF file to dissassemble')
-    parser.add_argument('-diss_file',type=Path, help='Dissassembly file output')
+    subparsers = parser.add_subparsers()
+    parser_mon = subparsers.add_parser('monitor_header')
+    parser_mon.add_argument('rtl_header',**header_params)
+    parser_mon.add_argument('-o',dest='monitor',metavar='MONITOR_PATH',type=Path,help='Pretty print header file for monitor_cpu output',required=True)
+    parser_mon.set_defaults(func=generate_monitor_printer)
+    parser_gtkwf = subparsers.add_parser('gtkwave_filters')
+    parser_gtkwf.add_argument('rtl_header',**header_params)
+    parser_gtkwf.add_argument('-o',dest='gtkwave',metavar='GTKW_FILTER_DIR_PATH',type=Path,help='Gtkwave filters output directory',required=True)
+    parser_gtkwf.set_defaults(func=generate_gtkwave_filters)
+    parser_diss = subparsers.add_parser('dissassemble')
+    parser_diss.add_argument('elf',metavar='ELF_PATH', type=Path, help='ELF file to dissassemble input')
+    parser_diss.add_argument('-o',dest='diss',metavar='DISS_PATH', type=Path, help='Dissassembly file output',required=True)
+    parser_diss.add_argument('-objdump',metavar='OBJDUMP_PATH',type=Path,help='Path to objdump',required=True)
+    parser_diss.set_defaults(func=generate_dissassembly_file)
+    ## do work
     args = parser.parse_args()
-    if args.header is not None:
-        if args.monitor is not None:
-            generate_monitor_printer(args.monitor,args.header)
-        if args.gtkwave is not None:
-            generate_gtkwave_filters(args.gtkwave,args.header)
-    if args.elf is not None:
-        if args.diss_file is not None:
-            generate_dissassembly_file(args.diss_file,args.elf,'riscv64-unknown-elf-objdump')
+    if len(vars(args)) == 0:
+        parser.print_usage()
+        sys.exit(1)
+    args_dict = dict(vars(args))
+    args_dict.pop('func')
+    args.func(**args_dict)
 

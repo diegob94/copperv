@@ -12,6 +12,14 @@ def c_rules(build):
         command = '$cc $linkflags $in -o $out',
         variables = ['cc','linkflags'],
     )
+    build.rules['verilog_hex'] = Rule(
+        command = '$objcopy -O verilog $in $out',
+        variables = ['objcopy'],
+    )
+    build.rules['dissassemble'] = Rule(
+        command = '$monitor_utils dissassemble $in -o $out -objdump $objdump',
+        variables = ['monitor_utils','objdump'],
+    )
 
 def test_builders(build):
     build.builders['test_object'] = Builder(
@@ -26,6 +34,15 @@ def test_builders(build):
         cc='riscv64-unknown-elf-gcc',
         linkflags = f'-Wl,-T,{linker_script},--strip-debug,-Bstatic -nostdlib -ffreestanding',
     )
+    build.builders['test_verilog_hex'] = Builder(
+        rule = 'verilog_hex',
+        objcopy='riscv64-unknown-elf-objcopy',
+    )
+    build.builders['test_dissassemble'] = Builder(
+        rule = 'dissassemble',
+        monitor_utils = build.root/'scripts/monitor_utils.py',
+        objdump='riscv64-unknown-elf-objdump',
+    )
 
 build = Build(rules=c_rules,builders=test_builders)
 
@@ -34,14 +51,12 @@ test_root = build.root/'sim/tests'
 @dataclasses.dataclass
 class Test:
     name: str
-    target: str
     source: list
     inc_dir: list = dataclasses.field(default_factory=list)
 
 tests = dict(
     simple = Test(
         name = 'simple',
-        target = 'simple.hex',
         source = [test_root/'common/asm/crt0.S',test_root/'simple/test_0.S'],
         inc_dir = [test_root/'common'],
     ),
