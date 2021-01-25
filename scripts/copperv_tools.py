@@ -8,6 +8,10 @@ def c_rules(build):
         depfile = '$out.d',
         variables = ['cc','cflags'],
     )
+    build.rules['preprocess'] = Rule(
+        command = '$cc $cflags -c $in -o $out',
+        variables = ['cc','cflags'],
+    )
     build.rules['link'] = Rule(
         command = '$cc $linkflags $in -o $out',
         variables = ['cc','linkflags'],
@@ -26,6 +30,12 @@ def test_builders(build):
         rule = 'object',
         cc = 'riscv64-unknown-elf-gcc',
         cflags = lambda **kwargs: '-march=rv32i -mabi=ilp32' + ''.join([f' -I{i}' for i in kwargs['inc_dir']]),
+        kwargs = ['inc_dir'],
+    )
+    build.builders['test_preprocess'] = Builder(
+        rule = 'preprocess',
+        cc = 'riscv64-unknown-elf-gcc',
+        cflags = lambda **kwargs: build.test_object.variables['cflags'](**kwargs)+' -E',
         kwargs = ['inc_dir'],
     )
     linker_script = build.root/'sim/tests/common/linker.ld'
