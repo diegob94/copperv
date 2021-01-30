@@ -60,8 +60,12 @@ def sim_rules(build):
         variables = ['cwd','vvpflags','plusargs','logs_dir','test_name'],
     )
     build.rules['iverilog'] = Rule(
-        command = 'cd $cwd && iverilog $iverilogflags $in -o $out 2>&1 | tee ${logs_dir}/compile_sim_${test_name}.log',
-        variables = ['cwd','iverilogflags','logs_dir','test_name'],
+        command = 'cd $cwd && iverilog $iverilogflags $in -o $out 2>&1 | tee ${logs_dir}/compile_sim.log',
+        variables = ['cwd','iverilogflags','logs_dir'],
+    )
+    build.rules['vpi'] = Rule(
+        command = 'cd $cwd; iverilog-vpi $in',
+        variables = ['cwd'],
     )
 
 def sim_builders(build):
@@ -83,12 +87,15 @@ def sim_builders(build):
         cwd = lambda **kwargs: kwargs['cwd'],
         iverilogflags = lambda **kwargs: ['-Wall','-Wno-timescale','-g2012',] + [f' -I{i}' for i in kwargs['inc_dir']],
         logs_dir = lambda **kwargs: kwargs['logs_dir'],
-        test_name = lambda **kwargs: kwargs['test_name'],
-        kwargs = ['cwd','logs_dir','test_name','header_files','tools_vpi','inc_dir'],
+        kwargs = ['cwd','logs_dir','header_files','tools_vpi','inc_dir'],
         implicit = [
             lambda **kwargs: kwargs['header_files'],
             lambda **kwargs: kwargs['tools_vpi'],
         ],
+    )
+    build.builders['vpi'] = Builder(
+        rule = 'vpi',
+        cwd = lambda **kwargs: kwargs['cwd'],
     )
 
 build = Build(
