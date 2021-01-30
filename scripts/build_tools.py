@@ -1,8 +1,8 @@
-from collections.abc import Iterable
 from pathlib import Path
 import subprocess as sp
 import inspect
 import dataclasses
+import logging
 
 import ninja
 
@@ -14,6 +14,56 @@ def run(cmd):
     #print(cmd)
     r = sp.run(cmd,shell=True,capture_output=True,check=True,encoding='utf-8').stdout.strip()
     #print(r)
+    return r
+
+def as_list(x):
+    if (isinstance(x,Path)
+    or isinstance(x,str)
+    or callable(x)):
+        return [x]
+    else:
+        return x
+
+def expand_variables(variables, **kwargs):
+    logger = logging.getLogger(__name__)
+    logger.debug(f"variables: {variables}")
+    expanded_variables = {}
+    pp_kwargs = kwargs
+    for name,rvalue in variables.items():
+        actual_values = rvalue
+        if callable(rvalue):
+            actual_values = rvalue(**pp_kwargs)
+        elif isinstance(rvalue, list):
+            actual_values = []
+            for value in rvalue:
+                if callable(value):
+                    actual_values.append(value(**pp_kwargs))
+                else:
+                    actual_values.append(value)
+        expanded_variables[name] = stringify(actual_values)
+    logger.debug(f"expanded_variables: {expanded_variables}")
+    return expanded_variables
+
+def stringify(value):
+    if isinstance(value, list):
+        return [stringify(i) for i in value]
+    elif isinstance(value, dict):
+        return {str(k):stringify(v) for k,v in value.items()}
+    else:
+        if value is not None:
+            return str(value)
+        else:
+            return None
+
+def flatten(x):
+    if not isinstance(x,list):
+        return x
+    r = []
+    for i in x:
+        if isinstance(i,list):
+            r.extend([j for j in flatten(i)])
+        else:
+            r.append(i)
     return r
 
 class Rule:
@@ -55,6 +105,7 @@ class BuildParams(WriterParams):
     rule: str
     inputs: list = None
     variables: dict = None
+    implicit: list = None
 
 class Writer:
     def __init__(self, output_path, target_dir, source_dir, command):
@@ -64,20 +115,24 @@ class Writer:
         self.source_dir = Path(source_dir).resolve()
         self.target_dir = Path(target_dir).resolve()
         self.command = command
+        self.logger = logging.getLogger(__name__)
     def rule(self, rule):
         new = RuleParams(
             command = rule.command,
             name = rule.name,
             depfile = rule.depfile,
         )
+        self.logger.debug(f"new rule: {new}")
         self.rules[rule.name] = new
-    def build(self, rule, target, source, variables):
+    def build(self, rule, target, source, variables, implicit):
         new = BuildParams(
-            outputs = [str(i) for i in target],
+            outputs = stringify(target),
             rule = rule.name,
-            inputs = [str(i) for i in source],
-            variables = variables
+            inputs = stringify(source),
+            variables = stringify(variables),
+            implicit = flatten(stringify(implicit)),
         )
+        self.logger.debug(f"new build: {new}")
         self.builds.append(new)
     def write(self):
         print(self.rules)
@@ -99,11 +154,13 @@ class NinjaWriter(Writer):
             writer.newline()
 
 class Builder:
-    def __init__(self, rule, kwargs = [], **variables):
+    def __init__(self, rule, implicit = None, kwargs = [], **variables):
         self.rule_name = rule
         self.variables = variables
         self.kw = kwargs
         self.is_configured = False
+        self.logger = logging.getLogger(__name__)
+        self.implicit = implicit
     def configure(self, name, build):
         self._build = build
         self._name = name
@@ -128,25 +185,32 @@ class Builder:
     def target_dir(self):
         return self.build.target_dir
     def __call__(self, target, source, **kwargs):
-        build_variables = {}
-        for name,value in self.variables.items():
-            if callable(value):
-                build_variables[name] = value(**kwargs)
-            else:
-                build_variables[name] = value
         self.writer.rule(self.rule)
-        if not isinstance(source, Iterable):
-            source = [source]
-        if not isinstance(target, Iterable):
-            target = [target]
+        ## expand target
+        source = as_list(source)
+        target = as_list(target)
         actual_target = []
         for src,tgt in zip(source,target):
             if callable(tgt):
                 actual_target.append(tgt(self.target_dir,Path(src)))
             else:
                 actual_target.append(tgt)
-        self.writer.build(self.rule,actual_target,source,build_variables)
-        return actual_target
+        ## expand kwargs
+        self.logger.debug(f"kwargs: {kwargs}")
+        actual_kwargs = expand_variables(kwargs, target_dir=self.target_dir)
+        self.logger.debug(f"actual_kwargs: {actual_kwargs}")
+        ## expand variables
+        self.logger.debug(f"self.variables: {self.variables}")
+        actual_variables = expand_variables(self.variables, **actual_kwargs)
+        self.logger.debug(f"actual_variables: {actual_variables}")
+        ## expand implicit
+        actual_implicit = None
+        if self.implicit is not None:
+            self.logger.debug(f"self.implicit: {self.implicit}")
+            actual_implicit = expand_variables(dict(implicit=self.implicit), **actual_kwargs)['implicit']
+            self.logger.debug(f"actual_implicit: {actual_implicit}")
+        self.writer.build(self.rule,actual_target,source,actual_variables,actual_implicit)
+        return actual_target[0] if len(actual_target) == 1 else actual_target
 
 class Build:
     def __init__(self, rules, builders):
@@ -176,5 +240,8 @@ class Build:
         return self.__getattribute__(key)
     def run(self):
         self.write_script()
-        sp.run(self.writer.command,shell=True,check=True,encoding='utf-8',cwd=self.target_dir)
+        try:
+            sp.run(self.writer.command,shell=True,check=True,encoding='utf-8',cwd=self.target_dir)
+        except sp.CalledProcessError:
+            pass
 
