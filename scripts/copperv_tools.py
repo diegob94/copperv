@@ -56,22 +56,38 @@ def test_builders(build):
 
 def sim_rules(build):
     build.rules['vvp'] = Rule(
-        command = 'cd $wd && vvp $vvpflags $in $plusargs 2>&1 | tee ${logs_dir}/run_sim_${test_name}.log',
-        variables = ['wd','vvpflags','plusargs','logs_dir','test_name'],
+        command = 'cd $cwd && vvp $vvpflags $in $plusargs 2>&1 | tee ${logs_dir}/run_sim_${test_name}.log',
+        variables = ['cwd','vvpflags','plusargs','logs_dir','test_name'],
+    )
+    build.rules['iverilog'] = Rule(
+        command = 'cd $cwd && iverilog $iverilogflags $in -o $out 2>&1 | tee ${logs_dir}/compile_sim_${test_name}.log',
+        variables = ['cwd','iverilogflags','logs_dir','test_name'],
     )
 
 def sim_builders(build):
     build.builders['sim_run'] = Builder(
         rule = 'vvp',
-        wd = lambda **kwargs: kwargs['wd'],
+        cwd = lambda **kwargs: kwargs['cwd'],
         vvpflags = '-M. -mcopperv_tools',
         plusargs = lambda **kwargs: f'+HEX_FILE={kwargs["hex_file"]} +DISS_FILE={kwargs["diss_file"]}',
         logs_dir = lambda **kwargs: kwargs['logs_dir'],
         test_name = lambda **kwargs: kwargs['test_name'],
-        kwargs = ['wd','hex_file','diss_file','logs_dir','test_name'],
+        kwargs = ['cwd','hex_file','diss_file','logs_dir','test_name'],
         implicit = [
             lambda **kwargs: kwargs['hex_file'], # -> list
             lambda **kwargs: kwargs['diss_file'],
+        ],
+    )
+    build.builders['sim_compile'] = Builder(
+        rule = 'iverilog',
+        cwd = lambda **kwargs: kwargs['cwd'],
+        iverilogflags = lambda **kwargs: ['-Wall','-Wno-timescale','-g2012',] + [f' -I{i}' for i in kwargs['inc_dir']],
+        logs_dir = lambda **kwargs: kwargs['logs_dir'],
+        test_name = lambda **kwargs: kwargs['test_name'],
+        kwargs = ['cwd','logs_dir','test_name','header_files','tools_vpi','inc_dir'],
+        implicit = [
+            lambda **kwargs: kwargs['header_files'],
+            lambda **kwargs: kwargs['tools_vpi'],
         ],
     )
 

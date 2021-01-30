@@ -5,7 +5,6 @@ import argparse
 
 from scripts.copperv_tools import build, tests
 
-
 parser = argparse.ArgumentParser(description='Build Copperv core')
 parser.add_argument('-d','--debug',dest='debug',action='store_true',
         help='Enable debug output')
@@ -56,14 +55,36 @@ test_diss = build.test_dissassemble(
     target = lambda target_dir, _: target_dir/test_dir/f'{test.name}.D',
     source = test_elf,
 )
+
+rtl_inc_dir = build.root/'rtl/include'
+rtl_headers = list(rtl_inc_dir.glob('*.v'))
+rtl_sources = list((build.root/'rtl').glob('*.v'))
+
+sim_inc_dir = build.root/'sim/include'
+sim_headers = list(sim_inc_dir.glob('*.v'))
+sim_sources = list((build.root/'sim').glob('*.v'))
+sim_sources.extend(list((build.root/'sim').glob('*.sv')))
+
 sim_dir = 'sim'
+logs_dir = 'logs'
+
+build.sim_compile(
+    target = 'sim.vvp',
+    source = rtl_sources + sim_sources,
+    cwd = lambda target_dir: target_dir/sim_dir,
+    logs_dir = logs_dir,
+    test_name = test.name,
+    header_files = rtl_headers + sim_headers,
+    tools_vpi = lambda target_dir: target_dir/'copperv_tools.vpi',
+    inc_dir = [rtl_inc_dir, sim_inc_dir],
+)
 build.sim_run(
     target = 'sim_run',
     source = 'sim.vvp',
-    wd = lambda target_dir: target_dir/sim_dir,
+    cwd = lambda target_dir: target_dir/sim_dir,
     hex_file = test_hex,
     diss_file = test_diss,
-    logs_dir = 'log',
+    logs_dir = logs_dir,
     test_name = test.name,
 )
 
