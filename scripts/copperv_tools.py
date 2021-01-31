@@ -56,12 +56,14 @@ def test_builders(build):
 
 def sim_rules(build):
     build.rules['vvp'] = Rule(
-        command = 'cd $cwd && vvp $vvpflags $in $plusargs 2>&1 | tee ${logs_dir}/run_sim_${test_name}.log',
-        variables = ['cwd','vvpflags','plusargs','logs_dir','test_name'],
+        command = 'cd $cwd && vvp $vvpflags $in $plusargs',
+        log = '${log_dir}/run_sim_${test_name}.log',
+        variables = ['cwd','vvpflags','plusargs','log_dir','test_name'],
     )
     build.rules['iverilog'] = Rule(
-        command = 'cd $cwd && iverilog $iverilogflags $in -o $out 2>&1 | tee ${logs_dir}/compile_sim.log',
-        variables = ['cwd','iverilogflags','logs_dir'],
+        command = 'cd $cwd && iverilog $iverilogflags $in -o $out',
+        log = '${log_dir}/compile_sim.log',
+        variables = ['cwd','iverilogflags','log_dir'],
     )
     build.rules['vpi'] = Rule(
         command = 'cd $cwd; iverilog-vpi $in',
@@ -74,9 +76,9 @@ def sim_builders(build):
         cwd = lambda **kwargs: kwargs['cwd'],
         vvpflags = '-M. -mcopperv_tools',
         plusargs = lambda **kwargs: f'+HEX_FILE={kwargs["hex_file"]} +DISS_FILE={kwargs["diss_file"]}',
-        logs_dir = lambda **kwargs: kwargs['logs_dir'],
+        log_dir = lambda **kwargs: kwargs['log_dir'],
         test_name = lambda **kwargs: kwargs['test_name'],
-        kwargs = ['cwd','hex_file','diss_file','logs_dir','test_name'],
+        kwargs = ['cwd','hex_file','diss_file','log_dir','test_name'],
         implicit = [
             lambda **kwargs: kwargs['hex_file'], # -> list
             lambda **kwargs: kwargs['diss_file'],
@@ -86,8 +88,8 @@ def sim_builders(build):
         rule = 'iverilog',
         cwd = lambda **kwargs: kwargs['cwd'],
         iverilogflags = lambda **kwargs: ['-Wall','-Wno-timescale','-g2012',] + [f' -I{i}' for i in kwargs['inc_dir']],
-        logs_dir = lambda **kwargs: kwargs['logs_dir'],
-        kwargs = ['cwd','logs_dir','header_files','tools_vpi','inc_dir'],
+        log_dir = lambda **kwargs: kwargs['log_dir'],
+        kwargs = ['cwd','log_dir','header_files','tools_vpi','inc_dir'],
         implicit = [
             lambda **kwargs: kwargs['header_files'],
             lambda **kwargs: kwargs['tools_vpi'],

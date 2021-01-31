@@ -67,11 +67,15 @@ def flatten(x):
     return r
 
 class Rule:
-    def __init__(self, command, depfile = None, variables = {}):
-        self.command = command
+    def __init__(self, command, depfile = None, variables = {}, log = None):
         self.depfile = depfile
         self.variables = variables
         self.is_configured = False
+        self.log = log
+        if self.log is not None:
+            self.command = f'{command} 2>&1 | tee {self.log}'
+        else:
+            self.command = command
     def configure(self, name):
         self._name = name
         self.is_configured = True
@@ -189,6 +193,8 @@ class Builder:
         ## expand target
         source = as_list(source)
         target = as_list(target)
+        if self.rule.log is not None:
+            target.append(self.rule.log)
         actual_target = []
         for src,tgt in zip(source,target):
             if callable(tgt):

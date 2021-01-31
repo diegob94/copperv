@@ -67,7 +67,7 @@ sim_sources.extend(list((build.root/'sim').glob('*.sv')))
 sim_sources = [f for f in sim_sources if f.name != 'checker_cpu.v']
 
 sim_dir = 'sim'
-logs_dir = 'logs'
+log_dir = 'log'
 
 tools_vpi = build.vpi(
     target = lambda target_dir, _: target_dir/sim_dir/'copperv_tools.vpi',
@@ -78,7 +78,7 @@ vvp = build.sim_compile(
     target = lambda target_dir, _: target_dir/sim_dir/'sim.vvp',
     source = rtl_sources + sim_sources,
     cwd = lambda target_dir: target_dir/sim_dir,
-    logs_dir = logs_dir,
+    log_dir = lambda target_dir: target_dir/log_dir,
     test_name = test.name,
     header_files = rtl_headers + sim_headers,
     tools_vpi = tools_vpi,
@@ -90,7 +90,7 @@ build.sim_run(
     cwd = lambda target_dir: target_dir/sim_dir,
     hex_file = test_hex,
     diss_file = test_diss,
-    logs_dir = logs_dir,
+    log_dir = lambda target_dir: target_dir/log_dir,
     test_name = test.name,
 )
 
