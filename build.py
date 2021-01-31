@@ -3,7 +3,7 @@ import sys
 import logging
 import argparse
 
-from scripts.copperv_tools import build, tests
+from scripts.copperv_tools import buildtool, tests
 
 parser = argparse.ArgumentParser(description='Build Copperv core')
 parser.add_argument('-d','--debug',dest='debug',action='store_true',
@@ -33,65 +33,67 @@ test = tests['simple']
 test_dir = 'test_' + test.name
 test_objs = []
 for test_source in test.source:
-    test_objs.append(build.test_object(
+    test_objs.append(buildtool.test_object(
         target = lambda target_dir, input_file: target_dir/test_dir/input_file.with_suffix('.o').name,
         source = test_source,
         inc_dir = test.inc_dir,
     ))
-    build.test_preprocess(
+    buildtool.test_preprocess(
         target = lambda target_dir, input_file: target_dir/test_dir/input_file.with_suffix('.E').name,
         source = test_source,
         inc_dir = test.inc_dir,
     )
-test_elf = build.test_link(
-    target = lambda target_dir, _: target_dir/test_dir/f'{test.name}.elf',
+test_elf = buildtool.test_link(
+    target = lambda target_dir: target_dir/test_dir/f'{test.name}.elf',
     source = test_objs,
 )
-test_hex = build.test_verilog_hex(
-    target = lambda target_dir, _: target_dir/test_dir/f'{test.name}.hex',
+test_hex = buildtool.test_verilog_hex(
+    target = lambda target_dir: target_dir/test_dir/f'{test.name}.hex',
     source = test_elf,
 )
-test_diss = build.test_dissassemble(
-    target = lambda target_dir, _: target_dir/test_dir/f'{test.name}.D',
+test_diss = buildtool.test_dissassemble(
+    target = lambda target_dir: target_dir/test_dir/f'{test.name}.D',
     source = test_elf,
 )
 
-rtl_inc_dir = build.root/'rtl/include'
+rtl_inc_dir = buildtool.root/'rtl/include'
 rtl_headers = list(rtl_inc_dir.glob('*.v'))
-rtl_sources = list((build.root/'rtl').glob('*.v'))
+rtl_sources = list((buildtool.root/'rtl').glob('*.v'))
 
-sim_inc_dir = build.root/'sim/include'
+sim_inc_dir = buildtool.root/'sim/include'
 sim_headers = list(sim_inc_dir.glob('*.v'))
-sim_sources = list((build.root/'sim').glob('*.v'))
-sim_sources.extend(list((build.root/'sim').glob('*.sv')))
+sim_sources = list((buildtool.root/'sim').glob('*.v'))
+sim_sources.extend(list((buildtool.root/'sim').glob('*.sv')))
 sim_sources = [f for f in sim_sources if f.name != 'checker_cpu.v']
 
 sim_dir = 'sim'
 log_dir = 'log'
 
-tools_vpi = build.vpi(
-    target = lambda target_dir, _: target_dir/sim_dir/'copperv_tools.vpi',
-    source = build.root/'sim/copperv_tools.c',
+tools_vpi = buildtool.vpi(
+    target = lambda target_dir: target_dir/sim_dir/'copperv_tools.vpi',
+    source = buildtool.root/'sim/copperv_tools.c',
     cwd = lambda target_dir: target_dir/sim_dir,
 )
-vvp = build.sim_compile(
-    target = lambda target_dir, _: target_dir/sim_dir/'sim.vvp',
+vvp = buildtool.sim_compile(
+    target = lambda target_dir: target_dir/sim_dir/'sim.vvp',
     source = rtl_sources + sim_sources,
+    log = lambda target_dir: target_dir/log_dir/'sim_compile.log',
     cwd = lambda target_dir: target_dir/sim_dir,
-    log_dir = lambda target_dir: target_dir/log_dir,
-    test_name = test.name,
     header_files = rtl_headers + sim_headers,
     tools_vpi = tools_vpi,
     inc_dir = [rtl_inc_dir, sim_inc_dir],
 )
-build.sim_run(
-    target = 'all',
+sim_run = buildtool.sim_run(
+    target = buildtool.LOG_FILE,
     source = vvp,
+    log = lambda target_dir: target_dir/log_dir/f'sim_run_{test.name}.log',
     cwd = lambda target_dir: target_dir/sim_dir,
     hex_file = test_hex,
     diss_file = test_diss,
-    log_dir = lambda target_dir: target_dir/log_dir,
-    test_name = test.name,
+)
+buildtool.check_sim(
+    target = 'all',
+    source = sim_run,
 )
 
-build.run()
+buildtool.run()

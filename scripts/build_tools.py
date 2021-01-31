@@ -1,10 +1,51 @@
 from pathlib import Path
+import enum
+import inspect
 import subprocess as sp
 import inspect
 import dataclasses
 import logging
+from string import Template
 
 import ninja
+
+@enum.unique
+class InternalTarget(enum.Enum):
+    LOG_FILE = enum.auto()
+
+class BuildTool:
+    LOG_FILE = InternalTarget.LOG_FILE
+    def __init__(self, rules, builders):
+        self.root = get_root()
+        self.target_dir = self.root / 'work'
+        self.target_dir.mkdir(exist_ok=True)
+        self.rules = {}
+        self.builders = {}
+        self.writer = NinjaWriter(self.target_dir,self.root)
+        if callable(rules):
+            rules = [rules]
+        if callable(builders):
+            builders = [builders]
+        for rule_factory in rules:
+            rule_factory(self)
+        for builder_factory in builders:
+            builder_factory(self)
+        for name,rule in self.rules.items():
+            rule.configure(name)
+        for name,builder in self.builders.items():
+            builder.configure(name, self)
+    def write_script(self):
+        self.writer.write()
+    def __getattr__(self, key):
+        if key != 'builders' and key in self.builders:
+            return self.builders[key]
+        return self.__getattribute__(key)
+    def run(self):
+        self.write_script()
+        try:
+            sp.run(self.writer.command,shell=True,check=True,encoding='utf-8',cwd=self.target_dir)
+        except sp.CalledProcessError:
+            pass
 
 def get_root():
     main = inspect.stack()[-1][1]
@@ -67,7 +108,7 @@ def flatten(x):
     return r
 
 class Rule:
-    def __init__(self, command, depfile = None, variables = {}, log = None):
+    def __init__(self, command, depfile = None, variables = {}, log = None, log_is_target = False):
         self.depfile = depfile
         self.variables = variables
         self.is_configured = False
@@ -76,6 +117,7 @@ class Rule:
             self.command = f'{command} 2>&1 | tee {self.log}'
         else:
             self.command = command
+        self.log_is_target = log_is_target
     def configure(self, name):
         self._name = name
         self.is_configured = True
@@ -87,6 +129,8 @@ class Rule:
     def __repr__(self):
         attrs = [f'{k}={repr(getattr(self,k))}' for k in ['command','depfile','variables','is_configured']]
         return f"Rule({', '.join(attrs)})"
+    def append_to_command(self, value):
+        self.command = self.command + value
 
 class WriterParams:
     def to_dict(self):
@@ -165,8 +209,8 @@ class Builder:
         self.is_configured = False
         self.logger = logging.getLogger(__name__)
         self.implicit = implicit
-    def configure(self, name, build):
-        self._build = build
+    def configure(self, name, buildtool):
+        self._buildtool = buildtool
         self._name = name
         self.is_configured = True
     @property
@@ -175,32 +219,20 @@ class Builder:
             raise ValueError("Builder not configured")
         return self._name
     @property
-    def build(self):
+    def buildtool(self) -> BuildTool:
         if not self.is_configured:
             raise ValueError("Builder not configured")
-        return self._build
+        return self._buildtool
     @property
-    def rule(self):
-        return self.build.rules[self.rule_name]
+    def rule(self) -> Rule:
+        return self.buildtool.rules[self.rule_name]
     @property
     def writer(self):
-        return self.build.writer
+        return self.buildtool.writer
     @property
     def target_dir(self):
-        return self.build.target_dir
-    def __call__(self, target, source, **kwargs):
-        self.writer.rule(self.rule)
-        ## expand target
-        source = as_list(source)
-        target = as_list(target)
-        if self.rule.log is not None:
-            target.append(self.rule.log)
-        actual_target = []
-        for src,tgt in zip(source,target):
-            if callable(tgt):
-                actual_target.append(tgt(self.target_dir,Path(src)))
-            else:
-                actual_target.append(tgt)
+        return self.buildtool.target_dir
+    def __call__(self, target, source, log = None, **kwargs):
         ## expand kwargs
         self.logger.debug(f"kwargs: {kwargs}")
         actual_kwargs = expand_variables(kwargs, target_dir=self.target_dir)
@@ -215,39 +247,40 @@ class Builder:
             self.logger.debug(f"self.implicit: {self.implicit}")
             actual_implicit = expand_variables(dict(implicit=self.implicit), **actual_kwargs)['implicit']
             self.logger.debug(f"actual_implicit: {actual_implicit}")
+        ## expand target
+        save_log = False
+        if target is self.buildtool.LOG_FILE:
+            save_log = True
+            target_is_log = True
+            if log is not None:
+                preproc_target = log
+            else:
+                raise ValueError("Value for target is LOG_FILE but log argument missing")
+        else:
+            target_is_log = False
+            preproc_target = target
+        source = as_list(source)
+        preproc_target = as_list(preproc_target)
+        if not target_is_log and log is not None:
+            save_log = True
+            preproc_target.insert(0,log)
+        actual_target = []
+        for src,tgt in zip(source,preproc_target):
+            if callable(tgt):
+                params = inspect.signature(tgt).parameters
+                if len(params) == 2:
+                    actual_target.append(tgt(self.target_dir,Path(src)))
+                elif len(params) == 1:
+                    actual_target.append(tgt(self.target_dir))
+                else:
+                    raise ValueError("Lambda has wrong number of arguments, \
+                            signature should be lambda target_dir, input_file: \
+                            or lambda target_dir:")
+            else:
+                actual_target.append(tgt)
+        if save_log:
+            self.rule.append_to_command(f' 2>&1 | tee {actual_target[0]}')
+        self.writer.rule(self.rule)
         self.writer.build(self.rule,actual_target,source,actual_variables,actual_implicit)
         return actual_target[0] if len(actual_target) == 1 else actual_target
-
-class Build:
-    def __init__(self, rules, builders):
-        self.root = get_root()
-        self.target_dir = self.root / 'work'
-        self.target_dir.mkdir(exist_ok=True)
-        self.rules = {}
-        self.builders = {}
-        self.writer = NinjaWriter(self.target_dir,self.root)
-        if callable(rules):
-            rules = [rules]
-        if callable(builders):
-            builders = [builders]
-        for rule_factory in rules:
-            rule_factory(self)
-        for builder_factory in builders:
-            builder_factory(self)
-        for name,rule in self.rules.items():
-            rule.configure(name)
-        for name,builder in self.builders.items():
-            builder.configure(name, self)
-    def write_script(self):
-        self.writer.write()
-    def __getattr__(self, key):
-        if key != 'builders' and key in self.builders:
-            return self.builders[key]
-        return self.__getattribute__(key)
-    def run(self):
-        self.write_script()
-        try:
-            sp.run(self.writer.command,shell=True,check=True,encoding='utf-8',cwd=self.target_dir)
-        except sp.CalledProcessError:
-            pass
 

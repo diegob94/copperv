@@ -1,111 +1,112 @@
 import dataclasses
 
-from scripts.build_tools import Rule, Builder, Build
+from scripts.build_tools import Rule, Builder, BuildTool
 
-def c_rules(build):
-    build.rules['object'] = Rule(
+def c_rules(buildtool):
+    buildtool.rules['object'] = Rule(
         command = '$cc $cflags -MD -MF $out.d -c $in -o $out',
         depfile = '$out.d',
         variables = ['cc','cflags'],
     )
-    build.rules['preprocess'] = Rule(
+    buildtool.rules['preprocess'] = Rule(
         command = '$cc $cflags -c $in -o $out',
         variables = ['cc','cflags'],
     )
-    build.rules['link'] = Rule(
+    buildtool.rules['link'] = Rule(
         command = '$cc $linkflags $in -o $out',
         variables = ['cc','linkflags'],
     )
-    build.rules['verilog_hex'] = Rule(
+    buildtool.rules['verilog_hex'] = Rule(
         command = '$objcopy -O verilog $in $out',
         variables = ['objcopy'],
     )
-    build.rules['dissassemble'] = Rule(
+    buildtool.rules['dissassemble'] = Rule(
         command = '$monitor_utils dissassemble $in -o $out -objdump $objdump',
         variables = ['monitor_utils','objdump'],
     )
 
-def test_builders(build):
-    build.builders['test_object'] = Builder(
+def test_builders(buildtool):
+    buildtool.builders['test_object'] = Builder(
         rule = 'object',
         cc = 'riscv64-unknown-elf-gcc',
         cflags = lambda inc_dir: ['-march=rv32i','-mabi=ilp32'] + [f' -I{i}' for i in inc_dir],
         kwargs = ['inc_dir'],
     )
-    build.builders['test_preprocess'] = Builder(
+    buildtool.builders['test_preprocess'] = Builder(
         rule = 'preprocess',
         cc = 'riscv64-unknown-elf-gcc',
-        cflags = lambda **kwargs: (build.test_object.variables['cflags'](**kwargs) + ['-E']),
+        cflags = lambda **kwargs: (buildtool.test_object.variables['cflags'](**kwargs) + ['-E']),
         kwargs = ['inc_dir'],
     )
-    linker_script = build.root/'sim/tests/common/linker.ld'
-    build.builders['test_link'] = Builder(
+    linker_script = buildtool.root/'sim/tests/common/linker.ld'
+    buildtool.builders['test_link'] = Builder(
         rule = 'link',
         cc='riscv64-unknown-elf-gcc',
         linkflags = f'-Wl,-T,{linker_script},--strip-debug,-Bstatic -nostdlib -ffreestanding',
     )
-    build.builders['test_verilog_hex'] = Builder(
+    buildtool.builders['test_verilog_hex'] = Builder(
         rule = 'verilog_hex',
         objcopy='riscv64-unknown-elf-objcopy',
     )
-    build.builders['test_dissassemble'] = Builder(
+    buildtool.builders['test_dissassemble'] = Builder(
         rule = 'dissassemble',
-        monitor_utils = build.root/'scripts/monitor_utils.py',
+        monitor_utils = buildtool.root/'scripts/monitor_utils.py',
         objdump='riscv64-unknown-elf-objdump',
     )
 
-def sim_rules(build):
-    build.rules['vvp'] = Rule(
+def sim_rules(buildtool):
+    buildtool.rules['vvp'] = Rule(
         command = 'cd $cwd && vvp $vvpflags $in $plusargs',
-        log = '${log_dir}/run_sim_${test_name}.log',
-        variables = ['cwd','vvpflags','plusargs','log_dir','test_name'],
+        variables = ['cwd','vvpflags','plusargs'],
     )
-    build.rules['iverilog'] = Rule(
+    buildtool.rules['iverilog'] = Rule(
         command = 'cd $cwd && iverilog $iverilogflags $in -o $out',
-        log = '${log_dir}/compile_sim.log',
-        variables = ['cwd','iverilogflags','log_dir'],
+        variables = ['cwd','iverilogflags'],
     )
-    build.rules['vpi'] = Rule(
+    buildtool.rules['vpi'] = Rule(
         command = 'cd $cwd; iverilog-vpi $in',
         variables = ['cwd'],
     )
+    buildtool.rules['check_sim'] = Rule(
+        command = 'grep -q "TEST PASSED" $in > $out',
+    )
 
-def sim_builders(build):
-    build.builders['sim_run'] = Builder(
+def sim_builders(buildtool):
+    buildtool.builders['sim_run'] = Builder(
         rule = 'vvp',
         cwd = lambda **kwargs: kwargs['cwd'],
         vvpflags = '-M. -mcopperv_tools',
         plusargs = lambda **kwargs: f'+HEX_FILE={kwargs["hex_file"]} +DISS_FILE={kwargs["diss_file"]}',
-        log_dir = lambda **kwargs: kwargs['log_dir'],
-        test_name = lambda **kwargs: kwargs['test_name'],
-        kwargs = ['cwd','hex_file','diss_file','log_dir','test_name'],
+        kwargs = ['cwd','hex_file','diss_file'],
         implicit = [
             lambda **kwargs: kwargs['hex_file'], # -> list
             lambda **kwargs: kwargs['diss_file'],
         ],
     )
-    build.builders['sim_compile'] = Builder(
+    buildtool.builders['sim_compile'] = Builder(
         rule = 'iverilog',
         cwd = lambda **kwargs: kwargs['cwd'],
         iverilogflags = lambda **kwargs: ['-Wall','-Wno-timescale','-g2012',] + [f' -I{i}' for i in kwargs['inc_dir']],
-        log_dir = lambda **kwargs: kwargs['log_dir'],
-        kwargs = ['cwd','log_dir','header_files','tools_vpi','inc_dir'],
+        kwargs = ['cwd','header_files','tools_vpi','inc_dir'],
         implicit = [
             lambda **kwargs: kwargs['header_files'],
             lambda **kwargs: kwargs['tools_vpi'],
         ],
     )
-    build.builders['vpi'] = Builder(
+    buildtool.builders['vpi'] = Builder(
         rule = 'vpi',
         cwd = lambda **kwargs: kwargs['cwd'],
     )
+    buildtool.builders['check_sim'] = Builder(
+        rule = 'check_sim',
+    )
 
-build = Build(
+buildtool = BuildTool(
     rules=[c_rules,sim_rules],
     builders=[test_builders,sim_builders]
 )
 
-test_root = build.root/'sim/tests'
+test_root = buildtool.root/'sim/tests'
 
 @dataclasses.dataclass
 class Test:
