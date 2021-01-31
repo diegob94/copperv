@@ -62,8 +62,15 @@ def as_list(x):
     or isinstance(x,str)
     or callable(x)):
         return [x]
+    elif x is None:
+        return []
     else:
         return x
+
+def expand_list(variables, **kwargs):
+    v = {k:v for k,v in enumerate(variables)}
+    r = expand_variables(v, **kwargs)
+    return [r[i] for i in range(len(variables))]
 
 def expand_variables(variables, **kwargs):
     logger = logging.getLogger(__name__)
@@ -131,6 +138,10 @@ class Rule:
         return f"Rule({', '.join(attrs)})"
     def append_to_command(self, value):
         self.command = self.command + value
+    def save_log(self,log_file=None):
+        if log_file is None:
+            log_file = '$out'
+        self.append_to_command(f' 2>&1 | tee {log_file}')
 
 class WriterParams:
     def to_dict(self):
@@ -154,6 +165,7 @@ class BuildParams(WriterParams):
     inputs: list = None
     variables: dict = None
     implicit: list = None
+    implicit_outputs: list = None
 
 class Writer:
     def __init__(self, output_path, target_dir, source_dir, command):
@@ -172,13 +184,14 @@ class Writer:
         )
         self.logger.debug(f"new rule: {new}")
         self.rules[rule.name] = new
-    def build(self, rule, target, source, variables, implicit):
+    def build(self, rule, target, source, variables, implicit, implicit_outputs):
         new = BuildParams(
             outputs = stringify(target),
             rule = rule.name,
             inputs = stringify(source),
             variables = stringify(variables),
             implicit = flatten(stringify(implicit)),
+            implicit_outputs=stringify(implicit_outputs),
         )
         self.logger.debug(f"new build: {new}")
         self.builds.append(new)
@@ -232,7 +245,7 @@ class Builder:
     @property
     def target_dir(self):
         return self.buildtool.target_dir
-    def __call__(self, target, source, log = None, **kwargs):
+    def __call__(self, target, source, implicit_target = None, log = None, **kwargs):
         ## expand kwargs
         self.logger.debug(f"kwargs: {kwargs}")
         actual_kwargs = expand_variables(kwargs, target_dir=self.target_dir)
@@ -253,19 +266,20 @@ class Builder:
             save_log = True
             target_is_log = True
             if log is not None:
-                preproc_target = log
+                explicit_target = log
             else:
                 raise ValueError("Value for target is LOG_FILE but log argument missing")
         else:
             target_is_log = False
-            preproc_target = target
+            explicit_target = target
         source = as_list(source)
-        preproc_target = as_list(preproc_target)
+        explicit_target = as_list(explicit_target)
+        implicit_target = as_list(implicit_target)
         if not target_is_log and log is not None:
             save_log = True
-            preproc_target.insert(0,log)
+            implicit_target.insert(0,log)
         actual_target = []
-        for src,tgt in zip(source,preproc_target):
+        for src,tgt in zip(source,explicit_target):
             if callable(tgt):
                 params = inspect.signature(tgt).parameters
                 if len(params) == 2:
@@ -278,9 +292,14 @@ class Builder:
                             or lambda target_dir:")
             else:
                 actual_target.append(tgt)
+        actual_implicit_target = expand_list(as_list(implicit_target),target_dir=self.target_dir)
         if save_log:
-            self.rule.append_to_command(f' 2>&1 | tee {actual_target[0]}')
+            if target_is_log:
+                log_file = None
+            else:
+                log_file = actual_implicit_target[0]
+            self.rule.save_log(log_file)
         self.writer.rule(self.rule)
-        self.writer.build(self.rule,actual_target,source,actual_variables,actual_implicit)
+        self.writer.build(self.rule,actual_target,source,actual_variables,actual_implicit,actual_implicit_target)
         return actual_target[0] if len(actual_target) == 1 else actual_target
 
