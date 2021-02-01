@@ -120,4 +120,13 @@ tests = dict(
         source = [test_root/'common/asm/crt0.S',test_root/'simple/test_0.S'],
         inc_dir = [test_root/'common'],
     ),
+    rv32ui = Test(
+        name = 'rv32ui',
+        source = [test_root/'common/asm/crt0.S']
+            + list((test_root/'isa/rv32ui').glob('*.S')),
+        inc_dir = [
+            test_root/'common',
+            test_root/'isa'
+        ],
+    ),
 )

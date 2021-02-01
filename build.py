@@ -29,7 +29,8 @@ def which_lambda(value):
 import builtins
 builtins.which_lambda = which_lambda
 
-test = tests['simple']
+#test = tests['simple']
+test = tests['rv32ui']
 test_dir = 'test_' + test.name
 test_objs = []
 for test_source in test.source:
