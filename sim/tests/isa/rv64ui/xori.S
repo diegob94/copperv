@@ -7,12 +7,14 @@
 # Test xori instruction.
 #
 
+#define INSTRUCTION_ID 49
+#define TEST_NAME xori
+#define TEST_NAME_RET xori_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 49
 
   #-------------------------------------------------------------
   # Logical tests

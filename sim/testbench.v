@@ -3,7 +3,7 @@
 `include "copperv_h.v"
 
 module tb();
-parameter timeout = `PERIOD*10000;
+parameter timeout = `PERIOD*1000000;
 // copperv inputs
 reg clk;
 reg rst;
@@ -35,11 +35,11 @@ initial begin
     $display($time, ": Reset finished");
     rst = 1;
 end
-initial begin
-    #timeout;
-    $display($time, ": Simulation timeout");
-    test_failed;
-end
+//initial begin
+//    #timeout;
+//    $display($time, ": Simulation timeout");
+//    test_failed;
+//end
 always #(`PERIOD/2) clk <= !clk;
 copperv dut (
     .clk(clk),
@@ -99,7 +99,7 @@ checker_cpu chk(
     .reset(rst)
 );
 `endif
-integer f;
+integer fake_uart_fp;
 `STRING vcd_file;
 initial begin
     if (!$value$plusargs("VCD_FILE=%s", vcd_file)) begin
@@ -107,22 +107,36 @@ initial begin
     end
     $dumpfile(vcd_file);
     $dumpvars(0, tb);
-    f = $fopen("fake_uart.log","w");
+    fake_uart_fp = $fopen("fake_uart.log","w");
 end
-always @(posedge clk)
+
+// Fake IO
+always @(posedge clk) begin
+    // Output
     if(dw_data_addr_valid && dw_data_addr_ready) begin
         case (dw_addr)
-            32'h8000: begin
+            32'h80000000: begin
                 case (dw_data)
                     32'h01000001: test_passed;
                     32'h02000001: test_failed;
+                    32'h03000001: unit_test_passed;
                     default: test_failed;
                 endcase
             end
-            32'h8004: $fwrite(f, "%c", dw_data[7:0]);
+            32'h80000004: begin
+                $fwrite(fake_uart_fp, "%c", dw_data[7:0]);
+                if(dw_data[7:0] == "\n")
+                    $fflush(fake_uart_fp);
+            end
         endcase
     end
+end
 
+task unit_test_passed;
+begin
+    $display($time, ": UNIT TEST PASSED");
+end
+endtask
 task test_passed;
 begin
     $display($time, ": TEST PASSED");
@@ -139,8 +153,9 @@ end
 endtask
 task finish_sim;
 begin
-    $fwrite(f, "\n");
-    $fclose(f);  
+    mon.finish_sim;
+    $fwrite(fake_uart_fp, "\n# copperv testbench finished\n");
+    $fclose(fake_uart_fp);  
     $finish;
 end
 endtask

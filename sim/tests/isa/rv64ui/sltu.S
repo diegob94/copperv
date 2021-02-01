@@ -7,12 +7,14 @@
 # Test sltu instruction.
 #
 
+#define INSTRUCTION_ID 37
+#define TEST_NAME sltu
+#define TEST_NAME_RET sltu_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 37
 
   #-------------------------------------------------------------
   # Arithmetic tests

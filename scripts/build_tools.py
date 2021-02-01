@@ -1,23 +1,17 @@
 from pathlib import Path
 import datetime
 import enum
-import inspect
 import subprocess as sp
-import inspect
 import dataclasses
 import logging
-from string import Template
+import string
 
-import ninja
-
-@enum.unique
-class InternalTarget(enum.Enum):
-    LOG_FILE = enum.auto()
+import scripts.ninja_syntax as ninja
+from scripts.namespace import Namespace, Template
 
 class BuildTool:
-    LOG_FILE = InternalTarget.LOG_FILE
-    def __init__(self, rules, builders):
-        self.root = get_root()
+    def __init__(self, root, rules, builders):
+        self.root = root
         self.target_dir = self.root / 'work'
         self.target_dir.mkdir(exist_ok=True)
         self.rules = {}
@@ -37,21 +31,24 @@ class BuildTool:
             builder.configure(name, self)
     def write_script(self):
         self.writer.variable('root',self.root)
-        self.writer.write()
+        return self.writer.write()
     def __getattr__(self, key):
         if key != 'builders' and key in self.builders:
             return self.builders[key]
         return self.__getattribute__(key)
-    def run(self):
-        self.write_script()
+    def run(self, default_target = None, ninja_opts = None):
+        if default_target is not None:
+            self.writer.default(default_target)
+        cmd = self.writer.command
+        if ninja_opts is not None:
+            cmd = f'{cmd} {ninja_opts}'
+        r = self.write_script()
         try:
-            sp.run(self.writer.command,shell=True,check=True,encoding='utf-8',cwd=self.target_dir)
+            print(cmd,f'# cwd={self.target_dir}')
+            sp.run(cmd,shell=True,check=True,encoding='utf-8',cwd=self.target_dir)
         except sp.CalledProcessError:
             pass
-
-def get_root():
-    main = inspect.stack()[-1][1]
-    return Path(main).parent.absolute()
+        return r
 
 def run(cmd):
     #print(cmd)
@@ -69,41 +66,15 @@ def as_list(x):
     else:
         return x
 
-def expand_list(variables, **kwargs):
-    v = {k:v for k,v in enumerate(variables)}
-    r = expand_variables(v, **kwargs)
-    return [r[i] for i in range(len(variables))]
-
-def expand_variables(variables, **kwargs):
-    logger = logging.getLogger(__name__)
-    logger.debug(f"variables: {variables}")
-    expanded_variables = {}
-    pp_kwargs = kwargs
-    for name,rvalue in variables.items():
-        actual_values = rvalue
-        if callable(rvalue):
-            actual_values = rvalue(**pp_kwargs)
-        elif isinstance(rvalue, list):
-            actual_values = []
-            for value in rvalue:
-                if callable(value):
-                    actual_values.append(value(**pp_kwargs))
-                else:
-                    actual_values.append(value)
-        expanded_variables[name] = stringify(actual_values)
-    logger.debug(f"expanded_variables: {expanded_variables}")
-    return expanded_variables
-
 def stringify(value):
     if isinstance(value, list):
-        return [stringify(i) for i in value]
+        return [stringify(i) for i in value if i is not None]
     elif isinstance(value, dict):
-        return {str(k):stringify(v) for k,v in value.items()}
+        return {str(k):stringify(v) for k,v in value.items() if v is not None}
     else:
         if value is not None:
             return str(value)
-        else:
-            return None
+    return None
 
 def flatten(x):
     if not isinstance(x,list):
@@ -117,16 +88,14 @@ def flatten(x):
     return r
 
 class Rule:
-    def __init__(self, command, depfile = None, variables = {}, log = None, log_is_target = False):
+    def __init__(self, command, depfile = None, no_output = False, pool = None):
         self.depfile = depfile
-        self.variables = variables
         self.is_configured = False
-        self.log = log
-        if self.log is not None:
-            self.command = f'{command} 2>&1 | tee {self.log}'
-        else:
-            self.command = command
-        self.log_is_target = log_is_target
+        self.command = command
+        if no_output:
+            self.append_to_command('&& date > $out')
+        self.pool = pool
+        self.user_variables = [k for k in Template(self.command).get_var_names()]
     def configure(self, name):
         self._name = name
         self.is_configured = True
@@ -140,9 +109,7 @@ class Rule:
         return f"Rule({', '.join(attrs)})"
     def append_to_command(self, value):
         self.command = self.command + value
-    def save_log(self,log_file=None):
-        if log_file is None:
-            log_file = '$out'
+    def save_log(self,log_file):
         self.append_to_command(f' 2>&1 | tee {log_file}')
 
 class WriterParams:
@@ -174,6 +141,7 @@ class RuleParams(WriterParams):
     name: str
     command: str
     depfile: str = None
+    pool: str = None
 
 @dataclasses.dataclass
 class BuildParams(WriterParams):
@@ -183,26 +151,37 @@ class BuildParams(WriterParams):
     variables: dict = None
     implicit: list = None
     implicit_outputs: list = None
+    pool: str = None
+
+@dataclasses.dataclass
+class DefaultParams(WriterParams):
+    paths: list = None
 
 class Writer:
-    def __init__(self, output_path, target_dir, source_dir, command):
+    def __init__(self, output_path, target_dir, source_dir, build_command):
         self.output_path = output_path
+        self.source_dir = None
+        self.target_dir = None
+        if source_dir is not None:
+            self.source_dir = Path(source_dir).resolve()
+        if target_dir is not None:
+            self.target_dir = Path(target_dir).resolve()
         self.rules = {}
         self.builds = []
         self.variables = {}
-        self.source_dir = Path(source_dir).resolve()
-        self.target_dir = Path(target_dir).resolve()
-        self.command = command
+        self.defaults = []
         self.logger = logging.getLogger(__name__)
+        self.command = build_command
     def rule(self, rule):
         new = RuleParams(
             command = rule.command,
             name = rule.name,
             depfile = rule.depfile,
+            pool = rule.pool,
         )
         self.logger.debug(f"new rule: {new}")
         self.rules[rule.name] = new
-    def build(self, rule, target, source, variables, implicit, implicit_outputs):
+    def build(self, rule, target, source, variables, implicit, implicit_outputs, pool):
         new = BuildParams(
             outputs = stringify(target),
             rule = rule.name,
@@ -210,6 +189,7 @@ class Writer:
             variables = stringify(variables),
             implicit = flatten(stringify(implicit)),
             implicit_outputs=flatten(stringify(implicit_outputs)),
+            pool = pool,
         )
         self.logger.debug(f"new build: {new}")
         self.builds.append(new)
@@ -220,39 +200,52 @@ class Writer:
         )
         self.logger.debug(f"new build: {new}")
         self.variables[name] = new
-    def write(self):
-        print(self.rules)
-        print(self.builds)
+    def default(self, paths):
+        new = DefaultParams(
+            paths = stringify(paths),
+        )
+        self.logger.debug(f"new default: {new}")
+        self.defaults.append(new)
+    def write(self) -> "Writer":
+        return self
 
 class NinjaWriter(Writer):
     def __init__(self, target_dir, source_dir):
         super().__init__(target_dir/'build.ninja',target_dir,source_dir,'ninja -v')
     def write(self):
+        root = self.source_dir
         with self.output_path.open('w') as f:
             writer = ninja.Writer(f)
-            writer.comment(f"File generated by copperv build_tools.py on {datetime.datetime.now().astimezone().isoformat()}")
+            writer.comment(f"File generated by copperv build_tools.py - {datetime.datetime.now().astimezone().isoformat()}")
             writer.newline()
-            writer.comment("Variables")
-            for variable in self.variables.values():
-                writer.variable(**variable.to_dict())
-            writer.newline()
+            if len(self.variables) > 0:
+                writer.comment("Variables")
+                for variable in self.variables.values():
+                    writer.variable(**variable.to_dict())
+                writer.newline()
             writer.comment("Rules")
             for rule in self.rules.values():
-                writer.rule(**rule.to_dict(self.source_dir))
+                writer.rule(**rule.to_dict(root))
             writer.newline()
             writer.comment("Build statements")
             for build in self.builds:
-                writer.build(**build.to_dict(self.source_dir))
+                writer.build(**build.to_dict(root))
             writer.newline()
+            if len(self.defaults) > 0:
+                writer.comment('Default targets')
+                for default in self.defaults:
+                    writer.default(**default.to_dict(root))
+                writer.newline()
 
 class Builder:
-    def __init__(self, rule, implicit = None, kwargs = [], **variables):
+    def __init__(self, rule, pool = None, check_log = None, log = None, **kwargs):
         self.rule_name = rule
-        self.variables = variables
-        self.kw = kwargs
+        self.variables = kwargs
         self.is_configured = False
         self.logger = logging.getLogger(__name__)
-        self.implicit = implicit
+        self.pool = pool
+        self.check_log = check_log
+        self.log = log
     def configure(self, name, buildtool):
         self._buildtool = buildtool
         self._name = name
@@ -276,61 +269,54 @@ class Builder:
     @property
     def target_dir(self):
         return self.buildtool.target_dir
-    def __call__(self, target, source, implicit_target = None, log = None, **kwargs):
-        ## expand kwargs
-        self.logger.debug(f"kwargs: {kwargs}")
-        actual_kwargs = expand_variables(kwargs, target_dir=self.target_dir)
-        self.logger.debug(f"actual_kwargs: {actual_kwargs}")
-        ## expand variables
-        self.logger.debug(f"self.variables: {self.variables}")
-        actual_variables = expand_variables(self.variables, **actual_kwargs)
-        self.logger.debug(f"actual_variables: {actual_variables}")
-        ## expand implicit
-        actual_implicit = None
-        if self.implicit is not None:
-            self.logger.debug(f"self.implicit: {self.implicit}")
-            actual_implicit = expand_variables(dict(implicit=self.implicit), **actual_kwargs)['implicit']
-            self.logger.debug(f"actual_implicit: {actual_implicit}")
-        ## expand target
-        save_log = False
-        if target is self.buildtool.LOG_FILE:
-            save_log = True
-            target_is_log = True
-            if log is not None:
-                explicit_target = log
+    @property
+    def source_dir(self):
+        return self.buildtool.root
+    def resolve_out_path(self, namespace):
+        def resolve_path(path):
+            resolved = Path(namespace.eval(path))
+            if 'cwd' in namespace:
+                cwd = Path(namespace['cwd'].value)
+                if not cwd.is_absolute():
+                    cwd = self.target_dir/cwd
+                if cwd.name == resolved.parts[0]:
+                    resolved = Path.joinpath(*[Path(i) for i in resolved.parts[1:]])
+                if not resolved.is_absolute():
+                    resolved = cwd/resolved
             else:
-                raise ValueError("Value for target is LOG_FILE but log argument missing")
-        else:
-            target_is_log = False
-            explicit_target = target
-        source = as_list(source)
-        explicit_target = as_list(explicit_target)
-        implicit_target = as_list(implicit_target)
-        if not target_is_log and log is not None:
-            save_log = True
-            implicit_target.insert(0,log)
-        actual_target = []
-        for src,tgt in zip(source,explicit_target):
-            if callable(tgt):
-                params = inspect.signature(tgt).parameters
-                if len(params) == 2:
-                    actual_target.append(tgt(self.target_dir,Path(src)))
-                elif len(params) == 1:
-                    actual_target.append(tgt(self.target_dir))
-                else:
-                    raise ValueError("Lambda has wrong number of arguments, \
-                            signature should be lambda target_dir, input_file: \
-                            or lambda target_dir:")
-            else:
-                actual_target.append(tgt)
-        actual_implicit_target = expand_list(as_list(implicit_target),target_dir=self.target_dir)
-        if save_log:
-            if target_is_log:
-                log_file = None
-            else:
-                log_file = actual_implicit_target[0]
-            self.rule.save_log(log_file)
+                if not resolved.is_absolute():
+                    resolved = self.target_dir/resolved
+            return resolved
+        return resolve_path
+    def resolve_in_path(self, namespace):
+        def resolve_path(path):
+            if str(path).strip() == '':
+                return None
+            resolved = Path(namespace.eval(path))
+            if not resolved.is_absolute():
+                resolved = self.source_dir/resolved
+            return resolved
+        return resolve_path
+    def __call__(self, target, source, implicit_target = None, implicit_source = None, log = None, check_log = None, **kwargs):
+        namespace = Namespace.collect(self.variables,kwargs,dict(target_dir=self.target_dir,source_dir=self.source_dir))
+        variables = namespace.resolve()
+        variables = {k:v for k,v in variables.items() if k in self.rule.user_variables}
+        resolve_in_path = self.resolve_in_path(namespace)
+        resolve_out_path = self.resolve_out_path(namespace)
+        resolved_target = [resolve_out_path(t) for t in as_list(target)]
+        implicit_outputs = [resolve_out_path(t) for t in as_list(implicit_target)]
+        resolved_source = [resolve_in_path(t) for t in as_list(source)]
+        implicit = [resolve_in_path(t) for t in as_list(implicit_source)]
+        pool = self.pool
+        if log is not None:
+            log = resolve_out_path(log)
+            self.logger.debug(f'Log is implicit target: {log}')
+            self.rule.save_log(log)
+            implicit_outputs.append(log)
         self.writer.rule(self.rule)
-        self.writer.build(self.rule,actual_target,source,actual_variables,actual_implicit,actual_implicit_target)
-        return actual_target[0] if len(actual_target) == 1 else actual_target
+        self.writer.build(self.rule, resolved_target, resolved_source, variables, implicit, implicit_outputs, pool)
+        r = resolved_target + implicit_outputs
+        r = r[0] if len(r) == 1 else r
+        self.logger.debug(f'return targets: {r}')
+        return stringify(r)
 

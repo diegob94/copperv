@@ -7,12 +7,14 @@
 # Test srli instruction.
 #
 
+#define INSTRUCTION_ID 42
+#define TEST_NAME srli
+#define TEST_NAME_RET srli_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 42
 
   #-------------------------------------------------------------
   # Arithmetic tests

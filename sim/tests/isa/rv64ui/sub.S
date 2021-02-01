@@ -7,12 +7,14 @@
 # Test sub instruction.
 #
 
+#define INSTRUCTION_ID 46
+#define TEST_NAME sub
+#define TEST_NAME_RET sub_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 46
 
   #-------------------------------------------------------------
   # Arithmetic tests

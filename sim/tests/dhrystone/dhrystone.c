@@ -3,6 +3,7 @@
 #pragma GCC optimize ("no-inline")
 
 #include "dhrystone.h"
+#include <stdarg.h>
 
 #ifndef REG
 #define REG
@@ -180,6 +181,3 @@ Enumeration Enum_Par_Val;
     return (false);
 } /* Func_3 */
 
-void debug_printf(const char* str, ...)
-{
-}

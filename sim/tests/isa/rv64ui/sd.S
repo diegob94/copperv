@@ -7,12 +7,14 @@
 # Test sd instruction.
 #
 
+#define INSTRUCTION_ID 27
+#define TEST_NAME sd
+#define TEST_NAME_RET sd_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 27
 
   #-------------------------------------------------------------
   # Basic tests

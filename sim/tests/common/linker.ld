@@ -7,7 +7,7 @@ OUTPUT_FORMAT("elf32-littleriscv", "elf32-littleriscv",
 	      "elf32-littleriscv")
 OUTPUT_ARCH(riscv)
 MEMORY {
-	mem : ORIGIN = 0x00000000, LENGTH = 0x0000ffff + 1
+	mem : ORIGIN = 0x00000000, LENGTH = 0x00ffffff + 1
 }
 ENTRY(_start)
 /* SEARCH_DIR("/media/diegob/riscv/tools/riscv32-unknown-elf/lib"); */
@@ -98,10 +98,16 @@ SECTIONS
   /* Thread Local Storage sections  */
   .tdata	  :
    {
+     _tdata_begin = .;
      PROVIDE_HIDDEN (__tdata_start = .);
      *(.tdata .tdata.* .gnu.linkonce.td.*)
+     _tdata_end = .;
    }
-  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }
+  .tbss		  : { 
+     *(.tbss .tbss.* .gnu.linkonce.tb.*) 
+     *(.tcommon)
+     _tbss_end = .;
+  }
   .preinit_array    :
   {
     PROVIDE_HIDDEN (__preinit_array_start = .);

@@ -2,13 +2,7 @@
 RISCV core
 
 ## Usage
-- Install environment:
-  - conda env create -f environment.yml
-- Run ISA tests:
-  - make
-
-## To Do
-- Move all dependencies to conda?
-- OpenSTA conda package
-- take_branch X?
+- Install toolchain
+  - riscv-gnu-toolchain git:(master) ./configure --prefix $(readlink -f ~/cad/riscv/toolchain_multilib) --enable-multilib
+  - riscv-gnu-toolchain git:(master) make -j$(nproc)
 

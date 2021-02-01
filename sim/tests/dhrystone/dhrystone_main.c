@@ -11,7 +11,7 @@
 
 #include "dhrystone.h"
 
-void debug_printf(const char* str, ...);
+#define debug_printf(...) printf (__VA_ARGS__)
 
 #include "util.h"
 

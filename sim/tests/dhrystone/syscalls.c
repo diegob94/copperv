@@ -12,25 +12,16 @@
 
 #undef strcmp
 
-extern volatile uint64_t tohost;
-extern volatile uint64_t fromhost;
+#include "riscv_test.h"
+int volatile * const TEST_RESULT = T_ADDR;
+int volatile * const SIM_OUT = O_ADDR;
 
 static uintptr_t syscall(uintptr_t which, uint64_t arg0, uint64_t arg1, uint64_t arg2)
 {
-  volatile uint64_t magic_mem[8] __attribute__((aligned(64)));
-  magic_mem[0] = which;
-  magic_mem[1] = arg0;
-  magic_mem[2] = arg1;
-  magic_mem[3] = arg2;
-  __sync_synchronize();
-
-  tohost = (uintptr_t)magic_mem;
-  while (fromhost == 0)
-    ;
-  fromhost = 0;
-
-  __sync_synchronize();
-  return magic_mem[0];
+    char * buf = (char*)arg1;
+    for(int i = 0; i < arg2; i++){
+        *SIM_OUT = buf[i];
+    }
 }
 
 #define NUM_COUNTERS 2
@@ -55,7 +46,11 @@ void setStats(int enable)
 
 void __attribute__((noreturn)) tohost_exit(uintptr_t code)
 {
-  tohost = (code << 1) | 1;
+  if(code == 0) {
+    *TEST_RESULT = T_PASS;
+  } else {
+    *TEST_RESULT = T_FAIL;
+  }
   while (1);
 }
 
@@ -86,12 +81,12 @@ void __attribute__((weak)) thread_entry(int cid, int nc)
   while (cid != 0);
 }
 
-int __attribute__((weak)) main(int argc, char** argv)
-{
-  // single-threaded programs override this function.
-  printstr("Implement main(), foo!\n");
-  return -1;
-}
+//int __attribute__((weak)) main(int argc, char** argv)
+//{
+//  // single-threaded programs override this function.
+//  printstr("Implement main(), foo!\n");
+//  return -1;
+//}
 
 static void init_tls()
 {
@@ -125,8 +120,8 @@ void _init(int cid, int nc)
 #undef putchar
 int putchar(int ch)
 {
-  static __thread char buf[64] __attribute__((aligned(64)));
-  static __thread int buflen = 0;
+  static char buf[64] __attribute__((aligned(64)));
+  static int buflen = 0;
 
   buf[buflen++] = ch;
 

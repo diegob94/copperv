@@ -7,12 +7,14 @@
 # Test andi instruction.
 #
 
+#define INSTRUCTION_ID 4
+#define TEST_NAME andi
+#define TEST_NAME_RET andi_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 4
 
   #-------------------------------------------------------------
   # Logical tests

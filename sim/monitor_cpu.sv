@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
 `include "testbench_h.v"
 `include "copperv_h.v"
+`define dump_yaml(A) $fwrite(f,"- {%s}\n",$sformatf A)
 
 module  monitor_cpu (
     input clk,
@@ -8,7 +9,27 @@ module  monitor_cpu (
 );
 `include "monitor_utils_h.v"
 `include "reg_name_h.v"
+integer f;
+initial begin
+    f = $fopen("bus_transactions.yaml","w");
+end
+task finish_sim;
+begin
+    $fclose(f);
+end
+endtask
 reg [`INST_WIDTH-1:0] raddr_queue[$];
+integer ir_id;
+integer dr_id;
+integer dw_id;
+reg [`INST_WIDTH-1:0] ir_id_queue[$];
+reg [`INST_WIDTH-1:0] dr_id_queue[$];
+reg [`INST_WIDTH-1:0] dw_id_queue[$];
+initial begin
+    ir_id = 0;
+    dr_id = 0;
+    dw_id = 0;
+end
 always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.ir_addr_valid && `CPU_INST.ir_addr_ready) begin
@@ -30,21 +51,38 @@ always @(posedge clk) begin
             $write(" inst_type 0x%01X/%0s", `CPU_INST.idec.inst_type, inst_type(`CPU_INST.idec.inst_type));
             $write("\n");
         end
-        if(`CPU_INST.ir_data_valid && `CPU_INST.ir_data_ready)
-            $display($time, ": BUS: ir_data   : 0x%08X", `CPU_INST.ir_data);
-        if(`CPU_INST.ir_addr_valid && `CPU_INST.ir_addr_ready)
+        if(`CPU_INST.ir_addr_valid && `CPU_INST.ir_addr_ready) begin
             $display($time, ": BUS: ir_addr   : 0x%08X", `CPU_INST.ir_addr);
-        if(`CPU_INST.dr_data_valid && `CPU_INST.dr_data_ready)
-            $display($time, ": BUS: dr_data   : 0x%08X", `CPU_INST.dr_data);
-        if(`CPU_INST.dr_addr_valid && `CPU_INST.dr_addr_ready)
+            `dump_yaml(("sim_time: %0d,bus: ir,id: %0d,addr: %0d",$time,ir_id,`CPU_INST.ir_addr));
+            ir_id_queue.push_front(ir_id);
+            ir_id = ir_id + 1;
+        end
+        if(`CPU_INST.ir_data_valid && `CPU_INST.ir_data_ready) begin
+            $display($time, ": BUS: ir_data   : 0x%08X", `CPU_INST.ir_data);
+            `dump_yaml(("sim_time: %0d,bus: ir,id: %0d,data: %0d",$time,ir_id_queue.pop_back(),`CPU_INST.ir_data));
+        end
+        if(`CPU_INST.dr_addr_valid && `CPU_INST.dr_addr_ready) begin
             $display($time, ": BUS: dr_addr   : 0x%08X", `CPU_INST.dr_addr);
+            `dump_yaml(("sim_time: %0d,bus: dr,id: %0d,addr: %0d",$time,dr_id,`CPU_INST.dr_addr));
+            dr_id_queue.push_front(dr_id);
+            dr_id = dr_id + 1;
+        end
+        if(`CPU_INST.dr_data_valid && `CPU_INST.dr_data_ready) begin
+            $display($time, ": BUS: dr_data   : 0x%08X", `CPU_INST.dr_data);
+            `dump_yaml(("sim_time: %0d,bus: dr,id: %0d,data: %0d",$time,dr_id_queue.pop_back(),`CPU_INST.dr_data));
+        end
         if(`CPU_INST.dw_data_addr_valid && `CPU_INST.dw_data_addr_ready) begin
             $display($time, ": BUS: dw_data   : 0x%08X", `CPU_INST.dw_data);
             $display($time, ": BUS: dw_addr   : 0x%08X", `CPU_INST.dw_addr);
             $display($time, ": BUS: dw_strobe : 0x%08X", `CPU_INST.dw_strobe);
+            `dump_yaml(("sim_time: %0d,bus: dw,id: %0d,data: %0d,addr: %0d,strobe: %0d",$time,dw_id,`CPU_INST.dw_data,`CPU_INST.dw_addr,`CPU_INST.dw_strobe));
+            dw_id_queue.push_front(dw_id);
+            dw_id = dw_id + 1;
         end
-        if(`CPU_INST.dw_resp_valid && `CPU_INST.dw_resp_ready)
+        if(`CPU_INST.dw_resp_valid && `CPU_INST.dw_resp_ready) begin
             $display($time, ": BUS: dw_resp   : 0x%08X", `CPU_INST.dw_resp);
+            `dump_yaml(("sim_time: %0d,bus: dw,id: %0d,resp: %0d",$time,dw_id_queue.pop_back(),`CPU_INST.dw_resp));
+        end
     end
 end
 always @(posedge clk) begin

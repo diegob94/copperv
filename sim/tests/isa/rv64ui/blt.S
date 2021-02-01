@@ -7,12 +7,14 @@
 # Test blt instruction.
 #
 
+#define INSTRUCTION_ID 10
+#define TEST_NAME blt
+#define TEST_NAME_RET blt_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 10
 
   #-------------------------------------------------------------
   # Branch tests

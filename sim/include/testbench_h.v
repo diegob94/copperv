@@ -3,4 +3,4 @@
 `define TRUE                1
 `define FALSE               0
 `define CPU_INST            tb.dut
-`define FAKE_MEM_ADDR_WIDTH 16
+`define FAKE_MEM_ADDR_WIDTH 24
