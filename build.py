@@ -73,6 +73,7 @@ tools_vpi = buildtool.vpi(
     target = lambda target_dir: target_dir/sim_dir/'copperv_tools.vpi',
     source = buildtool.root/'sim/copperv_tools.c',
     cwd = lambda target_dir: target_dir/sim_dir,
+    implicit_target = lambda target_dir: target_dir/sim_dir/'copperv_tools.o',
 )
 vvp = buildtool.sim_compile(
     target = lambda target_dir: target_dir/sim_dir/'sim.vvp',
@@ -90,6 +91,7 @@ sim_run = buildtool.sim_run(
     cwd = lambda target_dir: target_dir/sim_dir,
     hex_file = test_hex,
     diss_file = test_diss,
+    implicit_target = lambda target_dir: [target_dir/sim_dir/name for name in ['fake_uart.log','tb.vcd']]
 )
 buildtool.check_sim(
     target = 'all',
