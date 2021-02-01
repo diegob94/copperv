@@ -100,8 +100,12 @@ checker_cpu chk(
 );
 `endif
 integer f;
+`STRING vcd_file;
 initial begin
-    $dumpfile("tb.vcd");
+    if (!$value$plusargs("VCD_FILE=%s", vcd_file)) begin
+        vcd_file = "tb.vcd";
+    end
+    $dumpfile(vcd_file);
     $dumpvars(0, tb);
     f = $fopen("fake_uart.log","w");
 end
