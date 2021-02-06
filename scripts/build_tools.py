@@ -8,7 +8,7 @@ import dataclasses
 import logging
 from string import Template
 
-import ninja
+import scripts.ninja_syntax as ninja
 
 @enum.unique
 class InternalTarget(enum.Enum):
