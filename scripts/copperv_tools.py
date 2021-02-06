@@ -68,7 +68,12 @@ def sim_rules(buildtool):
         variables = ['cwd'],
     )
     buildtool.rules['check_sim'] = Rule(
-        command = 'grep -q "TEST PASSED" $in > $out',
+        command = 'grep -q "TEST PASSED" $in',
+        no_output = True,
+    )
+    buildtool.rules['show_stdout'] = Rule(
+        command = 'cat $in | sed "s/^/sim_stdout> /"',
+        no_output = True,
     )
 
 def sim_builders(buildtool):
@@ -100,6 +105,9 @@ def sim_builders(buildtool):
     buildtool.builders['check_sim'] = Builder(
         rule = 'check_sim',
     )
+    buildtool.builders['show_stdout'] = Builder(
+        rule = 'show_stdout',
+    )
 
 buildtool = BuildTool(
     rules=[c_rules,sim_rules],
@@ -113,6 +121,7 @@ class Test:
     name: str
     source: list
     inc_dir: list = dataclasses.field(default_factory=list)
+    show_stdout: bool = False
 
 tests = dict(
     simple = Test(
@@ -128,5 +137,15 @@ tests = dict(
             test_root/'common',
             test_root/'isa'
         ],
+    ),
+    hello_world = Test(
+        name = 'hello_world',
+        source = [test_root/'common/c/crt0.S']
+            + list((test_root/'hello_world').glob('*.c')),
+        inc_dir = [
+            test_root/'common',
+            test_root/'common/c',
+        ],
+        show_stdout = True,
     ),
 )

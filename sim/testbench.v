@@ -99,7 +99,7 @@ checker_cpu chk(
     .reset(rst)
 );
 `endif
-integer f;
+integer fake_uart_fp;
 `STRING vcd_file;
 initial begin
     if (!$value$plusargs("VCD_FILE=%s", vcd_file)) begin
@@ -107,7 +107,7 @@ initial begin
     end
     $dumpfile(vcd_file);
     $dumpvars(0, tb);
-    f = $fopen("fake_uart.log","w");
+    fake_uart_fp = $fopen("fake_uart.log","w");
 end
 always @(posedge clk)
     if(dw_data_addr_valid && dw_data_addr_ready) begin
@@ -119,7 +119,7 @@ always @(posedge clk)
                     default: test_failed;
                 endcase
             end
-            32'h8004: $fwrite(f, "%c", dw_data[7:0]);
+            32'h8004: $fwrite(fake_uart_fp, "%c", dw_data[7:0]);
         endcase
     end
 
@@ -139,8 +139,8 @@ end
 endtask
 task finish_sim;
 begin
-    $fwrite(f, "\n");
-    $fclose(f);  
+    $fwrite(fake_uart_fp, "\n# copperv testbench finished\n");
+    $fclose(fake_uart_fp);  
     $finish;
 end
 endtask

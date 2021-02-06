@@ -8,6 +8,8 @@ from scripts.copperv_tools import buildtool, tests
 parser = argparse.ArgumentParser(description='Build Copperv core')
 parser.add_argument('-d','--debug',dest='debug',action='store_true',
         help='Enable debug output')
+parser.add_argument('-t','--test',dest='test',default='rv32ui',
+        help=f'CPU test to run. Defaults to rv32ui test suite, available tests: {", ".join(tests.keys())}')
 
 args = parser.parse_args()
 
@@ -29,18 +31,17 @@ def which_lambda(value):
 import builtins
 builtins.which_lambda = which_lambda
 
-#test = tests['simple']
-test = tests['rv32ui']
+test = tests[args.test]
 test_dir = 'test_' + test.name
 test_objs = []
 for test_source in test.source:
     test_objs.append(buildtool.test_object(
-        target = lambda target_dir, input_file: target_dir/test_dir/input_file.with_suffix('.o').name,
+        target = lambda target_dir: target_dir/test_dir/test_source.with_suffix('.o').name,
         source = test_source,
         inc_dir = test.inc_dir,
     ))
     buildtool.test_preprocess(
-        target = lambda target_dir, input_file: target_dir/test_dir/input_file.with_suffix('.E').name,
+        target = lambda target_dir: target_dir/test_dir/test_source.with_suffix('.E').name,
         source = test_source,
         inc_dir = test.inc_dir,
     )
@@ -85,18 +86,23 @@ vvp = buildtool.sim_compile(
     tools_vpi = tools_vpi,
     inc_dir = [rtl_inc_dir, sim_inc_dir],
 )
-sim_run = buildtool.sim_run(
-    target = buildtool.LOG_FILE,
+sim_run, fake_uart = buildtool.sim_run(
+    target = [buildtool.LOG_FILE, lambda target_dir: target_dir/sim_dir/'fake_uart.log'],
     source = vvp,
     log = lambda target_dir: target_dir/log_dir/f'sim_run_{test.name}.log',
     cwd = lambda target_dir: target_dir/sim_dir,
     hex_file = test_hex,
     diss_file = test_diss,
-    implicit_target = lambda target_dir: [target_dir/sim_dir/name for name in ['fake_uart.log','tb.vcd']]
+    implicit_target = lambda target_dir: target_dir/sim_dir/'tb.vcd',
 )
 buildtool.check_sim(
-    target = 'all',
+    target = 'check_sim',
     source = sim_run,
 )
+if test.show_stdout:
+    buildtool.show_stdout(
+        target = 'show_stdout',
+        source = fake_uart,
+    )
 
 buildtool.run()

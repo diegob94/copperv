@@ -117,16 +117,16 @@ def flatten(x):
     return r
 
 class Rule:
-    def __init__(self, command, depfile = None, variables = {}, log = None, log_is_target = False):
+    def __init__(self, command, depfile = None, variables = {}, log = None, no_output = False):
         self.depfile = depfile
         self.variables = variables
         self.is_configured = False
         self.log = log
+        self.command = command
+        if no_output:
+            self.command = f'{self.command}; date > $out'
         if self.log is not None:
-            self.command = f'{command} 2>&1 | tee {self.log}'
-        else:
-            self.command = command
-        self.log_is_target = log_is_target
+            self.command = f'{self.command} 2>&1 | tee {self.log}'
     def configure(self, name):
         self._name = name
         self.is_configured = True
@@ -292,45 +292,41 @@ class Builder:
             actual_implicit = expand_variables(dict(implicit=self.implicit), **actual_kwargs)['implicit']
             self.logger.debug(f"actual_implicit: {actual_implicit}")
         ## expand target
-        save_log = False
-        if target is self.buildtool.LOG_FILE:
-            save_log = True
-            target_is_log = True
-            if log is not None:
-                explicit_target = log
-            else:
-                raise ValueError("Value for target is LOG_FILE but log argument missing")
-        else:
-            target_is_log = False
-            explicit_target = target
         source = as_list(source)
-        explicit_target = as_list(explicit_target)
+        log_in_target = False
+        save_log = False
+        explicit_target = []
+        log_index = 0
+        for index,tgt in enumerate(as_list(target)):
+            if tgt is self.buildtool.LOG_FILE:
+                save_log = True
+                log_in_target = True
+                if log is not None:
+                    temp_tgt = log
+                    log_index = index
+                else:
+                    raise ValueError("Value for target is LOG_FILE but log argument missing")
+            else:
+                temp_tgt = tgt
+            if callable(temp_tgt):
+                new = temp_tgt(self.target_dir)
+            else:
+                new = temp_tgt
+            explicit_target.append(new)
         implicit_target = as_list(implicit_target)
-        if not target_is_log and log is not None:
+        if not save_log and log is not None:
             save_log = True
             implicit_target.insert(0,log)
-        actual_target = []
-        for src,tgt in zip(source,explicit_target):
-            if callable(tgt):
-                params = inspect.signature(tgt).parameters
-                if len(params) == 2:
-                    actual_target.append(tgt(self.target_dir,Path(src)))
-                elif len(params) == 1:
-                    actual_target.append(tgt(self.target_dir))
-                else:
-                    raise ValueError("Lambda has wrong number of arguments, \
-                            signature should be lambda target_dir, input_file: \
-                            or lambda target_dir:")
-            else:
-                actual_target.append(tgt)
         actual_implicit_target = expand_list(as_list(implicit_target),target_dir=self.target_dir)
         if save_log:
-            if target_is_log:
-                log_file = None
+            if log_in_target:
+                log_file = explicit_target[log_index]
             else:
                 log_file = actual_implicit_target[0]
             self.rule.save_log(log_file)
         self.writer.rule(self.rule)
-        self.writer.build(self.rule,actual_target,source,actual_variables,actual_implicit,actual_implicit_target)
-        return actual_target[0] if len(actual_target) == 1 else actual_target
+        self.writer.build(self.rule,explicit_target,source,actual_variables,actual_implicit,actual_implicit_target)
+        r = explicit_target[0] if len(explicit_target) == 1 else explicit_target
+        self.logger.debug(f'return targets: {r}')
+        return r
 
