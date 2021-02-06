@@ -86,7 +86,7 @@ vvp = buildtool.sim_compile(
     tools_vpi = tools_vpi,
     inc_dir = [rtl_inc_dir, sim_inc_dir],
 )
-sim_run, fake_uart = buildtool.sim_run(
+sim_run_log, fake_uart = buildtool.sim_run(
     target = [buildtool.LOG_FILE, lambda target_dir: target_dir/sim_dir/'fake_uart.log'],
     source = vvp,
     log = lambda target_dir: target_dir/log_dir/f'sim_run_{test.name}.log',
@@ -97,7 +97,7 @@ sim_run, fake_uart = buildtool.sim_run(
 )
 buildtool.check_sim(
     target = 'check_sim',
-    source = sim_run,
+    source = sim_run_log,
 )
 if test.show_stdout:
     buildtool.show_stdout(
