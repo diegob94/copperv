@@ -148,4 +148,15 @@ tests = dict(
         ],
         show_stdout = True,
     ),
+    dhrystone = Test(
+        name = 'dhrystone',
+        source = [test_root/'common/c/crt0.S']
+            + list((test_root/'dhrystone').glob('*.c')),
+        inc_dir = [
+            test_root/'common',
+            test_root/'common/c',
+            test_root/'dhrystone',
+        ],
+        show_stdout = True,
+    ),
 )
