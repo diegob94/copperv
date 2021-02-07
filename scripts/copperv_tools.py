@@ -75,6 +75,11 @@ def sim_rules(buildtool):
         command = 'cat $in | sed "s/^/sim_stdout> /"',
         no_output = True,
     )
+    buildtool.rules['gtkwave'] = Rule(
+        command = "gtkwave --rcvar 'splash_disable on' -A -a $cwd/sim.gtkw $in",
+        variables = ['cwd'],
+        pool = 'console',
+    )
 
 def sim_builders(buildtool):
     buildtool.builders['sim_run'] = Builder(
@@ -107,6 +112,10 @@ def sim_builders(buildtool):
     )
     buildtool.builders['show_stdout'] = Builder(
         rule = 'show_stdout',
+    )
+    buildtool.builders['gtkwave'] = Builder(
+        rule = 'gtkwave',
+        cwd = lambda **kwargs: kwargs['cwd'],
     )
 
 buildtool = BuildTool(

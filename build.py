@@ -10,6 +10,8 @@ parser.add_argument('-d','--debug',dest='debug',action='store_true',
         help='Enable debug output')
 parser.add_argument('-t','--test',dest='test',default='rv32ui',
         help=f'CPU test to run. Defaults to rv32ui test suite, available tests: {", ".join(tests.keys())}')
+parser.add_argument('target',nargs='?',default=None,
+        help=f'Target to build')
 
 args = parser.parse_args()
 
@@ -86,23 +88,39 @@ vvp = buildtool.sim_compile(
     tools_vpi = tools_vpi,
     inc_dir = [rtl_inc_dir, sim_inc_dir],
 )
-sim_run_log, fake_uart = buildtool.sim_run(
-    target = [buildtool.LOG_FILE, lambda target_dir: target_dir/sim_dir/'fake_uart.log'],
+sim_run_log, fake_uart, vcd_file = buildtool.sim_run(
+    target = [
+        buildtool.LOG_FILE,
+        lambda target_dir: target_dir/sim_dir/'fake_uart.log',
+        lambda target_dir: target_dir/sim_dir/'tb.vcd',
+    ],
     source = vvp,
     log = lambda target_dir: target_dir/log_dir/f'sim_run_{test.name}.log',
     cwd = lambda target_dir: target_dir/sim_dir,
     hex_file = test_hex,
     diss_file = test_diss,
-    implicit_target = lambda target_dir: target_dir/sim_dir/'tb.vcd',
 )
 buildtool.check_sim(
     target = 'check_sim',
     source = sim_run_log,
 )
+default_target = ['check_sim']
+
 if test.show_stdout:
     buildtool.show_stdout(
         target = 'show_stdout',
         source = fake_uart,
     )
+    default_target.append('show_stdout')
 
-buildtool.run()
+buildtool.gtkwave(
+    target = 'gtkwave',
+    source = vcd_file,
+    cwd = lambda target_dir: target_dir/sim_dir,
+)
+
+buildtool.run(
+    default_target = default_target,
+    target = args.target
+)
+
