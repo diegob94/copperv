@@ -45,6 +45,10 @@ for test_source in test.source:
         source = test_source,
         inc_dir = test.inc_dir,
     )
+    buildtool.test_dissassemble(
+        target = lambda target_dir: target_dir/test_dir/('obj_'+test_source.with_suffix('.D').name),
+        source = test_objs[-1],
+    )
 test_elf = buildtool.test_link(
     target = lambda target_dir: target_dir/test_dir/f'{test.name}.elf',
     source = test_objs,

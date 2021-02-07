@@ -243,5 +243,7 @@ SECTIONS
   .debug_addr     0 : { *(.debug_addr) }
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }
   /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
+  /* Dhrystone syscall */
+  .syscall 0xC000 : {KEEP(*(.syscall))}
 }
 

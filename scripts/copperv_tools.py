@@ -29,6 +29,7 @@ def test_builders(buildtool):
     buildtool.builders['test_object'] = Builder(
         rule = 'object',
         cc = 'riscv64-unknown-elf-gcc',
+        #cflags = lambda inc_dir: ['-march=rv32i','-mabi=ilp32','--enable-multilib'] + [f' -I{i}' for i in inc_dir],
         cflags = lambda inc_dir: ['-march=rv32i','-mabi=ilp32'] + [f' -I{i}' for i in inc_dir],
         kwargs = ['inc_dir'],
     )
