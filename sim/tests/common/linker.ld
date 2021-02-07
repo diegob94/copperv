@@ -98,10 +98,16 @@ SECTIONS
   /* Thread Local Storage sections  */
   .tdata	  :
    {
+     _tdata_begin = .;
      PROVIDE_HIDDEN (__tdata_start = .);
      *(.tdata .tdata.* .gnu.linkonce.td.*)
+     _tdata_end = .;
    }
-  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }
+  .tbss		  : { 
+     *(.tbss .tbss.* .gnu.linkonce.tb.*) 
+     *(.tcommon)
+     _tbss_end = .;
+  }
   .preinit_array    :
   {
     PROVIDE_HIDDEN (__preinit_array_start = .);
