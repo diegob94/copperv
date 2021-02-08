@@ -3,7 +3,7 @@
 `include "copperv_h.v"
 
 module tb();
-parameter timeout = `PERIOD*10000;
+parameter timeout = `PERIOD*1000000;
 // copperv inputs
 reg clk;
 reg rst;
@@ -109,7 +109,14 @@ initial begin
     $dumpvars(0, tb);
     fake_uart_fp = $fopen("fake_uart.log","w");
 end
-always @(posedge clk)
+
+// Copperv fake IO
+reg syscall_flag;
+initial begin
+    syscall_flag = 0;
+end
+always @(posedge clk) begin
+    // Copperv output
     if(dw_data_addr_valid && dw_data_addr_ready) begin
         case (dw_addr)
             32'h8000: begin
@@ -120,8 +127,31 @@ always @(posedge clk)
                 endcase
             end
             32'h8004: $fwrite(fake_uart_fp, "%c", dw_data[7:0]);
+            32'hC000,32'hC004,32'hC008,32'hC00C: begin
+                $display($time,": SYSCALL_OUT: data 0x%X address 0x%X",dw_data,dw_addr);
+            end
         endcase
     end
+    // Copperv input
+    if(dr_data_valid && dr_data_ready && syscall_flag) begin
+        $display($time,": SYSCALL_IN: data 0x%X",dr_data);
+    end
+    if(syscall_flag) begin
+        release dr_data;
+        release dr_data_valid;
+        syscall_flag = 0;
+    end
+    if(dr_addr_valid && dr_addr_ready) begin
+        case (dr_addr)
+            32'hC040: begin
+                $display($time,": SYSCALL_IN: address 0x%X",dr_addr);
+                syscall_flag = 1;
+                force dr_data = 1;
+                force dr_data_valid = 1;
+            end
+        endcase
+    end
+end
 
 task test_passed;
 begin
