@@ -42,11 +42,11 @@ class BuildTool:
         if key != 'builders' and key in self.builders:
             return self.builders[key]
         return self.__getattribute__(key)
-    def run(self, default_target = None, target = None):
+    def run(self, default_target = None, ninja_opts = None):
         self.writer.default(default_target)
         cmd = self.writer.command
-        if target is not None:
-            cmd = f'{cmd} {target}'
+        if ninja_opts is not None:
+            cmd = f'{cmd} {ninja_opts}'
         self.write_script()
         try:
             print(cmd)
@@ -129,9 +129,9 @@ class Rule:
         self.log = log
         self.command = command
         if no_output:
-            self.command = f'{self.command}; date > $out'
+            self.append_to_command('; date > $out')
         if self.log is not None:
-            self.command = f'{self.command} 2>&1 | tee {self.log}'
+            self.save_log(self.log)
         self.pool = pool
     def configure(self, name):
         self._name = name
@@ -149,7 +149,8 @@ class Rule:
     def save_log(self,log_file=None):
         if log_file is None:
             log_file = '$out'
-        self.append_to_command(f' 2>&1 | tee {log_file}')
+        self.log = log_file
+        self.append_to_command(f' 2>&1 | tee {self.log}')
 
 class WriterParams:
     def replace_root(self,d,root):
@@ -237,7 +238,7 @@ class Writer:
         self.variables[name] = new
     def default(self, paths):
         new = DefaultParams(
-            paths = paths,
+            paths = stringify(paths),
         )
         self.logger.debug(f"new default: {new}")
         self.defaults.append(new)
@@ -273,7 +274,7 @@ class NinjaWriter(Writer):
                 writer.newline()
 
 class Builder:
-    def __init__(self, rule, implicit = None, pool = None, kwargs = [], **variables):
+    def __init__(self, rule, implicit = None, pool = None, kwargs = [], check_log = None, log = None, **variables):
         self.rule_name = rule
         self.variables = variables
         self.kw = kwargs
@@ -281,6 +282,8 @@ class Builder:
         self.logger = logging.getLogger(__name__)
         self.implicit = implicit
         self.pool = pool
+        self.check_log = check_log
+        self.log = log
     def configure(self, name, buildtool):
         self._buildtool = buildtool
         self._name = name
@@ -304,7 +307,7 @@ class Builder:
     @property
     def target_dir(self):
         return self.buildtool.target_dir
-    def __call__(self, target, source, implicit_target = None, log = None, **kwargs):
+    def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
         ## expand kwargs
         self.logger.debug(f"kwargs: {kwargs}")
         actual_kwargs = expand_variables(kwargs, target_dir=self.target_dir)
@@ -325,15 +328,17 @@ class Builder:
         save_log = False
         explicit_target = []
         log_index = 0
+        if log is not None:
+            self.log = log
         for index,tgt in enumerate(as_list(target)):
             if tgt is self.buildtool.LOG_FILE:
                 save_log = True
                 log_in_target = True
-                if log is not None:
-                    temp_tgt = log
+                if self.log is not None:
+                    temp_tgt = self.log
                     log_index = index
                 else:
-                    raise ValueError("Value for target is LOG_FILE but log argument missing")
+                    raise ValueError("Target is LOG_FILE but log argument missing")
             else:
                 temp_tgt = tgt
             if callable(temp_tgt):
@@ -342,9 +347,9 @@ class Builder:
                 new = temp_tgt
             explicit_target.append(new)
         implicit_target = as_list(implicit_target)
-        if not save_log and log is not None:
+        if not save_log and self.log is not None:
             save_log = True
-            implicit_target.insert(0,log)
+            implicit_target.insert(0,self.log)
         actual_implicit_target = expand_list(as_list(implicit_target),target_dir=self.target_dir)
         if save_log:
             if log_in_target:
@@ -352,6 +357,11 @@ class Builder:
             else:
                 log_file = actual_implicit_target[0]
             self.rule.save_log(log_file)
+            actual_variables['log'] = self.rule.log
+        if check_log is not None:
+            self.check_log = check_log
+        if self.check_log is not None:
+            self.rule.append_to_command(f'; {self.check_log}')
         self.writer.rule(self.rule)
         self.writer.build(self.rule,explicit_target,source,actual_variables,actual_implicit,actual_implicit_target,self.pool)
         r = explicit_target[0] if len(explicit_target) == 1 else explicit_target

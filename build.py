@@ -2,6 +2,22 @@
 import sys
 import logging
 import argparse
+import os
+
+# unbuffered output
+class Unbuffered:
+   def __init__(self, stream):
+       self.stream = stream
+   def write(self, data):
+       self.stream.write(data)
+       self.stream.flush()
+   def writelines(self, datas):
+       self.stream.writelines(datas)
+       self.stream.flush()
+   def __getattr__(self, attr):
+       return getattr(self.stream, attr)
+
+sys.stdout = Unbuffered(sys.stdout)
 
 from scripts.copperv_tools import buildtool, tests
 
@@ -10,8 +26,9 @@ parser.add_argument('-d','--debug',dest='debug',action='store_true',
         help='Enable debug output')
 parser.add_argument('-t','--test',dest='test',default='rv32ui',
         help=f'CPU test to run. Defaults to rv32ui test suite, available tests: {", ".join(tests.keys())}')
-parser.add_argument('target',nargs='?',default=None,
-        help=f'Target to build')
+parser.add_argument('--ninja_opts',default=None,help=f'Options for ninja')
+parser.add_argument('--gtkwave',dest='gtkwave',action='store_true',
+        help='Open VCD in gtkwave')
 
 args = parser.parse_args()
 
@@ -104,27 +121,21 @@ sim_run_log, fake_uart, vcd_file = buildtool.sim_run(
     hex_file = test_hex,
     diss_file = test_diss,
 )
-buildtool.check_sim(
-    target = 'check_sim',
-    source = sim_run_log,
-)
-default_target = ['check_sim']
 
 if test.show_stdout:
     buildtool.show_stdout(
         target = 'show_stdout',
         source = fake_uart,
     )
-    default_target.append('show_stdout')
 
-buildtool.gtkwave(
-    target = 'gtkwave',
-    source = vcd_file,
-    cwd = lambda target_dir: target_dir/sim_dir,
-)
+if args.gtkwave:
+    buildtool.gtkwave(
+        target = 'gtkwave',
+        source = vcd_file,
+        cwd = lambda target_dir: target_dir/sim_dir,
+    )
 
 buildtool.run(
-    default_target = default_target,
-    target = args.target
+    ninja_opts = args.ninja_opts,
 )
 

@@ -60,18 +60,15 @@ def sim_rules(buildtool):
     buildtool.rules['vvp'] = Rule(
         command = 'cd $cwd && vvp $vvpflags $in $plusargs',
         variables = ['cwd','vvpflags','plusargs'],
+        pool = 'console',
     )
     buildtool.rules['iverilog'] = Rule(
-        command = 'cd $cwd && iverilog $iverilogflags $in -o $out',
+        command = "cd $cwd && iverilog $iverilogflags $in -o $out",
         variables = ['cwd','iverilogflags'],
     )
     buildtool.rules['vpi'] = Rule(
         command = 'cd $cwd; iverilog-vpi $in',
         variables = ['cwd'],
-    )
-    buildtool.rules['check_sim'] = Rule(
-        command = 'grep -q "TEST PASSED" $in',
-        no_output = True,
     )
     buildtool.rules['show_stdout'] = Rule(
         command = 'cat $in | sed "s/^/sim_stdout> /"',
@@ -94,6 +91,7 @@ def sim_builders(buildtool):
             lambda **kwargs: kwargs['hex_file'], # -> list
             lambda **kwargs: kwargs['diss_file'],
         ],
+        check_log = 'grep -q "TEST PASSED" $log',
     )
     buildtool.builders['sim_compile'] = Builder(
         rule = 'iverilog',
@@ -104,13 +102,11 @@ def sim_builders(buildtool):
             lambda **kwargs: kwargs['header_files'],
             lambda **kwargs: kwargs['tools_vpi'],
         ],
+        check_log = '! grep -q error $log',
     )
     buildtool.builders['vpi'] = Builder(
         rule = 'vpi',
         cwd = lambda **kwargs: kwargs['cwd'],
-    )
-    buildtool.builders['check_sim'] = Builder(
-        rule = 'check_sim',
     )
     buildtool.builders['show_stdout'] = Builder(
         rule = 'show_stdout',
