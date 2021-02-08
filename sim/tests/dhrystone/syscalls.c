@@ -22,14 +22,12 @@ static uintptr_t syscall(uintptr_t which, uint64_t arg0, uint64_t arg1, uint64_t
   magic_mem[1] = arg0;
   magic_mem[2] = arg1;
   magic_mem[3] = arg2;
-//  __sync_synchronize();
 
   tohost = (uintptr_t)magic_mem;
   while (fromhost == 0)
     ;
   fromhost = 0;
 
-//  __sync_synchronize();
   return magic_mem[0];
 }
 
@@ -125,8 +123,8 @@ void _init(int cid, int nc)
 #undef putchar
 int putchar(int ch)
 {
-  static __thread char buf[64] __attribute__((aligned(64)));
-  static __thread int buflen = 0;
+  static char buf[64] __attribute__((aligned(64)));
+  static int buflen = 0;
 
   buf[buflen++] = ch;
 
