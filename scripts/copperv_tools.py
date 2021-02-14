@@ -27,6 +27,7 @@ def c_rules(buildtool):
 
 def test_builders(buildtool):
     toolchain = '/home/diegob/cad/riscv/toolchain_multilib/bin/riscv64-unknown-elf-'
+    #cflags = ['-g','-march=rv32i','-mabi=ilp32']
     cflags = ['-march=rv32i','-mabi=ilp32']
     buildtool.builders['test_object'] = Builder(
         rule = 'object',
@@ -45,6 +46,7 @@ def test_builders(buildtool):
         rule = 'link',
         cc = toolchain + 'gcc',
         linkflags = cflags + [f'-Wl,-T,{linker_script},--strip-debug,-Bstatic','-nostartfiles','-ffreestanding'],
+        #linkflags = cflags + [f'-Wl,-T,{linker_script},-Bstatic','-nostartfiles','-ffreestanding'],
     )
     dev_utils = buildtool.root/'scripts/dev_utils.py'
     buildtool.builders['test_verilog_hex'] = Builder(

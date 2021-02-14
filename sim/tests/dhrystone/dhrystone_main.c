@@ -60,9 +60,6 @@ int main (int argc, char** argv)
   /* main program, corresponds to procedures        */
   /* Main and Proc_0 in the Ada version             */
 {
-  putchar('\n');
-*TEST_RESULT = T_PASS;
-  return 1;
         One_Fifty       Int_1_Loc;
   REG   One_Fifty       Int_2_Loc;
         One_Fifty       Int_3_Loc;
@@ -97,6 +94,7 @@ int main (int argc, char** argv)
 
   debug_printf("\n");
   debug_printf("Dhrystone Benchmark, Version %s\n", Version);
+*TEST_RESULT = T_PASS;
   if (Reg)
   {
     debug_printf("Program compiled with 'register' attribute\n");
