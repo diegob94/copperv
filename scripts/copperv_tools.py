@@ -21,8 +21,8 @@ def c_rules(buildtool):
         variables = ['objcopy'],
     )
     buildtool.rules['dissassemble'] = Rule(
-        command = '$monitor_utils dissassemble $in -o $out -objdump $objdump',
-        variables = ['monitor_utils','objdump'],
+        command = '$dev_utils dissassemble $in -o $out -objdump $objdump',
+        variables = ['dev_utils','objdump'],
     )
 
 def test_builders(buildtool):
@@ -52,7 +52,7 @@ def test_builders(buildtool):
     )
     buildtool.builders['test_dissassemble'] = Builder(
         rule = 'dissassemble',
-        monitor_utils = buildtool.root/'scripts/monitor_utils.py',
+        dev_utils = buildtool.root/'scripts/dev_utils.py',
         objdump = toolchain + 'objdump',
     )
 
