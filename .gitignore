@@ -6,4 +6,9 @@ __pycache__/
 *.vcd
 *.o
 *.o.d
+*.bin
+*.hex
+*.D
+*.map
+*.debug_hex
 
