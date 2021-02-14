@@ -188,18 +188,22 @@ class Memory:
 
 readelf_regex = re.compile(r'\[\s*(\d+)]\s+(\.[\w.]+)?\s+(\w+)\s+([\da-f]+)\s+([\da-f]+)\s+([\da-f]+)\s+(\d+)\s+([A-Z]+)?\s+(\d+)\s+(\d+)\s+(\d+)')
 
+def parse_readelf(text):
+    table = []
+    for line in text.splitlines():
+        m = readelf_regex.search(line)
+        if m:
+            table.append(m.groups())
+    return table
+
 def generate_hex_file(hex_file: Path,elf_file: Path,objcopy,readelf,v_hex_file):
     run = Run('generate_hex_file')
     if elf_file is not None:
         v_hex_file = hex_file.with_suffix('.v_hex')
         run(f'{objcopy} -O verilog {elf_file} {v_hex_file}')
-        sections = run(f'{readelf} -S {elf_file}')
-        table = []
-        for line in sections.splitlines():
-            m = readelf_regex.search(line)
-            if m:
-                table.append(m.groups())
-        init_zeros = [{'name':line[1],'addr':int(line[3],16),'size':int(line[5],16)} for line in table if 'NOBITS' in line]
+        readelf_output = run(f'{readelf} -S {elf_file}')
+        section_table = parse_readelf(readelf_output)
+        init_zeros = [{'name':line[1],'addr':int(line[3],16),'size':int(line[5],16)} for line in section_table if 'NOBITS' in line]
     else:
         init_zeros = []
     mem = Memory(v_hex_file)
