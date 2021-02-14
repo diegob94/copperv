@@ -17,8 +17,8 @@ def c_rules(buildtool):
         variables = ['cc','linkflags'],
     )
     buildtool.rules['verilog_hex'] = Rule(
-        command = '$objcopy -O verilog $in $out',
-        variables = ['objcopy'],
+        command = '$dev_utils hex -objcopy $objcopy -readelf $readelf -elf_file $in -o $out',
+        variables = ['dev_utils','objcopy','readelf'],
     )
     buildtool.rules['dissassemble'] = Rule(
         command = '$dev_utils dissassemble $in -o $out -objdump $objdump',
@@ -46,13 +46,16 @@ def test_builders(buildtool):
         cc = toolchain + 'gcc',
         linkflags = cflags + [f'-Wl,-T,{linker_script},--strip-debug,-Bstatic','-nostartfiles','-ffreestanding'],
     )
+    dev_utils = buildtool.root/'scripts/dev_utils.py'
     buildtool.builders['test_verilog_hex'] = Builder(
         rule = 'verilog_hex',
         objcopy = toolchain + 'objcopy',
+        readelf = toolchain + 'readelf',
+        dev_utils = dev_utils,
     )
     buildtool.builders['test_dissassemble'] = Builder(
         rule = 'dissassemble',
-        dev_utils = buildtool.root/'scripts/dev_utils.py',
+        dev_utils = dev_utils,
         objdump = toolchain + 'objdump',
     )
 
