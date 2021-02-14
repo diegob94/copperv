@@ -199,7 +199,7 @@ def parse_readelf(text):
 def generate_hex_file(hex_file: Path,elf_file: Path,objcopy,readelf,v_hex_file):
     run = Run('generate_hex_file')
     if elf_file is not None:
-        v_hex_file = hex_file.with_suffix('.v_hex')
+        v_hex_file = hex_file.with_suffix('.ocpy_v_hex')
         run(f'{objcopy} -O verilog {elf_file} {v_hex_file}')
         readelf_output = run(f'{readelf} -S {elf_file}')
         section_table = parse_readelf(readelf_output)
