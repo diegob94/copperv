@@ -27,7 +27,7 @@ def generate_dissassembly_file(diss,elf_file,objdump):
         return ' '.join([f'-j {s}' for s in sections])
     inst_sections = ['.init', '.text']
     run = Run('generate_dissassembly_file')
-    r = run(f'{objdump} -D -Mno-aliases {elf_file} {j_opt(inst_sections)}')
+    r = run(f'{objdump} -S -Mno-aliases -r {elf_file} {j_opt(inst_sections)}')
     all_sections = run(f'{objdump} -h {elf_file}').splitlines()
     start = next((i for i,line in enumerate(all_sections) if line.startswith('Sections:')),None)
     all_sections = [line.split()[1] for line in all_sections[start:] if re.search('^\s+\d',line)]

@@ -54,10 +54,15 @@ test = tests[args.test]
 test_dir = 'test_' + test.name
 test_objs = []
 for test_source in test.source:
+    if test.name == 'dhrystone':
+        cflags = lambda **kwargs: kwargs['cflags'] + ['-DENTRY_POINT=_init']
+    else:
+        cflags = lambda **kwargs: kwargs['cflags']
     test_objs.append(buildtool.test_object(
         target = lambda target_dir: target_dir/test_dir/test_source.with_suffix('.o').name,
         source = test_source,
         inc_dir = test.inc_dir,
+        cflags = cflags,
     ))
     buildtool.test_preprocess(
         target = lambda target_dir: target_dir/test_dir/test_source.with_suffix('.E').name,
@@ -97,7 +102,7 @@ log_dir = 'log'
 tools_vpi = buildtool.vpi(
     target = lambda target_dir: target_dir/sim_dir/'copperv_tools.vpi',
     source = buildtool.root/'sim/copperv_tools.c',
-    cwd = lambda target_dir: target_dir/sim_dir,
+    cwd = lambda cwd,target_dir: target_dir/sim_dir,
     implicit_target = lambda target_dir: target_dir/sim_dir/'copperv_tools.o',
 )
 vvp = buildtool.sim_compile(

@@ -3,7 +3,6 @@ import datetime
 import enum
 import inspect
 import subprocess as sp
-import inspect
 import dataclasses
 import logging
 from string import Template
@@ -15,14 +14,21 @@ class InternalTarget(enum.Enum):
     LOG_FILE = enum.auto()
 
 class BuildTool:
+    @enum.unique
+    class Writers(enum.Enum):
+        NINJA = enum.auto()
+        TEST = enum.auto()
     LOG_FILE = InternalTarget.LOG_FILE
-    def __init__(self, rules, builders):
+    def __init__(self, rules, builders, writer = Writers.NINJA):
         self.root = get_root()
         self.target_dir = self.root / 'work'
         self.target_dir.mkdir(exist_ok=True)
         self.rules = {}
         self.builders = {}
-        self.writer = NinjaWriter(self.target_dir,self.root)
+        if writer == self.Writers.NINJA:
+            self.writer = NinjaWriter(self.target_dir,self.root)
+        else:
+            self.writer = Writer(None,None,None,'test_writer')
         if callable(rules):
             rules = [rules]
         if callable(builders):
@@ -198,7 +204,7 @@ class DefaultParams(WriterParams):
     paths: list = None
 
 class Writer:
-    def __init__(self, output_path, target_dir, source_dir, command):
+    def __init__(self, output_path, target_dir, source_dir, build_command):
         self.output_path = output_path
         self.rules = {}
         self.builds = []
@@ -206,8 +212,8 @@ class Writer:
         self.defaults = []
         self.source_dir = Path(source_dir).resolve()
         self.target_dir = Path(target_dir).resolve()
-        self.command = command
         self.logger = logging.getLogger(__name__)
+        self.command = build_command
     def rule(self, rule):
         new = RuleParams(
             command = rule.command,
@@ -308,6 +314,37 @@ class Builder:
     def target_dir(self):
         return self.buildtool.target_dir
     def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
+        self.logger.debug('begin')
+        self.logger.debug(f"kwargs: {kwargs}")
+        self.logger.debug(f"self.variables: {self.variables}")
+        actual_variables = {}
+        for name,value in self.variables.items():
+            if callable(value):
+                parameters = inspect.signature(value).parameters
+                self.logger.debug(f'parameters: {parameters}')
+                try:
+                    input_values = {}
+                    for k,v in parameters.items():
+                        if v.kind == inspect.Parameter.VAR_KEYWORD:
+                            if len(parameters) != 1:
+                                raise TypeError(f'Builder "{self.name} variable "{name}" cannot use var keyword (**kwargs) and explicit args') from None
+                            else:
+                                input_values = kwargs
+                        else:
+                            input_values[k] = kwargs[k]
+                except KeyError as e:
+                    raise KeyError(f'Builder "{self.name}" variable "{name}" input "{k}" not found') from None
+                actual_value = value(**input_values)
+            else:
+                actual_value = value
+            actual_variables[name] = actual_value
+        self.logger.debug(f"actual_variables: {actual_variables}")
+        if 'cwd' in self.variables: breakpoint()
+        mod_variables_keys = set(kwargs.keys()).intersection(self.variables.keys())
+        kwargs_keys = set(kwargs.keys()).difference(self.variables.keys())
+        self.logger.debug(f"mod_variables_keys: {mod_variables_keys}")
+        self.logger.debug(f"kwargs_keys: {kwargs_keys}")
+        kwargs = {k:kwargs[k] for k in kwargs_keys}
         ## expand kwargs
         self.logger.debug(f"kwargs: {kwargs}")
         actual_kwargs = expand_variables(kwargs, target_dir=self.target_dir)
@@ -315,6 +352,9 @@ class Builder:
         ## expand variables
         self.logger.debug(f"self.variables: {self.variables}")
         actual_variables = expand_variables(self.variables, **actual_kwargs)
+        self.logger.debug(f"actual_variables: {actual_variables}")
+        mod_variables = expand_variables({k:actual_variables[k] for k in mod_variables_keys}, **actual_kwargs)
+        actual_variables.update(mod_variables)
         self.logger.debug(f"actual_variables: {actual_variables}")
         ## expand implicit
         actual_implicit = None

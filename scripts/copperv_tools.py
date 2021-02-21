@@ -27,13 +27,13 @@ def c_rules(buildtool):
 
 def test_builders(buildtool):
     toolchain = '/home/diegob/cad/riscv/toolchain_multilib/bin/riscv64-unknown-elf-'
-    #cflags = ['-g','-march=rv32i','-mabi=ilp32']
     cflags = ['-march=rv32i','-mabi=ilp32']
+    cflags.append('-g')
     buildtool.builders['test_object'] = Builder(
         rule = 'object',
         cc = toolchain + 'gcc',
         cflags = lambda inc_dir: cflags + [f' -I{i}' for i in inc_dir],
-        kwargs = ['inc_dir'],
+        kwargs = ['inc_dir','cflags'],
     )
     buildtool.builders['test_preprocess'] = Builder(
         rule = 'preprocess',
@@ -42,11 +42,12 @@ def test_builders(buildtool):
         kwargs = ['inc_dir'],
     )
     linker_script = buildtool.root/'sim/tests/common/linker.ld'
+    ldflags = ['-Wl','-T',str(linker_script),'-Bstatic']
+    #ldflags.append('--strip-debug')
     buildtool.builders['test_link'] = Builder(
         rule = 'link',
         cc = toolchain + 'gcc',
-        linkflags = cflags + [f'-Wl,-T,{linker_script},--strip-debug,-Bstatic','-nostartfiles','-ffreestanding'],
-        #linkflags = cflags + [f'-Wl,-T,{linker_script},-Bstatic','-nostartfiles','-ffreestanding'],
+        linkflags = cflags + [','.join(ldflags),'-nostartfiles','-ffreestanding'],
     )
     dev_utils = buildtool.root/'scripts/dev_utils.py'
     buildtool.builders['test_verilog_hex'] = Builder(
@@ -111,7 +112,7 @@ def sim_builders(buildtool):
     )
     buildtool.builders['vpi'] = Builder(
         rule = 'vpi',
-        cwd = lambda **kwargs: kwargs['cwd'],
+        cwd = lambda cwd: cwd,
     )
     buildtool.builders['show_stdout'] = Builder(
         rule = 'show_stdout',
