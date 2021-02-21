@@ -52,8 +52,6 @@ long            Microseconds,
 
 /* end of variables for time measurement */
 
-#include "riscv_test.h"
-int volatile * const TEST_RESULT = T_ADDR;
 
 int main (int argc, char** argv)
 /*****/
@@ -94,7 +92,7 @@ int main (int argc, char** argv)
 
   debug_printf("\n");
   debug_printf("Dhrystone Benchmark, Version %s\n", Version);
-*TEST_RESULT = T_PASS;
+  return 0;
   if (Reg)
   {
     debug_printf("Program compiled with 'register' attribute\n");

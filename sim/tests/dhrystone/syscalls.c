@@ -12,15 +12,15 @@
 
 #undef strcmp
 
-volatile uint64_t tohost;
-volatile uint64_t fromhost;
-int volatile * const SIM_UART_TX_BUF = 0x8004;
+#include "riscv_test.h"
+int volatile * const TEST_RESULT = T_ADDR;
+int volatile * const SIM_OUT = O_ADDR;
 
 static uintptr_t syscall(uintptr_t which, uint64_t arg0, uint64_t arg1, uint64_t arg2)
 {
     char * buf = (char*)arg1;
     for(int i = 0; i < arg2; i++){
-        *SIM_UART_TX_BUF = buf[i];
+        *SIM_OUT = buf[i];
     }
 }
 
@@ -46,7 +46,11 @@ void setStats(int enable)
 
 void __attribute__((noreturn)) tohost_exit(uintptr_t code)
 {
-  tohost = (code << 1) | 1;
+  if(code == 0) {
+    *TEST_RESULT = T_PASS;
+  } else {
+    *TEST_RESULT = T_FAIL;
+  }
   while (1);
 }
 
@@ -77,12 +81,12 @@ void __attribute__((weak)) thread_entry(int cid, int nc)
   while (cid != 0);
 }
 
-int __attribute__((weak)) main(int argc, char** argv)
-{
-  // single-threaded programs override this function.
-  printstr("Implement main(), foo!\n");
-  return -1;
-}
+//int __attribute__((weak)) main(int argc, char** argv)
+//{
+//  // single-threaded programs override this function.
+//  printstr("Implement main(), foo!\n");
+//  return -1;
+//}
 
 static void init_tls()
 {

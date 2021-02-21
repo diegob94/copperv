@@ -1,3 +1,8 @@
+
+#ifndef ENTRY_POINT
+#define ENTRY_POINT main
+#endif
+
 .section .init, "ax"
 .global _start
 _start:
@@ -9,6 +14,6 @@ _start:
     .option pop
     la sp, __stack_top
     add s0, sp, zero
-    jal zero, main
+    jal zero, ENTRY_POINT
     .cfi_endproc
     .end
