@@ -314,6 +314,9 @@ class Builder:
     @property
     def target_dir(self):
         return self.buildtool.target_dir
+    @property
+    def root(self):
+        return self.buildtool.root
     def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
         self.logger.debug('begin')
         self.logger.debug(f"kwargs: {kwargs}")
@@ -364,7 +367,7 @@ class Builder:
             actual_implicit = expand_variables(dict(implicit=self.implicit), **actual_kwargs)['implicit']
             self.logger.debug(f"actual_implicit: {actual_implicit}")
         ## expand target
-        source = as_list(source)
+        source = [(self.root/i).resolve() for i in as_list(source)]
         log_in_target = False
         save_log = False
         explicit_target = []
