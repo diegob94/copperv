@@ -15,6 +15,7 @@ def test_simple_build():
             a = 'a_val',
         )
     buildtool = BuildTool(
+        root = Path.cwd(),
         rules=[rules],
         builders=[builders],
         writer = BuildTool.Writers.TEST
@@ -24,7 +25,25 @@ def test_simple_build():
         target = 'target_1',
     )
     assert target == 'target_1'
-    print(f"running {Path.cwd()}")
-    buildtool.run()
-    assert False
+    writer = buildtool.run()
+    assert list(writer.rules.keys()) == ['rule1']
+    rule1 = writer.rules['rule1']
+    assert rule1.name == 'rule1'
+    assert rule1.command == '$a $in $out'
+    assert rule1.depfile == None
+    assert rule1.pool == None
+    assert len(writer.builds) == 1
+    build1 = writer.builds[0]
+    assert build1.outputs == ['target_1']
+    assert build1.rule == 'rule1'
+    assert build1.inputs == ['source_1']
+    assert build1.variables == {'a': 'a_val'}
+    assert build1.implicit == None
+    assert build1.implicit_outputs == []
+    assert build1.pool == None
+    assert list(writer.variables.keys()) == ['root']
+    root_var = writer.variables['root']
+    assert root_var.key == 'root'
+    assert root_var.value == Path.cwd()
+    assert len(writer.defaults) == 0
 

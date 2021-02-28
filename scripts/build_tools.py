@@ -19,8 +19,8 @@ class BuildTool:
         NINJA = enum.auto()
         TEST = enum.auto()
     LOG_FILE = InternalTarget.LOG_FILE
-    def __init__(self, rules, builders, writer = Writers.NINJA):
-        self.root = get_root()
+    def __init__(self, root, rules, builders, writer = Writers.NINJA):
+        self.root = root
         self.target_dir = self.root / 'work'
         self.target_dir.mkdir(exist_ok=True)
         self.rules = {}
@@ -43,26 +43,24 @@ class BuildTool:
             builder.configure(name, self)
     def write_script(self):
         self.writer.variable('root',self.root)
-        self.writer.write()
+        return self.writer.write()
     def __getattr__(self, key):
         if key != 'builders' and key in self.builders:
             return self.builders[key]
         return self.__getattribute__(key)
     def run(self, default_target = None, ninja_opts = None):
-        self.writer.default(default_target)
+        if default_target is not None:
+            self.writer.default(default_target)
         cmd = self.writer.command
         if ninja_opts is not None:
             cmd = f'{cmd} {ninja_opts}'
-        self.write_script()
+        r = self.write_script()
         try:
             print(cmd)
             sp.run(cmd,shell=True,check=True,encoding='utf-8',cwd=self.target_dir)
         except sp.CalledProcessError:
             pass
-
-def get_root():
-    main = inspect.stack()[-1][1]
-    return Path(main).parent.absolute()
+        return r
 
 def run(cmd):
     #print(cmd)
@@ -206,12 +204,16 @@ class DefaultParams(WriterParams):
 class Writer:
     def __init__(self, output_path, target_dir, source_dir, build_command):
         self.output_path = output_path
+        self.source_dir = None
+        self.target_dir = None
+        if source_dir is not None:
+            self.source_dir = Path(source_dir).resolve()
+        if target_dir is not None:
+            self.target_dir = Path(target_dir).resolve()
         self.rules = {}
         self.builds = []
         self.variables = {}
         self.defaults = []
-        self.source_dir = Path(source_dir).resolve()
-        self.target_dir = Path(target_dir).resolve()
         self.logger = logging.getLogger(__name__)
         self.command = build_command
     def rule(self, rule):
@@ -248,9 +250,8 @@ class Writer:
         )
         self.logger.debug(f"new default: {new}")
         self.defaults.append(new)
-    def write(self):
-        print(self.rules)
-        print(self.builds)
+    def write(self) -> "Writer":
+        return self
 
 class NinjaWriter(Writer):
     def __init__(self, target_dir, source_dir):
