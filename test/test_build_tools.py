@@ -3,13 +3,12 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from scripts.build_tools import Rule, Builder, BuildTool
 import pytest
-from pytest import fail, fixture, CaptureFixture
 import re
 
 def split(x):
     return re.split(r'\s+',x)
 
-@fixture
+@pytest.fixture
 def fake_project(tmp_path: Path):
     test_files = ['source_1']
     files = {}
@@ -29,9 +28,23 @@ def checkcmd(capfd,cmd):
                 passed = True
                 break
     if not passed:
-        fail(f'Command "{" ".join(cmd)}" not found in backend output\nBackend output:\n{backend_out}')
+        pytest.fail(f'Command "{" ".join(cmd)}" not found in backend output\nBackend output:\n{backend_out}')
 
-def test_simple_build(fake_project: Path, capfd):
+@pytest.mark.parametrize("builder_args,call_args,expected_a_val,expected_exception", [
+    pytest.param({'a':'a_builder'},{},'a_builder',None,id='builder_defined_var'),
+    pytest.param({},{},'a_val',KeyError,id='undefined_var'),
+    pytest.param({},{'a':'a_call'},'a_call',None,id='call_defined_var'),
+    pytest.param({'a':'a_builder'},{'a':'a_call'},'a_call',None,id='builder_and_call_defined_var'),
+    pytest.param({'a':lambda b: b + '_lambda'},{'b':'b_call'},'b_call_lambda',None,id='lambda_builder_var_from_call_var'),
+    pytest.param({'b':'b_builder'},{'a':lambda b: b + '_lambda'},'b_builder_lambda',None,id='lambda_call_var_from_builder_var'),
+    pytest.param({'a':lambda b: b + '_lambda'},{},'b_call_lambda',KeyError,id='lambda_builder_var_from_call_var_missing_input'),
+    pytest.param({},{'a':lambda b: b + '_lambda'},'b_builder_lambda',KeyError,id='lambda_call_var_from_builder_var_missing_input'),
+    pytest.param({'a':lambda a: a + '_lambda'},{'a':'a_call'},'a_call_lambda',None,id='lambda_builder_var_from_call_var_same_name'),
+    pytest.param({'a':lambda a: a + '_lambda'},{'a':lambda a: a + '_lambda_call'},'a_lambda_call_lambda',KeyError,id='lambda_builder_var_from_lambda_call_var'),
+    pytest.param({'a':lambda b: b + '_lambda','b':'b_builder'},{},'b_builder_lambda',None,id='lambda_builder_var_from_builder_var'),
+    pytest.param({},{'a':lambda b: b + '_lambda','b':'b_call'},'b_call_lambda',None,id='lambda_call_var_from_call_var'),
+])
+def test_simple_build(builder_args, call_args, expected_a_val, expected_exception, fake_project: Path, capfd):
     def rules(buildtool):
         buildtool.rules['rule1'] = Rule(
             command = '$a $in $out',
@@ -40,17 +53,25 @@ def test_simple_build(fake_project: Path, capfd):
     def builders(buildtool):
         buildtool.builders['builder1'] = Builder(
             rule = 'rule1',
-            a = 'a_val',
+            **builder_args,
         )
     buildtool = BuildTool(
         root = fake_project['root'],
         rules=[rules],
         builders=[builders],
     )
-    target = buildtool.builder1(
+    call = lambda: buildtool.builder1(
         source = 'source_1',
         target = 'target_1',
+        **call_args,
     )
+    if expected_exception is not None:
+        with pytest.raises(expected_exception):
+            target = call()
+        return None
+    else:
+        target = call()
     assert target == 'target_1'
     writer = buildtool.run(ninja_opts='-n')
-    checkcmd(capfd,['a_val1',str(fake_project["files"]["source_1"]),'target_1'])
+    checkcmd(capfd,[expected_a_val,str(fake_project["files"]["source_1"]),'target_1'])
+
