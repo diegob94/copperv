@@ -33,13 +33,13 @@ def checkcmd(capfd,cmd):
 def test_get_lambda_arg_names():
     foo = lambda a, b, c: a + b + c
     r = Builder.get_lambda_arg_names(foo)
-    assert r == ['a', 'b', 'c']
+    assert r == ('a', 'b', 'c')
     foo = lambda a, b = 2: a + b
     r = Builder.get_lambda_arg_names(foo)
-    assert r == ['a', 'b']
+    assert r == ('a', 'b')
     foo = lambda a = 1, b = 2: a + b
     r = Builder.get_lambda_arg_names(foo)
-    assert r == ['a', 'b']
+    assert r == ('a', 'b')
 
 @pytest.mark.parametrize("builder_args,call_args,expected_a_val,expected_exception", [
     pytest.param({'a':'a_builder'},{},'a_builder',None,id='builder_defined_var'),

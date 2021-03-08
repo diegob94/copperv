@@ -341,6 +341,9 @@ class Builder:
                     if v.kind == inspect.Parameter.VAR_KEYWORD:
                         if len(parameters) != 1:
                             raise TypeError(f'Builder "{self.name} variable "{name}" cannot use var keyword (**kwargs) and explicit args') from None
+    def get_lambda_arg_names(func):
+        parameters = inspect.signature(func).parameters
+        return tuple(parameters.keys())
     def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
         ## kwargs classes:
         ### define rule variable
