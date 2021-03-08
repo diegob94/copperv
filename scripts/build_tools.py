@@ -333,25 +333,30 @@ class Builder:
                         if len(parameters) != 1:
                             raise TypeError(f'Builder "{self.name} variable "{name}" cannot use var keyword (**kwargs) and explicit args') from None
     def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
+        ## kwargs classes:
+        ### define rule variable
+        ### modify self.variable
+        ### input for self.variable
         self.logger.debug('begin')
         self.logger.debug(f"kwargs: {kwargs}")
         self.logger.debug(f"self.variables: {self.variables}")
         self.check_call_kwargs(kwargs)
-        mod_variables_keys = set(kwargs.keys()).intersection(self.variables.keys())
-        kwargs_keys = set(kwargs.keys()).difference(self.variables.keys())
-        self.logger.debug(f"mod_variables_keys: {mod_variables_keys}")
-        self.logger.debug(f"kwargs_keys: {kwargs_keys}")
-        kwargs = {k:kwargs[k] for k in kwargs_keys}
         ## expand kwargs
-        self.logger.debug(f"kwargs: {kwargs}")
         actual_kwargs = expand_variables(kwargs, target_dir=self.target_dir)
         self.logger.debug(f"actual_kwargs: {actual_kwargs}")
         ## expand variables
+        input_kwargs = {k:actual_kwargs[k] for k in set(kwargs.keys()).difference(self.variables.keys())}
+        self.logger.debug(f"input_kwargs: {input_kwargs}")
         self.logger.debug(f"self.variables: {self.variables}")
-        actual_variables = expand_variables(self.variables, **actual_kwargs)
+        actual_variables = expand_variables(self.variables, **input_kwargs)
         self.logger.debug(f"actual_variables 1: {actual_variables}")
-        mod_variables = expand_variables({k:actual_variables[k] for k in mod_variables_keys}, **actual_kwargs)
-        actual_variables.update(mod_variables)
+        ## Variables modified by kwargs
+        mod_variables = {k:actual_variables[k] for k in set(kwargs.keys()).intersection(self.variables.keys())}
+        actual_mod_variables = expand_variables(mod_variables, **actual_kwargs)
+        actual_variables.update(actual_mod_variables)
+        ## Variables defined by kwargs
+        kwargs_defined_variables = {k:actual_kwargs[k] for k in set(kwargs.keys()).intersection(self.rule.variables)}
+        actual_variables.update(kwargs_defined_variables)
         self.logger.debug(f"actual_variables 2: {actual_variables}")
         ## expand implicit
         actual_implicit = None
