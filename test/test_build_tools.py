@@ -30,6 +30,17 @@ def checkcmd(capfd,cmd):
     if not passed:
         pytest.fail(f'Command "{" ".join(cmd)}" not found in backend output\nBackend output:\n{backend_out}')
 
+def test_get_lambda_arg_names():
+    foo = lambda a, b, c: a + b + c
+    r = Builder.get_lambda_arg_names(foo)
+    assert r == ['a', 'b', 'c']
+    foo = lambda a, b = 2: a + b
+    r = Builder.get_lambda_arg_names(foo)
+    assert r == ['a', 'b']
+    foo = lambda a = 1, b = 2: a + b
+    r = Builder.get_lambda_arg_names(foo)
+    assert r == ['a', 'b']
+
 @pytest.mark.parametrize("builder_args,call_args,expected_a_val,expected_exception", [
     pytest.param({'a':'a_builder'},{},'a_builder',None,id='builder_defined_var'),
     pytest.param({},{},'a_val',KeyError,id='undefined_var'),
