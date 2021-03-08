@@ -41,14 +41,6 @@ logging.basicConfig(
     format="[%(filename)s:%(lineno)s %(funcName)s()] %(message)s",
     level=level,
 )
-def which_lambda(value):
-    import inspect
-    code,line = inspect.getsourcelines(value)
-    file = inspect.getsourcefile(value)
-    code = ' '.join([repr(i) for i in code])
-    print(f"{file}:{line} {code}")
-import builtins
-builtins.which_lambda = which_lambda
 
 test = tests[args.test]
 test_dir = 'test_' + test.name
