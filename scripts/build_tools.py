@@ -321,32 +321,22 @@ class Builder:
         for name in self.rule.variables:
             if not name in variables.keys():
                 raise KeyError(f'Rule variable "{name}" not defined')
-    def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
-        self.logger.debug('begin')
-        self.logger.debug(f"kwargs: {kwargs}")
-        self.logger.debug(f"self.variables: {self.variables}")
-        actual_variables = {}
+    def check_call_kwargs(self, kwargs):
         for name,value in self.variables.items():
             if callable(value):
                 parameters = inspect.signature(value).parameters
                 self.logger.debug(f'parameters: {parameters}')
-                try:
-                    input_values = {}
-                    for k,v in parameters.items():
-                        if v.kind == inspect.Parameter.VAR_KEYWORD:
-                            if len(parameters) != 1:
-                                raise TypeError(f'Builder "{self.name} variable "{name}" cannot use var keyword (**kwargs) and explicit args') from None
-                            else:
-                                input_values = kwargs
-                        else:
-                            input_values[k] = kwargs[k]
-                except KeyError as e:
-                    raise KeyError(f'Builder "{self.name}" variable "{name}" input "{k}" not found') from None
-                actual_value = value(**input_values)
-            else:
-                actual_value = value
-            actual_variables[name] = actual_value
-        self.logger.debug(f"actual_variables: {actual_variables}")
+                for k,v in parameters.items():
+                    if not k in kwargs:
+                        raise KeyError(f'Builder "{self.name}" variable "{name}" input "{k}" not found') from None
+                    if v.kind == inspect.Parameter.VAR_KEYWORD:
+                        if len(parameters) != 1:
+                            raise TypeError(f'Builder "{self.name} variable "{name}" cannot use var keyword (**kwargs) and explicit args') from None
+    def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
+        self.logger.debug('begin')
+        self.logger.debug(f"kwargs: {kwargs}")
+        self.logger.debug(f"self.variables: {self.variables}")
+        self.check_call_kwargs(kwargs)
         mod_variables_keys = set(kwargs.keys()).intersection(self.variables.keys())
         kwargs_keys = set(kwargs.keys()).difference(self.variables.keys())
         self.logger.debug(f"mod_variables_keys: {mod_variables_keys}")
@@ -359,10 +349,10 @@ class Builder:
         ## expand variables
         self.logger.debug(f"self.variables: {self.variables}")
         actual_variables = expand_variables(self.variables, **actual_kwargs)
-        self.logger.debug(f"actual_variables: {actual_variables}")
+        self.logger.debug(f"actual_variables 1: {actual_variables}")
         mod_variables = expand_variables({k:actual_variables[k] for k in mod_variables_keys}, **actual_kwargs)
         actual_variables.update(mod_variables)
-        self.logger.debug(f"actual_variables: {actual_variables}")
+        self.logger.debug(f"actual_variables 2: {actual_variables}")
         ## expand implicit
         actual_implicit = None
         if self.implicit is not None:
