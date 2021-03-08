@@ -317,6 +317,10 @@ class Builder:
     @property
     def root(self):
         return self.buildtool.root
+    def check_variables(self, variables: dict):
+        for name in self.rule.variables:
+            if not name in variables.keys():
+                raise KeyError(f'Rule variable "{name}" not defined')
     def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
         self.logger.debug('begin')
         self.logger.debug(f"kwargs: {kwargs}")
@@ -343,7 +347,6 @@ class Builder:
                 actual_value = value
             actual_variables[name] = actual_value
         self.logger.debug(f"actual_variables: {actual_variables}")
-        if 'cwd' in self.variables: breakpoint()
         mod_variables_keys = set(kwargs.keys()).intersection(self.variables.keys())
         kwargs_keys = set(kwargs.keys()).difference(self.variables.keys())
         self.logger.debug(f"mod_variables_keys: {mod_variables_keys}")
@@ -406,6 +409,7 @@ class Builder:
             self.check_log = check_log
         if self.check_log is not None:
             self.rule.append_to_command(f'; {self.check_log}')
+        self.check_variables(actual_variables)
         self.writer.rule(self.rule)
         self.writer.build(self.rule,explicit_target,source,actual_variables,actual_implicit,actual_implicit_target,self.pool)
         r = explicit_target[0] if len(explicit_target) == 1 else explicit_target
