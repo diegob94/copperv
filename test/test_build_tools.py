@@ -100,12 +100,12 @@ def test_template_get_names(template, var_names):
 
 def test_expand_template_basic():
     template = Template('test $test')
-    t = template.substitute(template, test = 'value')
+    t = template.substitute(test = 'value')
     assert t == 'test value'
 
 def test_expand_template_exclude():
     template = Template('test $test $excludeme')
-    t = template.substitute(template, test = 'value')
+    t = template.substitute(test = 'value')
     assert t == 'test value $excludeme'
 
 @pytest.mark.parametrize("namespaces,expected", [

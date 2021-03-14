@@ -111,6 +111,24 @@ class Template(string.Template):
             elif i['braced'] is not None:
                 var_names.append(i['braced'])
         return var_names
+    def substitute(self, **kws):
+        mapping = kws
+        # Helper function for .sub()
+        def convert(mo):
+            # Check the most common path first.
+            named = mo.group('named') or mo.group('braced')
+            if named is not None:
+                if named in mapping:
+                    return str(mapping[named])
+                else:
+                    return mo[0]
+            if mo.group('escaped') is not None:
+                return self.delimiter
+            if mo.group('invalid') is not None:
+                self._invalid(mo)
+            raise ValueError('Unrecognized named group in pattern',
+                             self.pattern)
+        return self.pattern.sub(convert, self.template)
 
 def expand_list(variables, **kwargs):
     v = {k:v for k,v in enumerate(variables)}
