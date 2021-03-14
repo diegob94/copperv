@@ -123,14 +123,16 @@ def test_resolve_namespace_priority(namespaces,expected):
     r = collect_namespaces(*namespaces)
     assert r == expected
 
-@pytest.mark.parametrize("namespace,expected", [
-    pytest.param({},{},id='empty'),
-    pytest.param({'a':1},{'a':1},id='identity'),
-    pytest.param({'a':'a_$b','b':1},{'a':'a_1','b':1},id='simple'),
-    pytest.param({'a':'a_$b','b':'b_$c','c':'1'},{'a':'a_b_1','b':'b_1','c':1},id='double'),
+@pytest.mark.parametrize("namespace,exclude,expected", [
+    pytest.param({},[],{},id='empty'),
+    pytest.param({'a':1},[],{'a':1},id='identity'),
+    pytest.param({'a':'a_$b','b':1},[],{'a':'a_1','b':1},id='simple'),
+    pytest.param({'a':'a_$b'},['b'],{'a':'a_$b'},id='simple_exclude'),
+    pytest.param({'a':'a_$b','b':1},['b'],{'a':'a_$b','b':1},id='simple_exclude_existing'),
+    pytest.param({'a':'a_$b','b':'b_$c','c':'1'},[],{'a':'a_b_1','b':'b_1','c':1},id='double'),
 ])
-def test_resolve_dependencies(namespace,expected):
-    r = resolve_dependencies(namespace)
+def test_resolve_dependencies(namespace,exclude,expected):
+    r = resolve_dependencies(namespace,exclude)
     assert r == expected
 
 @pytest.mark.parametrize("namespace", [

@@ -79,8 +79,8 @@ def collect_namespaces(*args):
                 resolved[k] = v
     return resolved
 
-def resolve_dependencies(ns):
-    return ns
+def resolve_dependencies(namespace,exclude):
+    return namespace
 
 def run(cmd):
     #print(cmd)
