@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from scripts.build_tools import Rule, Builder, BuildTool
+from scripts.build_tools import Rule, Builder, BuildTool, get_lambda_arg_names, Template
 import pytest
 import re
 
@@ -32,13 +32,13 @@ def checkcmd(capfd,cmd):
 
 def test_get_lambda_arg_names():
     foo = lambda a, b, c: a + b + c
-    r = Builder.get_lambda_arg_names(foo)
+    r = get_lambda_arg_names(foo)
     assert r == ('a', 'b', 'c')
     foo = lambda a, b = 2: a + b
-    r = Builder.get_lambda_arg_names(foo)
+    r = get_lambda_arg_names(foo)
     assert r == ('a', 'b')
     foo = lambda a = 1, b = 2: a + b
-    r = Builder.get_lambda_arg_names(foo)
+    r = get_lambda_arg_names(foo)
     assert r == ('a', 'b')
 
 @pytest.mark.parametrize("builder_args,call_args,expected_a_val,expected_exception", [
@@ -85,4 +85,16 @@ def test_simple_build(builder_args, call_args, expected_a_val, expected_exceptio
     assert target == 'target_1'
     writer = buildtool.run(ninja_opts='-n')
     checkcmd(capfd,[expected_a_val,str(fake_project["files"]["source_1"]),'target_1'])
+
+@pytest.mark.parametrize("template,var_names", [
+    pytest.param('test',[],id='no_vars'),
+    pytest.param('test $a $b',['a','b'],id='simple_vars'),
+    pytest.param('test ${a} ${b}',['a','b'],id='braced_vars'),
+    pytest.param('test ${a}_b',['a'],id='underscore'),
+    pytest.param('test $a/b',['a'],id='path'),
+])
+def test_template_basic(template, var_names):
+    template = Template(template)
+    assert len(template.names) == len(var_names)
+    assert template.names == var_names
 

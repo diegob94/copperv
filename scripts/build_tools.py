@@ -5,7 +5,7 @@ import inspect
 import subprocess as sp
 import dataclasses
 import logging
-from string import Template
+import string
 
 import scripts.ninja_syntax as ninja
 
@@ -87,25 +87,46 @@ def as_list(x):
     else:
         return x
 
+class Template(string.Template):
+    def __init__(self,*args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.names = self.get_var_names()
+    def get_var_names(self):
+        var_names= []
+        for i in self.pattern.finditer(self.template):
+            i = i.groupdict()
+            if i['named'] is not None:
+                var_names.append(i['named'])
+            elif i['braced'] is not None:
+                var_names.append(i['braced'])
+        return var_names
+
 def expand_list(variables, **kwargs):
     v = {k:v for k,v in enumerate(variables)}
     r = expand_variables(v, **kwargs)
     return [r[i] for i in range(len(variables))]
 
+def get_lambda_arg_names(func):
+    parameters = inspect.signature(func).parameters
+    return tuple(parameters.keys())
+
+def expand_lambda(func, kwargs):
+    used_kwargs = {k:v for k,v in kwargs.items() if k in get_lambda_arg_names(func)}
+    return func(**used_kwargs)
+
 def expand_variables(variables, **kwargs):
     logger = logging.getLogger(__name__)
     logger.debug(f"variables: {variables}")
     expanded_variables = {}
-    pp_kwargs = kwargs
     for name,rvalue in variables.items():
         actual_values = rvalue
         if callable(rvalue):
-            actual_values = rvalue(**pp_kwargs)
+            actual_values = expand_lambda(rvalue, kwargs)
         elif isinstance(rvalue, list):
             actual_values = []
             for value in rvalue:
                 if callable(value):
-                    actual_values.append(value(**pp_kwargs))
+                    actual_values.append(expand_lambda(value, kwargs))
                 else:
                     actual_values.append(value)
         expanded_variables[name] = stringify(actual_values)
@@ -341,9 +362,6 @@ class Builder:
                     if v.kind == inspect.Parameter.VAR_KEYWORD:
                         if len(parameters) != 1:
                             raise TypeError(f'Builder "{self.name} variable "{name}" cannot use var keyword (**kwargs) and explicit args') from None
-    def get_lambda_arg_names(func):
-        parameters = inspect.signature(func).parameters
-        return tuple(parameters.keys())
     def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
         ## kwargs classes:
         ### define rule variable
@@ -354,7 +372,7 @@ class Builder:
         self.logger.debug(f"self.variables: {self.variables}")
         self.check_call_kwargs(kwargs)
         ## expand kwargs
-        actual_kwargs = expand_variables(kwargs, target_dir=self.target_dir)
+        actual_kwargs = expand_variables(kwargs, target_dir=self.target_dir, **self.variables)
         self.logger.debug(f"actual_kwargs: {actual_kwargs}")
         ## expand variables
         input_kwargs = {k:actual_kwargs[k] for k in set(kwargs.keys()).difference(self.variables.keys())}
