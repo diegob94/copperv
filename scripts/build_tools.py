@@ -71,6 +71,17 @@ class BuildTool:
             pass
         return r
 
+def collect_namespaces(*args):
+    resolved = {}
+    for ns in args:
+        for k,v in ns.items():
+            if not k in resolved:
+                resolved[k] = v
+    return resolved
+
+def resolve_dependencies(ns):
+    return ns
+
 def run(cmd):
     #print(cmd)
     r = sp.run(cmd,shell=True,capture_output=True,check=True,encoding='utf-8').stdout.strip()
