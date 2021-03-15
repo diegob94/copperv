@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List, Dict
 import datetime
 import enum
 import inspect
@@ -71,17 +72,6 @@ class BuildTool:
             pass
         return r
 
-def collect_namespaces(*args):
-    resolved = {}
-    for ns in args:
-        for k,v in ns.items():
-            if not k in resolved:
-                resolved[k] = v
-    return resolved
-
-def resolve_dependencies(namespace,exclude):
-    return namespace
-
 def run(cmd):
     #print(cmd)
     r = sp.run(cmd,shell=True,capture_output=True,check=True,encoding='utf-8').stdout.strip()
@@ -97,38 +87,6 @@ def as_list(x):
         return []
     else:
         return x
-
-class Template(string.Template):
-    def __init__(self,*args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.names = self.get_var_names()
-    def get_var_names(self):
-        var_names= []
-        for i in self.pattern.finditer(self.template):
-            i = i.groupdict()
-            if i['named'] is not None:
-                var_names.append(i['named'])
-            elif i['braced'] is not None:
-                var_names.append(i['braced'])
-        return var_names
-    def substitute(self, **kws):
-        mapping = kws
-        # Helper function for .sub()
-        def convert(mo):
-            # Check the most common path first.
-            named = mo.group('named') or mo.group('braced')
-            if named is not None:
-                if named in mapping:
-                    return str(mapping[named])
-                else:
-                    return mo[0]
-            if mo.group('escaped') is not None:
-                return self.delimiter
-            if mo.group('invalid') is not None:
-                self._invalid(mo)
-            raise ValueError('Unrecognized named group in pattern',
-                             self.pattern)
-        return self.pattern.sub(convert, self.template)
 
 def expand_list(variables, **kwargs):
     v = {k:v for k,v in enumerate(variables)}
