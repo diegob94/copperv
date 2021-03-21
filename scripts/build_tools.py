@@ -9,15 +9,7 @@ import logging
 import string
 
 import scripts.ninja_syntax as ninja
-
-def which_lambda(value):
-    import inspect
-    code,line = inspect.getsourcelines(value)
-    file = inspect.getsourcefile(value)
-    code = ' '.join([repr(i) for i in code])
-    print(f"{file}:{line} {code}")
-import builtins
-builtins.which_lambda = which_lambda
+from scripts.namespace import Namespace
 
 @enum.unique
 class InternalTarget(enum.Enum):
@@ -92,33 +84,6 @@ def expand_list(variables, **kwargs):
     v = {k:v for k,v in enumerate(variables)}
     r = expand_variables(v, **kwargs)
     return [r[i] for i in range(len(variables))]
-
-def get_lambda_arg_names(func):
-    parameters = inspect.signature(func).parameters
-    return tuple(parameters.keys())
-
-def expand_lambda(func, kwargs):
-    used_kwargs = {k:v for k,v in kwargs.items() if k in get_lambda_arg_names(func)}
-    return func(**used_kwargs)
-
-def expand_variables(variables, **kwargs):
-    logger = logging.getLogger(__name__)
-    logger.debug(f"variables: {variables}")
-    expanded_variables = {}
-    for name,rvalue in variables.items():
-        actual_values = rvalue
-        if callable(rvalue):
-            actual_values = expand_lambda(rvalue, kwargs)
-        elif isinstance(rvalue, list):
-            actual_values = []
-            for value in rvalue:
-                if callable(value):
-                    actual_values.append(expand_lambda(value, kwargs))
-                else:
-                    actual_values.append(value)
-        expanded_variables[name] = stringify(actual_values)
-    logger.debug(f"expanded_variables: {expanded_variables}")
-    return expanded_variables
 
 def stringify(value):
     if isinstance(value, list):
@@ -334,26 +299,16 @@ class Builder:
     @property
     def root(self):
         return self.buildtool.root
-    def check_variables(self, variables: dict):
-        for name in self.rule.variables:
-            if not name in variables.keys():
-                raise KeyError(f'Rule variable "{name}" not defined')
-    def check_call_kwargs(self, kwargs):
-        for name,value in self.variables.items():
-            if callable(value):
-                parameters = inspect.signature(value).parameters
-                self.logger.debug(f'parameters: {parameters}')
-                for k,v in parameters.items():
-                    if not k in kwargs:
-                        raise KeyError(f'Builder "{self.name}" variable "{name}" input "{k}" not found') from None
-                    if v.kind == inspect.Parameter.VAR_KEYWORD:
-                        if len(parameters) != 1:
-                            raise TypeError(f'Builder "{self.name} variable "{name}" cannot use var keyword (**kwargs) and explicit args') from None
     def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
         ## kwargs classes:
         ### define rule variable
         ### modify self.variable
         ### input for self.variable
+        namespace = Namespace.collect(self.variables,kwargs)
+        r = namespace.resolve(self.rule.variables)
+        print("DEBUG")
+        print(r)
+        return target
         self.logger.debug('begin')
         self.logger.debug(f"kwargs: {kwargs}")
         self.logger.debug(f"self.variables: {self.variables}")

@@ -34,18 +34,21 @@ class Template(string.Template):
                              self.pattern)
         return self.pattern.sub(convert, self.template)
 
-def collect_namespaces(*args):
-    collected = {}
-    for ns in args:
-        for k,v in ns.items():
-            if not k in collected:
-                collected[k] = v
-    return collected
-
-
 class Namespace:
     def __init__(self, variables: Dict[str,str] = {}):
         self._nodes = [Node(k,v,None) for k,v in variables.items()]
+    @staticmethod
+    def collect(*args):
+        collected = {}
+        for ns in args:
+            for k,v in ns.items():
+                if not k in collected:
+                    collected[k] = v
+        return Namespace(collected)
+    def resolve(self, exclude: List[str] = []):
+        self.process_deps(exclude)
+        self.substitute_deps()
+        return self.to_dict()
     def process_deps(self, exclude: list = []):
         for node in self._nodes:
             node.set_deps(self,exclude)
@@ -121,10 +124,4 @@ class Node:
             else:
                 raise KeyError(f'Missing variable "{name}" for substitution: "{self.name}={self.value}"')
         self.deps = Namespace.from_list(dep_list)
-
-def resolve_dependencies(variables: Dict[str,str],exclude: List[str] = []):
-    namespace = Namespace(variables)
-    namespace.process_deps(exclude)
-    namespace.substitute_deps()
-    return namespace.to_dict()
 

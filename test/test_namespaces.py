@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from scripts.namespace import Template, Namespace, collect_namespaces, resolve_dependencies, Node
+from scripts.namespace import Template, Namespace, Node
 import pytest
 
 @pytest.mark.parametrize("template,var_names", [
@@ -43,8 +43,8 @@ def test_template_substitute_unused_var():
     pytest.param(({'a':3,'c':4},{'a':1,'b':2}),{'a':3,'b':2,'c':4},id='all_inv'),
 ])
 def test_collect_namespaces_priority(namespaces,expected):
-    r = collect_namespaces(*namespaces)
-    assert r == expected
+    r = Namespace.collect(*namespaces)
+    assert r.to_dict() == expected
 
 @pytest.mark.parametrize("namespace,exclude,expected", [
     pytest.param({},[],{},id='empty'),
@@ -55,7 +55,8 @@ def test_collect_namespaces_priority(namespaces,expected):
     pytest.param({'a':'a_$b','b':'b_$c','c':1},[],{'a':'a_b_1','b':'b_1','c':1},id='double'),
 ])
 def test_resolve_dependencies(namespace,exclude,expected):
-    r = resolve_dependencies(namespace,exclude)
+    namespace = Namespace(namespace)
+    r = namespace.resolve(exclude)
     assert r == expected
 
 @pytest.mark.parametrize("namespace", [
@@ -65,8 +66,9 @@ def test_resolve_dependencies(namespace,exclude,expected):
     pytest.param({'a':'a_$a'},id='self_dependency'),
 ])
 def test_resolve_dependencies_errors(namespace):
+    namespace = Namespace(namespace)
     with pytest.raises(KeyError):
-        r = resolve_dependencies(namespace)
+        namespace.resolve()
 
 def test_namespace_in():
     ns = Namespace({'a':1})
