@@ -35,16 +35,18 @@ class Template(string.Template):
         return self.pattern.sub(convert, self.template)
 
 class Namespace:
-    def __init__(self, variables: Dict[str,str] = {}):
+    def __init__(self, **variables: str):
         self._nodes = [Node(k,v,None) for k,v in variables.items()]
     @staticmethod
     def collect(*args):
         collected = {}
         for ns in args:
             for k,v in ns.items():
-                if not k in collected:
+                if k in collected:
+                    raise KeyError(f'Duplicated variable "{k}"')
+                else:
                     collected[k] = v
-        return Namespace(collected)
+        return Namespace(**collected)
     def resolve(self, exclude: List[str] = []):
         self.process_deps(exclude)
         self.substitute_deps()
@@ -122,6 +124,6 @@ class Node:
             elif name in namespace:
                 dep_list.append(namespace[name])
             else:
-                raise KeyError(f'Missing variable "{name}" for substitution: "{self.name}={self.value}"')
+                dep_list.append(Node(name,"",deps=[]))
         self.deps = Namespace.from_list(dep_list)
 

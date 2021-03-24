@@ -37,48 +37,54 @@ def test_template_substitute_unused_var():
     pytest.param(({'a':1},{}),{'a':1},id='identity_inv'),
     pytest.param(({'a':1},{'b':2}),{'a':1,'b':2},id='exclusive'),
     pytest.param(({'b':2},{'a':1}),{'a':1,'b':2},id='exclusive_inv'),
-    pytest.param(({'a':1},{'a':2}),{'a':1},id='precedence'),
-    pytest.param(({'a':2},{'a':1}),{'a':2},id='precedence_inv'),
-    pytest.param(({'a':1,'b':2},{'a':3,'c':4}),{'a':1,'b':2,'c':4},id='all'),
-    pytest.param(({'a':3,'c':4},{'a':1,'b':2}),{'a':3,'b':2,'c':4},id='all_inv'),
 ])
 def test_collect_namespaces_priority(namespaces,expected):
     r = Namespace.collect(*namespaces)
     assert r.to_dict() == expected
 
+@pytest.mark.parametrize("namespaces", [
+    pytest.param(({'a':1},{'a':2}),id='precedence'),
+    pytest.param(({'a':2},{'a':1}),id='precedence_inv'),
+    pytest.param(({'a':1,'b':2},{'a':3,'c':4}),id='all'),
+    pytest.param(({'a':3,'c':4},{'a':1,'b':2}),id='all_inv'),
+])
+def test_collect_namespaces_errors(namespaces):
+    with pytest.raises(KeyError):
+        r = Namespace.collect(*namespaces)
+
 @pytest.mark.parametrize("namespace,exclude,expected", [
     pytest.param({},[],{},id='empty'),
     pytest.param({'a':1},[],{'a':1},id='identity'),
+    pytest.param({'a':'a_$b'},[],{'a':'a_'},id='undefined'),
     pytest.param({'a':'a_$b','b':1},[],{'a':'a_1','b':1},id='simple'),
     pytest.param({'a':'a_$b'},['b'],{'a':'a_$b'},id='simple_exclude'),
     pytest.param({'a':'a_$b','b':1},['b'],{'a':'a_$b','b':1},id='simple_exclude_existing'),
     pytest.param({'a':'a_$b','b':'b_$c','c':1},[],{'a':'a_b_1','b':'b_1','c':1},id='double'),
 ])
 def test_resolve_dependencies(namespace,exclude,expected):
-    namespace = Namespace(namespace)
+    namespace = Namespace(**namespace)
     r = namespace.resolve(exclude)
     assert r == expected
 
 @pytest.mark.parametrize("namespace", [
-    pytest.param({'a':'$b'},id='missing_key'),
     pytest.param({'a':'a_$b','b':'b_$a'},id='circular_dependency_double'),
     pytest.param({'a':'$b','b':'$c','c':'$a'},id='circular_dependency_triple'),
     pytest.param({'a':'a_$a'},id='self_dependency'),
 ])
 def test_resolve_dependencies_errors(namespace):
-    namespace = Namespace(namespace)
+    namespace = Namespace(**namespace)
     with pytest.raises(KeyError):
         namespace.resolve()
 
 def test_namespace_in():
-    ns = Namespace({'a':1})
+    ns = Namespace(**{'a':1})
     r = 'a' in ns
     assert r == True
     r = 'b' in ns
     assert r == False
 
 def test_namespace_getelem():
-    ns = Namespace({'a':1,'b':2})
+    ns = Namespace(**{'a':1,'b':2})
     r = ns['a']
     assert r == Node(name='a', value=1, deps=None)
     r = ns['b']

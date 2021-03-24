@@ -38,7 +38,6 @@ def checkcmd(capfd,cmd):
 @pytest.mark.parametrize("builder_args,call_args,expected_a_val", [
     pytest.param({'a':'a_builder'},{},'a_builder',id='builder_defined_var'),
     pytest.param({},{'a':'a_call'},'a_call',id='call_defined_var'),
-    pytest.param({'a':'a_builder'},{'a':'a_call'},'a_call',id='builder_and_call_defined_var'),
     pytest.param({'a':'a_$b'},{'b':'b_call'},'a_b_call',id='builder_var_from_call_var'),
     pytest.param({'b':'b_builder'},{'a':'a_$b'},'a_b_builder',id='call_var_from_builder_var'),
     pytest.param({'a':'a_$b','b':'b_builder'},{},'a_b_builder',id='builder_var_from_builder_var'),
@@ -61,11 +60,11 @@ def test_simple_build(builder_args, call_args, expected_a_val, fake_project: Pat
         builders=[builders],
     )
     target = buildtool.builder1(
-        source = 'source_1',
-        target = 'target_1',
+        source = '$source_dir/source_1',
+        target = '$target_dir/target_1',
         **call_args,
     )
     assert target == 'target_1'
     writer = buildtool.run(ninja_opts='-n')
-    checkcmd(capfd,[expected_a_val,str(fake_project["files"]["source_1"]),'target_1'])
+    checkcmd(capfd,[expected_a_val,str(fake_project["files"]["source_1"]),str(fake_project["root"]/'work/target_1')])
 
