@@ -51,7 +51,7 @@ for test_source in test.source:
     else:
         cflags = lambda **kwargs: kwargs['cflags']
     test_objs.append(buildtool.test_object(
-        target = lambda target_dir: target_dir/test_dir/test_source.with_suffix('.o').name,
+        target = f'$target_dir/test_dir/{test_source.with_suffix(".o").name}',
         source = test_source,
         inc_dir = test.inc_dir,
         cflags = cflags,

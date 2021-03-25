@@ -1,8 +1,6 @@
 from pathlib import Path
-from typing import List, Dict
 import datetime
 import enum
-import inspect
 import subprocess as sp
 import dataclasses
 import logging
@@ -79,11 +77,6 @@ def as_list(x):
         return []
     else:
         return x
-
-def expand_list(variables, **kwargs):
-    v = {k:v for k,v in enumerate(variables)}
-    r = expand_variables(v, **kwargs)
-    return [r[i] for i in range(len(variables))]
 
 def stringify(value):
     if isinstance(value, list):
@@ -264,10 +257,9 @@ class NinjaWriter(Writer):
                 writer.newline()
 
 class Builder:
-    def __init__(self, rule, implicit = None, pool = None, kwargs = [], check_log = None, log = None, **variables):
+    def __init__(self, rule, implicit = None, pool = None, check_log = None, log = None, **variables):
         self.rule_name = rule
         self.variables = variables
-        self.kw = kwargs
         self.is_configured = False
         self.logger = logging.getLogger(__name__)
         self.implicit = implicit

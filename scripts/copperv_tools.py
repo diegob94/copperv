@@ -1,5 +1,5 @@
 import dataclasses
-from libpath import Path
+from pathlib import Path
 
 from scripts.build_tools import Rule, Builder, BuildTool
 
@@ -124,7 +124,7 @@ def sim_builders(buildtool):
     )
 
 buildtool = BuildTool(
-    root = Path(__file__).resolve(),
+    root = Path(__file__).parent.resolve(),
     rules=[c_rules,sim_rules],
     builders=[test_builders,sim_builders]
 )
