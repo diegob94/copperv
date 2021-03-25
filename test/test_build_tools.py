@@ -43,7 +43,7 @@ def checkcmd(capfd,cmd):
     pytest.param({'a':'a_$b','b':'b_builder'},{},'a_b_builder',id='builder_var_from_builder_var'),
     pytest.param({},{'a':'a_$b','b':'b_call'},'a_b_call',id='call_var_from_call_var'),
 ])
-def test_simple_build(builder_args, call_args, expected_a_val, fake_project: Path, capfd):
+def test_build(builder_args, call_args, expected_a_val, fake_project: Path, capfd):
     def rules(buildtool):
         buildtool.rules['rule1'] = Rule(
             command = '$a $in $out',
@@ -66,4 +66,27 @@ def test_simple_build(builder_args, call_args, expected_a_val, fake_project: Pat
     assert target == 'target_1'
     writer = buildtool.run(ninja_opts='-n')
     checkcmd(capfd,[expected_a_val,str(fake_project["files"]["source_1"]),str(fake_project["root"]/'work/target_1')])
+
+def test_build_log_target(fake_project: Path, capfd):
+    def rules(buildtool):
+        buildtool.rules['rule1'] = Rule(
+            command = '$a $in',
+        )
+    def builders(buildtool):
+        buildtool.builders['builder1'] = Builder(
+            rule = 'rule1',
+            a = 'echo',
+        )
+    buildtool = BuildTool(
+        root = fake_project['root'],
+        rules=[rules],
+        builders=[builders],
+    )
+    target = buildtool.builder1(
+        source = '$source_dir/source_1',
+        target = '$target_dir/foo.log',
+    )
+    assert target == 'foo.log'
+    writer = buildtool.run(ninja_opts='-n')
+    checkcmd(capfd,['echo',str(fake_project["files"]["source_1"]),'2>&1','|','tee',str(fake_project["root"]/'work/foo.log')])
 

@@ -5,25 +5,20 @@ from scripts.build_tools import Rule, Builder, BuildTool
 
 def c_rules(buildtool):
     buildtool.rules['object'] = Rule(
-        command = '$cc $cflags -MD -MF $out.d -c $in -o $out',
+        command = '$cc $_cflags -MD -MF $out.d -c $in -o $out',
         depfile = '$out.d',
-        variables = ['cc','cflags'],
     )
     buildtool.rules['preprocess'] = Rule(
-        command = '$cc $cflags -c $in -o $out',
-        variables = ['cc','cflags'],
+        command = '$cc $_cflags -c $in -o $out',
     )
     buildtool.rules['link'] = Rule(
-        command = '$cc $linkflags $in -o $out',
-        variables = ['cc','linkflags'],
+        command = '$cc $_linkflags $in -o $out',
     )
     buildtool.rules['verilog_hex'] = Rule(
         command = '$dev_utils hex -objcopy $objcopy -readelf $readelf -elf_file $in -o $out',
-        variables = ['dev_utils','objcopy','readelf'],
     )
     buildtool.rules['dissassemble'] = Rule(
         command = '$dev_utils dissassemble $in -o $out -objdump $objdump',
-        variables = ['dev_utils','objdump'],
     )
 
 def test_builders(buildtool):
@@ -33,14 +28,12 @@ def test_builders(buildtool):
     buildtool.builders['test_object'] = Builder(
         rule = 'object',
         cc = toolchain + 'gcc',
-        cflags = lambda inc_dir: cflags + [f' -I{i}' for i in inc_dir],
-        kwargs = ['inc_dir','cflags'],
+        _cflags = '$cflags',
     )
     buildtool.builders['test_preprocess'] = Builder(
         rule = 'preprocess',
         cc = toolchain + 'gcc',
-        cflags = lambda **kwargs: (buildtool.test_object.variables['cflags'](**kwargs) + ['-E']),
-        kwargs = ['inc_dir'],
+        _cflags = f"{buildtool.test_object.variables['_cflags']} -E",
     )
     linker_script = buildtool.root/'sim/tests/common/linker.ld'
     ldflags = ['-Wl','-T',str(linker_script),'-Bstatic']
@@ -66,16 +59,13 @@ def test_builders(buildtool):
 def sim_rules(buildtool):
     buildtool.rules['vvp'] = Rule(
         command = 'cd $cwd && vvp $vvpflags $in $plusargs',
-        variables = ['cwd','vvpflags','plusargs'],
         pool = 'console',
     )
     buildtool.rules['iverilog'] = Rule(
         command = "cd $cwd && iverilog $iverilogflags $in -o $out",
-        variables = ['cwd','iverilogflags'],
     )
     buildtool.rules['vpi'] = Rule(
         command = 'cd $cwd; iverilog-vpi $in',
-        variables = ['cwd'],
     )
     buildtool.rules['show_stdout'] = Rule(
         command = 'cat $in | sed "s/^/sim_stdout> /"',
@@ -83,17 +73,14 @@ def sim_rules(buildtool):
     )
     buildtool.rules['gtkwave'] = Rule(
         command = "gtkwave --rcvar 'splash_disable on' -A -a $cwd/sim.gtkw $in",
-        variables = ['cwd'],
         pool = 'console',
     )
 
 def sim_builders(buildtool):
     buildtool.builders['sim_run'] = Builder(
         rule = 'vvp',
-        cwd = lambda **kwargs: kwargs['cwd'],
         vvpflags = '-M. -mcopperv_tools',
         plusargs = lambda **kwargs: f'+HEX_FILE={kwargs["hex_file"]} +DISS_FILE={kwargs["diss_file"]}',
-        kwargs = ['cwd','hex_file','diss_file'],
         implicit = [
             lambda **kwargs: kwargs['hex_file'], # -> list
             lambda **kwargs: kwargs['diss_file'],
@@ -102,9 +89,7 @@ def sim_builders(buildtool):
     )
     buildtool.builders['sim_compile'] = Builder(
         rule = 'iverilog',
-        cwd = lambda **kwargs: kwargs['cwd'],
         iverilogflags = lambda **kwargs: ['-Wall','-Wno-timescale','-g2012',] + [f' -I{i}' for i in kwargs['inc_dir']],
-        kwargs = ['cwd','header_files','tools_vpi','inc_dir'],
         implicit = [
             lambda **kwargs: kwargs['header_files'],
             lambda **kwargs: kwargs['tools_vpi'],
@@ -113,14 +98,12 @@ def sim_builders(buildtool):
     )
     buildtool.builders['vpi'] = Builder(
         rule = 'vpi',
-        cwd = lambda cwd: cwd,
     )
     buildtool.builders['show_stdout'] = Builder(
         rule = 'show_stdout',
     )
     buildtool.builders['gtkwave'] = Builder(
         rule = 'gtkwave',
-        cwd = lambda **kwargs: kwargs['cwd'],
     )
 
 buildtool = BuildTool(

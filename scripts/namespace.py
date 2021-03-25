@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List
 import dataclasses
 import string
 
@@ -99,7 +99,7 @@ class Node:
             if dep == root:
                 raise KeyError(f'Variable depends on itself: {root.name}={root.value}')
             if dep in stack:
-                culprit = next(i for i in stack if i == dep)
+                #culprit = next(i for i in stack if i == dep)
                 raise KeyError(f'Circular dependency in variable: {root.name}={root.value}')
             stack.append(root)
             Node._sanity_check(dep,stack)

@@ -51,30 +51,30 @@ for test_source in test.source:
     else:
         cflags = lambda **kwargs: kwargs['cflags']
     test_objs.append(buildtool.test_object(
-        target = f'$target_dir/test_dir/{test_source.with_suffix(".o").name}',
+        target = f'$target_dir/test_dir/{test_source.stem}.o',
         source = test_source,
         inc_dir = test.inc_dir,
         cflags = cflags,
     ))
     buildtool.test_preprocess(
-        target = lambda target_dir: target_dir/test_dir/test_source.with_suffix('.E').name,
+        target = f'$target_dir/test_dir/{test_source.stem}.E',
         source = test_source,
         inc_dir = test.inc_dir,
     )
     buildtool.test_dissassemble(
-        target = lambda target_dir: target_dir/test_dir/(test_source.stem + '_obj.D'),
+        target = f"$target_dir/test_dir/{test_source.stem}_obj.D",
         source = test_objs[-1],
     )
 test_elf = buildtool.test_link(
-    target = lambda target_dir: target_dir/test_dir/f'{test.name}.elf',
+    target = f'$target_dir/test_dir/{test.name}.elf',
     source = test_objs,
 )
 test_hex = buildtool.test_verilog_hex(
-    target = lambda target_dir: target_dir/test_dir/f'{test.name}.hex',
+    target = f'$target_dir/test_dir/{test.name}.hex',
     source = test_elf,
 )
 test_diss = buildtool.test_dissassemble(
-    target = lambda target_dir: target_dir/test_dir/f'{test.name}.D',
+    target = f'$target_dir/test_dir/{test.name}.D',
     source = test_elf,
 )
 
@@ -92,29 +92,28 @@ sim_dir = 'sim'
 log_dir = 'log'
 
 tools_vpi = buildtool.vpi(
-    target = lambda target_dir: target_dir/sim_dir/'copperv_tools.vpi',
+    target = '$target_dir/sim_dir/copperv_tools.vpi',
     source = buildtool.root/'sim/copperv_tools.c',
-    cwd = lambda cwd,target_dir: target_dir/sim_dir,
-    implicit_target = lambda target_dir: target_dir/sim_dir/'copperv_tools.o',
+    cwd = f'$target_dir/{sim_dir}',
+    implicit_target = f'$target_dir/{sim_dir}/copperv_tools.o',
 )
 vvp = buildtool.sim_compile(
-    target = lambda target_dir: target_dir/sim_dir/'sim.vvp',
+    target = f'$target_dir/{sim_dir}/sim.vvp',
     source = rtl_sources + sim_sources,
-    log = lambda target_dir: target_dir/log_dir/'sim_compile.log',
-    cwd = lambda target_dir: target_dir/sim_dir,
+    log = f'$target_dir/{log_dir}/sim_compile.log',
+    cwd = f'$target_dir/{sim_dir}',
     header_files = rtl_headers + sim_headers,
     tools_vpi = tools_vpi,
     inc_dir = [rtl_inc_dir, sim_inc_dir],
 )
 sim_run_log, fake_uart, vcd_file = buildtool.sim_run(
-    target = [
-        buildtool.LOG_FILE,
-        lambda target_dir: target_dir/sim_dir/'fake_uart.log',
-        lambda target_dir: target_dir/sim_dir/'tb.vcd',
+    target = f'$target_dir/{log_dir}/sim_run_{test.name}.log',
+    implicit_target = [
+        f'$target_dir/{sim_dir}/fake_uart.log',
+        f'$target_dir/{sim_dir}/tb.vcd',
     ],
     source = vvp,
-    log = lambda target_dir: target_dir/log_dir/f'sim_run_{test.name}.log',
-    cwd = lambda target_dir: target_dir/sim_dir,
+    cwd = f'$target_dir/{sim_dir}',
     hex_file = test_hex,
     diss_file = test_diss,
 )

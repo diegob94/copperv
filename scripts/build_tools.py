@@ -9,16 +9,11 @@ import string
 import scripts.ninja_syntax as ninja
 from scripts.namespace import Namespace
 
-@enum.unique
-class InternalTarget(enum.Enum):
-    LOG_FILE = enum.auto()
-
 class BuildTool:
     @enum.unique
     class Writers(enum.Enum):
         NINJA = enum.auto()
         TEST = enum.auto()
-    LOG_FILE = InternalTarget.LOG_FILE
     def __init__(self, root, rules, builders, writer = Writers.NINJA):
         self.root = root
         self.target_dir = self.root / 'work'
@@ -291,6 +286,8 @@ class Builder:
     @property
     def source_dir(self):
         return self.buildtool.root
+    def resolve_variable(self, value, **kwargs):
+        return Namespace(key=value, **kwargs).resolve()['key']
     def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
         ## kwargs classes:
         ### define rule variable
@@ -298,14 +295,19 @@ class Builder:
         ### input for self.variable
         namespace = Namespace.collect(self.variables,kwargs)
         variables = namespace.resolve()
-        resolved_target = [Namespace(target=t, target_dir=self.target_dir).resolve()['target'] for t in as_list(target)]
-        resolved_source = [Namespace(source=t, source_dir=self.source_dir).resolve()['source'] for t in as_list(source)]
+        resolved_target = []
+        for t in as_list(target):
+            resolved = Path(self.resolve_variable(t, target_dir=self.target_dir))
+            if resolved.suffix == '.log':
+                self.rule.save_log()
+            resolved_target.append(resolved)
+        resolved_source = [self.resolve_variable(t, source_dir=self.source_dir) for t in as_list(source)]
         implicit = self.implicit
-        implicit_outputs = implicit_target
+        implicit_outputs = [self.resolve_variable(t, target_dir=self.target_dir) for t in as_list(implicit_target)]
         pool = self.pool
         self.writer.rule(self.rule)
         self.writer.build(self.rule, resolved_target, resolved_source, variables, implicit, implicit_outputs, pool)
-        r = [Path(t).relative_to(self.target_dir) for t in resolved_target]
+        r = [Path(t).relative_to(self.target_dir) for t in resolved_target + implicit_outputs]
         r = r[0] if len(r) == 1 else r
         self.logger.debug(f'return targets: {r}')
         return stringify(r)
