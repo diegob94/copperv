@@ -107,7 +107,7 @@ def sim_builders(buildtool):
     )
 
 buildtool = BuildTool(
-    root = Path(__file__).parent.resolve(),
+    root = Path(__file__).parent.parent.resolve(),
     rules=[c_rules,sim_rules],
     builders=[test_builders,sim_builders]
 )

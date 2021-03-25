@@ -51,7 +51,7 @@ class BuildTool:
             cmd = f'{cmd} {ninja_opts}'
         r = self.write_script()
         try:
-            print(cmd)
+            print(cmd,f'# cwd={self.target_dir}')
             sp.run(cmd,shell=True,check=True,encoding='utf-8',cwd=self.target_dir)
         except sp.CalledProcessError:
             pass
@@ -307,7 +307,7 @@ class Builder:
         pool = self.pool
         self.writer.rule(self.rule)
         self.writer.build(self.rule, resolved_target, resolved_source, variables, implicit, implicit_outputs, pool)
-        r = [Path(t).relative_to(self.target_dir) for t in resolved_target + implicit_outputs]
+        r = resolved_target + implicit_outputs
         r = r[0] if len(r) == 1 else r
         self.logger.debug(f'return targets: {r}')
         return stringify(r)

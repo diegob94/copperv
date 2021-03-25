@@ -46,35 +46,33 @@ test = tests[args.test]
 test_dir = 'test_' + test.name
 test_objs = []
 for test_source in test.source:
+    cflags = " ".join([f'-I{i}' for i in test.inc_dir])
     if test.name == 'dhrystone':
-        cflags = lambda **kwargs: kwargs['cflags'] + ['-DENTRY_POINT=_init']
-    else:
-        cflags = lambda **kwargs: kwargs['cflags']
+        cflags += ' -DENTRY_POINT=_init'
     test_objs.append(buildtool.test_object(
-        target = f'$target_dir/test_dir/{test_source.stem}.o',
+        target = f'$target_dir/{test_dir}/{test_source.stem}.o',
         source = test_source,
-        inc_dir = test.inc_dir,
         cflags = cflags,
     ))
     buildtool.test_preprocess(
-        target = f'$target_dir/test_dir/{test_source.stem}.E',
+        target = f'$target_dir/{test_dir}/{test_source.stem}.E',
         source = test_source,
-        inc_dir = test.inc_dir,
+        cflags = cflags,
     )
     buildtool.test_dissassemble(
-        target = f"$target_dir/test_dir/{test_source.stem}_obj.D",
+        target = f"$target_dir/{test_dir}/{test_source.stem}_obj.D",
         source = test_objs[-1],
     )
 test_elf = buildtool.test_link(
-    target = f'$target_dir/test_dir/{test.name}.elf',
+    target = f'$target_dir/{test_dir}/{test.name}.elf',
     source = test_objs,
 )
 test_hex = buildtool.test_verilog_hex(
-    target = f'$target_dir/test_dir/{test.name}.hex',
+    target = f'$target_dir/{test_dir}/{test.name}.hex',
     source = test_elf,
 )
 test_diss = buildtool.test_dissassemble(
-    target = f'$target_dir/test_dir/{test.name}.D',
+    target = f'$target_dir/{test_dir}/{test.name}.D',
     source = test_elf,
 )
 
@@ -128,7 +126,7 @@ if args.gtkwave:
     buildtool.gtkwave(
         target = 'gtkwave',
         source = vcd_file,
-        cwd = lambda target_dir: target_dir/sim_dir,
+        cwd = f'$target_dir/{sim_dir}',
     )
 
 buildtool.run(

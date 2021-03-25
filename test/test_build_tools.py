@@ -63,9 +63,10 @@ def test_build(builder_args, call_args, expected_a_val, fake_project: Path, capf
         target = '$target_dir/target_1',
         **call_args,
     )
-    assert target == 'target_1'
+    ref_target = str(fake_project["root"]/'work/target_1')
+    assert target == ref_target
     writer = buildtool.run(ninja_opts='-n')
-    checkcmd(capfd,[expected_a_val,str(fake_project["files"]["source_1"]),str(fake_project["root"]/'work/target_1')])
+    checkcmd(capfd,[expected_a_val,str(fake_project["files"]["source_1"]),ref_target])
 
 def test_build_log_target(fake_project: Path, capfd):
     def rules(buildtool):
@@ -86,7 +87,8 @@ def test_build_log_target(fake_project: Path, capfd):
         source = '$source_dir/source_1',
         target = '$target_dir/foo.log',
     )
-    assert target == 'foo.log'
+    ref_target = str(fake_project["root"]/'work/foo.log')
+    assert target == ref_target
     writer = buildtool.run(ninja_opts='-n')
-    checkcmd(capfd,['echo',str(fake_project["files"]["source_1"]),'2>&1','|','tee',str(fake_project["root"]/'work/foo.log')])
+    checkcmd(capfd,['echo',str(fake_project["files"]["source_1"]),'2>&1','|','tee',ref_target])
 
