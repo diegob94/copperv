@@ -100,8 +100,7 @@ vvp = buildtool.sim_compile(
     source = rtl_sources + sim_sources,
     log = f'$target_dir/{log_dir}/sim_compile.log',
     cwd = f'$target_dir/{sim_dir}',
-    header_files = rtl_headers + sim_headers,
-    tools_vpi = tools_vpi,
+    implicit_source = rtl_headers + sim_headers + tools_vpi,
     inc_dir = [rtl_inc_dir, sim_inc_dir],
 )
 sim_run_log, fake_uart, vcd_file = buildtool.sim_run(

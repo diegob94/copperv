@@ -251,12 +251,11 @@ class NinjaWriter(Writer):
                 writer.newline()
 
 class Builder:
-    def __init__(self, rule, implicit = None, pool = None, check_log = None, log = None, **kwargs):
+    def __init__(self, rule, pool = None, check_log = None, log = None, **kwargs):
         self.rule_name = rule
         self.variables = kwargs
         self.is_configured = False
         self.logger = logging.getLogger(__name__)
-        self.implicit = implicit
         self.pool = pool
         self.check_log = check_log
         self.log = log
@@ -286,24 +285,22 @@ class Builder:
     @property
     def source_dir(self):
         return self.buildtool.root
-    def resolve_variable(self, value, **kwargs):
-        return Namespace(key=value, **kwargs).resolve()['key']
-    def __call__(self, target, source, implicit_target = None, log = None, check_log = None, **kwargs):
+    def __call__(self, target, source, implicit_target = None, implicit_source = None, log = None, check_log = None, **kwargs):
         ## kwargs classes:
         ### define rule variable
         ### modify self.variable
         ### input for self.variable
-        namespace = Namespace.collect(self.variables,kwargs)
+        namespace = Namespace.collect(self.variables,kwargs,dict(target_dir=self.target_dir,source_dir=self.source_dir))
         variables = namespace.resolve()
         resolved_target = []
         for t in as_list(target):
-            resolved = Path(self.resolve_variable(t, target_dir=self.target_dir))
+            resolved = Path(namespace.eval(t))
             if resolved.suffix == '.log':
                 self.rule.save_log()
             resolved_target.append(resolved)
-        resolved_source = [self.resolve_variable(t, source_dir=self.source_dir) for t in as_list(source)]
-        implicit = self.implicit
-        implicit_outputs = [self.resolve_variable(t, target_dir=self.target_dir) for t in as_list(implicit_target)]
+        resolved_source = [namespace.eval(t) for t in as_list(source)]
+        implicit = [namespace.eval(t) for t in as_list(implicit_source)]
+        implicit_outputs = [namespace.eval(t) for t in as_list(implicit_target)]
         pool = self.pool
         self.writer.rule(self.rule)
         self.writer.build(self.rule, resolved_target, resolved_source, variables, implicit, implicit_outputs, pool)

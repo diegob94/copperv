@@ -54,6 +54,11 @@ class Namespace:
     def process_deps(self):
         for node in self._nodes:
             node.set_deps(self)
+    def eval(self,value):
+        self.resolve()
+        node = Node('key',value,None)
+        node.set_deps(self)
+        return node.substitute_deps().value
     def substitute_deps(self):
         self._nodes = [node.substitute_deps() if not node.is_leaf else node for node in self._nodes]
     def __contains__(self, item):
@@ -103,7 +108,7 @@ class Node:
                 raise KeyError(f'Circular dependency in variable: {root.name}={root.value}')
             stack.append(root)
             Node._sanity_check(dep,stack)
-    def substitute_deps(self):
+    def substitute_deps(self) -> "Node":
         self.sanity_check()
         substituted_deps = Namespace()
         for dep in self.deps:

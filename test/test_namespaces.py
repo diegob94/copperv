@@ -83,3 +83,9 @@ def test_namespace_getelem():
     r = ns['b']
     assert r == Node(name='b', value=2, deps=None)
 
+def test_namespace_eval():
+    ns = Namespace(**{'a':1,'b':2})
+    r = ns.eval('$a $b')
+    assert r == '1 2'
+    r = ns.eval('nop')
+    assert r == 'nop'

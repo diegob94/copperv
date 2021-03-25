@@ -62,7 +62,7 @@ def sim_rules(buildtool):
         pool = 'console',
     )
     buildtool.rules['iverilog'] = Rule(
-        command = "cd $cwd && iverilog $iverilogflags $in -o $out",
+        command = "cd $cwd && iverilog $_iverilogflags $in -o $out",
     )
     buildtool.rules['vpi'] = Rule(
         command = 'cd $cwd; iverilog-vpi $in',
@@ -80,19 +80,19 @@ def sim_builders(buildtool):
     buildtool.builders['sim_run'] = Builder(
         rule = 'vvp',
         vvpflags = '-M. -mcopperv_tools',
-        plusargs = lambda **kwargs: f'+HEX_FILE={kwargs["hex_file"]} +DISS_FILE={kwargs["diss_file"]}',
+        plusargs = '+HEX_FILE=$hex_file +DISS_FILE=$diss_file',
         implicit = [
-            lambda **kwargs: kwargs['hex_file'], # -> list
-            lambda **kwargs: kwargs['diss_file'],
+            '$hex_file',
+            '$diss_file',
         ],
         check_log = 'grep -q "TEST PASSED" $log',
     )
     buildtool.builders['sim_compile'] = Builder(
         rule = 'iverilog',
-        iverilogflags = lambda **kwargs: ['-Wall','-Wno-timescale','-g2012',] + [f' -I{i}' for i in kwargs['inc_dir']],
+        _iverilogflags = '-Wall -Wno-timescale -g2012 $iverilogflags',
         implicit = [
-            lambda **kwargs: kwargs['header_files'],
-            lambda **kwargs: kwargs['tools_vpi'],
+            '$header_files',
+            '$tools_vpi',
         ],
         check_log = '! grep -q error $log',
     )
