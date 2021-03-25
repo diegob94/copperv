@@ -101,9 +101,8 @@ def flatten(x):
     return r
 
 class Rule:
-    def __init__(self, command, depfile = None, variables = {}, log = None, no_output = False, pool = None):
+    def __init__(self, command, depfile = None, log = None, no_output = False, pool = None):
         self.depfile = depfile
-        self.variables = variables
         self.is_configured = False
         self.log = log
         self.command = command
@@ -257,9 +256,9 @@ class NinjaWriter(Writer):
                 writer.newline()
 
 class Builder:
-    def __init__(self, rule, implicit = None, pool = None, check_log = None, log = None, **variables):
+    def __init__(self, rule, implicit = None, pool = None, check_log = None, log = None, **kwargs):
         self.rule_name = rule
-        self.variables = variables
+        self.variables = kwargs
         self.is_configured = False
         self.logger = logging.getLogger(__name__)
         self.implicit = implicit
@@ -298,7 +297,7 @@ class Builder:
         ### modify self.variable
         ### input for self.variable
         namespace = Namespace.collect(self.variables,kwargs)
-        variables = namespace.resolve(self.rule.variables)
+        variables = namespace.resolve()
         resolved_target = [Namespace(target=t, target_dir=self.target_dir).resolve()['target'] for t in as_list(target)]
         resolved_source = [Namespace(source=t, source_dir=self.source_dir).resolve()['source'] for t in as_list(source)]
         implicit = self.implicit

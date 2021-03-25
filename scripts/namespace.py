@@ -47,13 +47,13 @@ class Namespace:
                 else:
                     collected[k] = v
         return Namespace(**collected)
-    def resolve(self, exclude: List[str] = []):
-        self.process_deps(exclude)
+    def resolve(self):
+        self.process_deps()
         self.substitute_deps()
         return self.to_dict()
-    def process_deps(self, exclude: list = []):
+    def process_deps(self):
         for node in self._nodes:
-            node.set_deps(self,exclude)
+            node.set_deps(self)
     def substitute_deps(self):
         self._nodes = [node.substitute_deps() if not node.is_leaf else node for node in self._nodes]
     def __contains__(self, item):
@@ -116,12 +116,10 @@ class Node:
             self.template.substitute(**substituted_deps.to_dict()),
             substituted_deps,
         )
-    def set_deps(self, namespace: Namespace, exclude: List[str] = []):
+    def set_deps(self, namespace: Namespace):
         dep_list = []
         for name in self.template.names:
-            if name in exclude:
-                continue
-            elif name in namespace:
+            if name in namespace:
                 dep_list.append(namespace[name])
             else:
                 dep_list.append(Node(name,"",deps=[]))

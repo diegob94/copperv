@@ -47,7 +47,6 @@ def test_simple_build(builder_args, call_args, expected_a_val, fake_project: Pat
     def rules(buildtool):
         buildtool.rules['rule1'] = Rule(
             command = '$a $in $out',
-            variables = ['a'],
         )
     def builders(buildtool):
         buildtool.builders['builder1'] = Builder(

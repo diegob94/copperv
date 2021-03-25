@@ -21,11 +21,6 @@ def test_template_substitute_basic():
     t = template.substitute(test = 'value')
     assert t == 'test value'
 
-def test_template_substitute_exclude():
-    template = Template('test $test $excludeme')
-    t = template.substitute(test = 'value')
-    assert t == 'test value $excludeme'
-
 def test_template_substitute_unused_var():
     template = Template('test $test')
     t = template.substitute(test = 'value', foo = 'useless')
@@ -52,18 +47,16 @@ def test_collect_namespaces_errors(namespaces):
     with pytest.raises(KeyError):
         r = Namespace.collect(*namespaces)
 
-@pytest.mark.parametrize("namespace,exclude,expected", [
-    pytest.param({},[],{},id='empty'),
-    pytest.param({'a':1},[],{'a':1},id='identity'),
-    pytest.param({'a':'a_$b'},[],{'a':'a_'},id='undefined'),
-    pytest.param({'a':'a_$b','b':1},[],{'a':'a_1','b':1},id='simple'),
-    pytest.param({'a':'a_$b'},['b'],{'a':'a_$b'},id='simple_exclude'),
-    pytest.param({'a':'a_$b','b':1},['b'],{'a':'a_$b','b':1},id='simple_exclude_existing'),
-    pytest.param({'a':'a_$b','b':'b_$c','c':1},[],{'a':'a_b_1','b':'b_1','c':1},id='double'),
+@pytest.mark.parametrize("namespace,expected", [
+    pytest.param({},{},id='empty'),
+    pytest.param({'a':1},{'a':1},id='identity'),
+    pytest.param({'a':'a_$b'},{'a':'a_'},id='undefined'),
+    pytest.param({'a':'a_$b','b':1},{'a':'a_1','b':1},id='simple'),
+    pytest.param({'a':'a_$b','b':'b_$c','c':1},{'a':'a_b_1','b':'b_1','c':1},id='double'),
 ])
-def test_resolve_dependencies(namespace,exclude,expected):
+def test_resolve_dependencies(namespace,expected):
     namespace = Namespace(**namespace)
-    r = namespace.resolve(exclude)
+    r = namespace.resolve()
     assert r == expected
 
 @pytest.mark.parametrize("namespace", [
