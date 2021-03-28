@@ -24,7 +24,7 @@ from scripts.copperv_tools import buildtool, tests
 parser = argparse.ArgumentParser(description='Build Copperv core')
 parser.add_argument('-d','--debug',dest='debug',action='store_true',
         help='Enable debug output')
-parser.add_argument('-t','--test',dest='test',default='rv32ui',
+parser.add_argument('-t','--test',dest='test',default='simple',
         help=f'CPU test to run. Defaults to rv32ui test suite, available tests: {", ".join(tests.keys())}')
 parser.add_argument('--ninja_opts',default=None,help=f'Options for ninja')
 parser.add_argument('--gtkwave',dest='gtkwave',action='store_true',
@@ -86,6 +86,9 @@ sim_sources = list((buildtool.root/'sim').glob('*.v'))
 sim_sources.extend(list((buildtool.root/'sim').glob('*.sv')))
 sim_sources = [f for f in sim_sources if f.name != 'checker_cpu.v']
 
+inc_dir = [rtl_inc_dir, sim_inc_dir]
+iverilogflags = " ".join([f'-I{i}' for i in inc_dir])
+
 sim_dir = 'sim'
 log_dir = 'log'
 
@@ -101,7 +104,7 @@ vvp = buildtool.sim_compile(
     log = f'$target_dir/{log_dir}/sim_compile.log',
     cwd = f'$target_dir/{sim_dir}',
     implicit_source = rtl_headers + sim_headers + tools_vpi,
-    inc_dir = [rtl_inc_dir, sim_inc_dir],
+    iverilogflags = iverilogflags,
 )
 sim_run_log, fake_uart, vcd_file = buildtool.sim_run(
     target = f'$target_dir/{log_dir}/sim_run_{test.name}.log',

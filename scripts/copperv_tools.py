@@ -58,7 +58,7 @@ def test_builders(buildtool):
 
 def sim_rules(buildtool):
     buildtool.rules['vvp'] = Rule(
-        command = 'cd $cwd && vvp $vvpflags $in $plusargs',
+        command = 'cd $cwd && vvp $_vvpflags $in $plusargs',
         pool = 'console',
     )
     buildtool.rules['iverilog'] = Rule(
@@ -79,7 +79,7 @@ def sim_rules(buildtool):
 def sim_builders(buildtool):
     buildtool.builders['sim_run'] = Builder(
         rule = 'vvp',
-        vvpflags = '-M. -mcopperv_tools',
+        _vvpflags = ['-M.', '-mcopperv_tools', '$vvpflags'],
         plusargs = '+HEX_FILE=$hex_file +DISS_FILE=$diss_file',
         implicit = [
             '$hex_file',
