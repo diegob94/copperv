@@ -65,7 +65,7 @@ def sim_rules(buildtool):
         command = "cd $cwd && iverilog $_iverilogflags $in -o $out",
     )
     buildtool.rules['vpi'] = Rule(
-        command = 'cd $cwd; iverilog-vpi $in',
+        command = 'cd $cwd && iverilog-vpi $in',
     )
     buildtool.rules['show_stdout'] = Rule(
         command = 'cat $in | sed "s/^/sim_stdout> /"',

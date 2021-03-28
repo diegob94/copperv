@@ -102,7 +102,7 @@ class Rule:
         self.log = log
         self.command = command
         if no_output:
-            self.append_to_command('; date > $out')
+            self.append_to_command('&& date > $out')
         if self.log is not None:
             self.save_log(self.log)
         self.pool = pool
