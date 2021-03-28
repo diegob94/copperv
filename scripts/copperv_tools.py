@@ -28,12 +28,12 @@ def test_builders(buildtool):
     buildtool.builders['test_object'] = Builder(
         rule = 'object',
         cc = toolchain + 'gcc',
-        _cflags = '$cflags',
+        _cflags = cflags + ['$cflags'],
     )
     buildtool.builders['test_preprocess'] = Builder(
         rule = 'preprocess',
         cc = toolchain + 'gcc',
-        _cflags = f"{buildtool.test_object.variables['_cflags']} -E",
+        _cflags = buildtool.test_object.variables['_cflags'] + ["-E"],
     )
     linker_script = buildtool.root/'sim/tests/common/linker.ld'
     ldflags = ['-Wl','-T',str(linker_script),'-Bstatic']
@@ -41,7 +41,7 @@ def test_builders(buildtool):
     buildtool.builders['test_link'] = Builder(
         rule = 'link',
         cc = toolchain + 'gcc',
-        linkflags = cflags + [','.join(ldflags),'-nostartfiles','-ffreestanding'],
+        _linkflags = cflags + [','.join(ldflags),'-nostartfiles','-ffreestanding', '$linkflags'],
     )
     dev_utils = buildtool.root/'scripts/dev_utils.py'
     buildtool.builders['test_verilog_hex'] = Builder(

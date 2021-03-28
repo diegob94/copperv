@@ -297,10 +297,15 @@ class Builder:
         resolved_target = []
         for t in as_list(target):
             resolved = Path(namespace.eval(t))
-            if len(resolved.parts) == 1:
-                resolved = self.target_dir / resolved
+            relative_to = self.target_dir
+            if 'cwd' in namespace:
+                cwd = namespace['cwd'].value
+                if resolved.is_absolute():
+                    relative_to = cwd
+                else:
+                    resolved = cwd/resolved
             try:
-                resolved = resolved.relative_to(self.target_dir)
+                resolved = resolved.relative_to(relative_to)
             except ValueError:
                 pass
             if resolved.suffix == '.log':

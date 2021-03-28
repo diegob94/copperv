@@ -89,3 +89,7 @@ def test_namespace_eval():
     assert r == '1 2'
     r = ns.eval('nop')
     assert r == 'nop'
+
+def test_namespace_list_input():
+    ns = Namespace(a=['1','2'])
+    assert ns.to_dict() == {'a':'1 2'}

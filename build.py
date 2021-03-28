@@ -90,7 +90,7 @@ sim_dir = 'sim'
 log_dir = 'log'
 
 tools_vpi = buildtool.vpi(
-    target = '$target_dir/sim_dir/copperv_tools.vpi',
+    target = f'$target_dir/{sim_dir}/copperv_tools.vpi',
     source = buildtool.root/'sim/copperv_tools.c',
     cwd = f'$target_dir/{sim_dir}',
     implicit_target = f'$target_dir/{sim_dir}/copperv_tools.o',

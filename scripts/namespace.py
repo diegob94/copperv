@@ -1,6 +1,7 @@
 from typing import List
 import dataclasses
 import string
+from collections.abc import Iterable
 
 class Template(string.Template):
     def __init__(self,template,*args, **kwargs):
@@ -36,7 +37,12 @@ class Template(string.Template):
 
 class Namespace:
     def __init__(self, **variables: str):
-        self._nodes = [Node(k,v,None) for k,v in variables.items()]
+        self._nodes = [Node(k,self.process_input(v),None) for k,v in variables.items()]
+    def process_input(self, v):
+        r = v
+        if not isinstance(v, str) and isinstance(v, Iterable):
+            r = ' '.join([str(i) for i in v])
+        return r
     @staticmethod
     def collect(*args):
         collected = {}

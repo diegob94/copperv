@@ -117,3 +117,29 @@ def test_build_unused_variable(fake_project: Path):
     for line in ninja.splitlines():
         if re.search('b\s*=',line):
             assert False, line
+
+def test_build_cwd(fake_project: Path, capfd):
+    def rules(buildtool):
+        buildtool.rules['rule1'] = Rule(
+            command = '$a $in',
+        )
+    def builders(buildtool):
+        buildtool.builders['builder1'] = Builder(
+            rule = 'rule1',
+            a = 'echo',
+        )
+    buildtool = BuildTool(
+        root = fake_project['root'],
+        rules=[rules],
+        builders=[builders],
+    )
+    target = buildtool.builder1(
+        source = '$source_dir/source_1',
+        target = 'foo.log',
+        cwd = 'subwork',
+    )
+    writer = buildtool.run(ninja_opts='-n')
+    ref_target = 'subwork/foo.log'
+    assert target == ref_target
+    writer = buildtool.run(ninja_opts='-n')
+    checkcmd(capfd,['echo',str(fake_project["files"]["source_1"]),'2>&1','|','tee',ref_target])
