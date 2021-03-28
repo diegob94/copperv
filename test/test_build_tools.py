@@ -63,7 +63,7 @@ def test_build(builder_args, call_args, expected_a_val, fake_project: Path, capf
         target = '$target_dir/target_1',
         **call_args,
     )
-    ref_target = str(fake_project["root"]/'work/target_1')
+    ref_target = 'target_1'
     assert target == ref_target
     writer = buildtool.run(ninja_opts='-n')
     checkcmd(capfd,[expected_a_val,str(fake_project["files"]["source_1"]),ref_target])
@@ -85,10 +85,35 @@ def test_build_log_target(fake_project: Path, capfd):
     )
     target = buildtool.builder1(
         source = '$source_dir/source_1',
-        target = '$target_dir/foo.log',
+        target = 'foo.log',
     )
-    ref_target = str(fake_project["root"]/'work/foo.log')
+    ref_target = 'foo.log'
     assert target == ref_target
     writer = buildtool.run(ninja_opts='-n')
     checkcmd(capfd,['echo',str(fake_project["files"]["source_1"]),'2>&1','|','tee',ref_target])
 
+def test_build_unused_variable(fake_project: Path):
+    def rules(buildtool):
+        buildtool.rules['rule1'] = Rule(
+            command = '$a $in',
+        )
+    def builders(buildtool):
+        buildtool.builders['builder1'] = Builder(
+            rule = 'rule1',
+            a = 'ech$b',
+            b = 'o',
+        )
+    buildtool = BuildTool(
+        root = fake_project['root'],
+        rules=[rules],
+        builders=[builders],
+    )
+    target = buildtool.builder1(
+        source = '$source_dir/source_1',
+        target = 'foo.log',
+    )
+    writer = buildtool.run(ninja_opts='-n')
+    ninja = (fake_project['root']/'work/build.ninja').read_text()
+    for line in ninja.splitlines():
+        if re.search('b\s*=',line):
+            assert False, line

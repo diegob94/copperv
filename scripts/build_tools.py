@@ -7,7 +7,7 @@ import logging
 import string
 
 import scripts.ninja_syntax as ninja
-from scripts.namespace import Namespace
+from scripts.namespace import Namespace, Template
 
 class BuildTool:
     @enum.unique
@@ -106,6 +106,7 @@ class Rule:
         if self.log is not None:
             self.save_log(self.log)
         self.pool = pool
+        self.user_variables = [k for k in Template(self.command).get_var_names()]
     def configure(self, name):
         self._name = name
         self.is_configured = True
@@ -292,9 +293,16 @@ class Builder:
         ### input for self.variable
         namespace = Namespace.collect(self.variables,kwargs,dict(target_dir=self.target_dir,source_dir=self.source_dir))
         variables = namespace.resolve()
+        variables = {k:v for k,v in variables.items() if k in self.rule.user_variables}
         resolved_target = []
         for t in as_list(target):
             resolved = Path(namespace.eval(t))
+            if len(resolved.parts) == 1:
+                resolved = self.target_dir / resolved
+            try:
+                resolved = resolved.relative_to(self.target_dir)
+            except ValueError:
+                pass
             if resolved.suffix == '.log':
                 self.rule.save_log()
             resolved_target.append(resolved)

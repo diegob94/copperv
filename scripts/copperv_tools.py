@@ -22,7 +22,7 @@ def c_rules(buildtool):
     )
 
 def test_builders(buildtool):
-    toolchain = '/home/diegob/cad/riscv/toolchain_multilib/bin/riscv64-unknown-elf-'
+    toolchain = 'riscv64-unknown-elf-'
     cflags = ['-march=rv32i','-mabi=ilp32']
     cflags.append('-g')
     buildtool.builders['test_object'] = Builder(

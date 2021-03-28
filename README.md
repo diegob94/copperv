@@ -7,6 +7,5 @@ RISCV core
   - riscv-gnu-toolchain git:(master) make -j$(nproc)
 
 ## TODO build tool
-- Avoid making cc an absolute path
-- Remove unused variables
+- Fix linker missing flags
 
