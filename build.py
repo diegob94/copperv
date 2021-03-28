@@ -98,7 +98,7 @@ tools_vpi = buildtool.vpi(
     cwd = f'$target_dir/{sim_dir}',
     implicit_target = f'$target_dir/{sim_dir}/copperv_tools.o',
 )
-vvp = buildtool.sim_compile(
+vvp, sim_compile_log = buildtool.sim_compile(
     target = f'$target_dir/{sim_dir}/sim.vvp',
     source = rtl_sources + sim_sources,
     log = f'$target_dir/{log_dir}/sim_compile.log',
@@ -114,8 +114,8 @@ sim_run_log, fake_uart, vcd_file = buildtool.sim_run(
     ],
     source = vvp,
     cwd = f'$target_dir/{sim_dir}',
-    hex_file = test_hex,
-    diss_file = test_diss,
+    hex_file = f'$target_dir/{test_hex}',
+    diss_file = f'$target_dir/{test_diss}',
 )
 
 if test.show_stdout:

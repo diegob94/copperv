@@ -207,9 +207,11 @@ def generate_hex_file(hex_file: Path,elf_file: Path,objcopy,readelf,v_hex_file):
     else:
         init_zeros = []
     mem = Memory(v_hex_file)
-    print("\nZero initialized sections:")
-    print(tabulate([{k:v if k != 'addr' else hex(v) for k,v in row.items()} for row in init_zeros],headers="keys"))
-    print()
+    table = [{k:v if k != 'addr' else hex(v) for k,v in row.items()} for row in init_zeros]
+    if len(table) > 0:
+        print("\nZero initialized sections:")
+        print(tabulate(table,headers="keys"))
+        print()
     debug_hex_file = hex_file.with_suffix('.debug_hex')
     mem.write_verilog_hex(debug_hex_file)
     generated(debug_hex_file)
