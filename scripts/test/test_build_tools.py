@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 from scripts.build_tools import Rule, Builder, BuildTool
 import pytest
 import re
@@ -91,6 +91,31 @@ def test_build_log_target(fake_project: Path, capfd):
     assert target == ref_target
     writer = buildtool.run(ninja_opts='-n')
     checkcmd(capfd,['echo',str(fake_project["files"]["source_1"]),'2>&1','|','tee',ref_target])
+
+def test_build_log_variable(fake_project: Path, capfd):
+    def rules(buildtool):
+        buildtool.rules['rule1'] = Rule(
+            command = '$a $in $out',
+        )
+    def builders(buildtool):
+        buildtool.builders['builder1'] = Builder(
+            rule = 'rule1',
+            a = 'echo',
+        )
+    buildtool = BuildTool(
+        root = fake_project['root'],
+        rules=[rules],
+        builders=[builders],
+    )
+    target = buildtool.builder1(
+        source = '$source_dir/source_1',
+        target = 'target_1',
+        log = 'foo.log'
+    )
+    ref_target = 'target_1'
+    assert target == [ref_target,'foo.log']
+    writer = buildtool.run(ninja_opts='-n')
+    checkcmd(capfd,['echo',str(fake_project["files"]["source_1"]),'target_1','2>&1','|','tee','foo.log'])
 
 def test_build_unused_variable(fake_project: Path):
     def rules(buildtool):

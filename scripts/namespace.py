@@ -2,6 +2,7 @@ from typing import List
 import dataclasses
 import string
 from collections.abc import Iterable
+import logging
 
 class Template(string.Template):
     def __init__(self,template,*args, **kwargs):
@@ -38,6 +39,7 @@ class Template(string.Template):
 class Namespace:
     def __init__(self, **variables: str):
         self._nodes = [Node(k,self.process_input(v),None) for k,v in variables.items()]
+        self.logger = logging.getLogger(__name__)
     def process_input(self, v):
         r = v
         if not isinstance(v, str) and isinstance(v, Iterable):
@@ -54,17 +56,27 @@ class Namespace:
                     collected[k] = v
         return Namespace(**collected)
     def resolve(self):
+        self.logger.debug(f'before {self=}')
         self.process_deps()
+        self.logger.debug(f'process {self=}')
         self.substitute_deps()
-        return self.to_dict()
+        self.logger.debug(f'substitute {self=}')
+        r = self.to_dict()
+        self.logger.debug(f'dict {r=}')
+        return r
     def process_deps(self):
         for node in self._nodes:
             node.set_deps(self)
     def eval(self,value):
         self.resolve()
+        self.logger.debug(f'resolve {self=}')
         node = Node('key',value,None)
         node.set_deps(self)
-        return node.substitute_deps().value
+        self.logger.debug(f'set_deps {node=}')
+        r = node.substitute_deps().value
+        self.logger.debug(f'substitute_deps {node=}')
+        self.logger.debug(f'substitute_deps {node.substitute_deps()=}')
+        return r
     def substitute_deps(self):
         self._nodes = [node.substitute_deps() if not node.is_leaf else node for node in self._nodes]
     def __contains__(self, item):
@@ -91,11 +103,13 @@ class Namespace:
     def __len__(self):
         return len(self._nodes)
 
-@dataclasses.dataclass
 class Node:
-    name: str
-    value: object
-    deps: Namespace
+    def __init__(self, name, value, deps = None):
+        self.name = name
+        self.value = value
+        self.deps = deps
+        if deps is None:
+            self.deps = Namespace()
     @property
     def template(self):
         return Template(self.value)
@@ -122,9 +136,12 @@ class Node:
             if not dep.is_leaf:
                 temp = dep.substitute_deps()
             substituted_deps.append(temp)
+        new_value = None
+        if self.value is not None:
+            new_value = self.template.substitute(**substituted_deps.to_dict())
         return Node(
             self.name,
-            self.template.substitute(**substituted_deps.to_dict()),
+            new_value,
             substituted_deps,
         )
     def set_deps(self, namespace: Namespace):

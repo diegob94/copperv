@@ -50,6 +50,7 @@ def test_collect_namespaces_errors(namespaces):
 @pytest.mark.parametrize("namespace,expected", [
     pytest.param({},{},id='empty'),
     pytest.param({'a':1},{'a':1},id='identity'),
+    pytest.param({'a':None},{'a':None},id='none_value'),
     pytest.param({'a':'a_$b'},{'a':'a_'},id='undefined'),
     pytest.param({'a':'a_$b','b':1},{'a':'a_1','b':1},id='simple'),
     pytest.param({'a':'a_$b','b':'b_$c','c':1},{'a':'a_b_1','b':'b_1','c':1},id='double'),
@@ -79,9 +80,11 @@ def test_namespace_in():
 def test_namespace_getelem():
     ns = Namespace(**{'a':1,'b':2})
     r = ns['a']
-    assert r == Node(name='a', value=1, deps=None)
+    assert r.name == 'a'
+    assert r.value == 1
     r = ns['b']
-    assert r == Node(name='b', value=2, deps=None)
+    assert r.name == 'b'
+    assert r.value == 2
 
 def test_namespace_eval():
     ns = Namespace(**{'a':1,'b':2})
@@ -89,7 +92,17 @@ def test_namespace_eval():
     assert r == '1 2'
     r = ns.eval('nop')
     assert r == 'nop'
+    r = ns.eval(None)
+    assert r == None
 
 def test_namespace_list_input():
     ns = Namespace(a=['1','2'])
     assert ns.to_dict() == {'a':'1 2'}
+
+def test_namespace_node_substitute_deps_none():
+    node = Node('name',None)
+    assert node.substitute_deps().name == 'name'
+    assert node.substitute_deps().value == None
+
+
+

@@ -295,6 +295,7 @@ class Builder:
         variables = namespace.resolve()
         variables = {k:v for k,v in variables.items() if k in self.rule.user_variables}
         resolved_target = []
+        log_is_target = False
         for t in as_list(target):
             resolved = Path(namespace.eval(t))
             relative_to = self.target_dir
@@ -309,12 +310,22 @@ class Builder:
             except ValueError:
                 pass
             if resolved.suffix == '.log':
-                self.rule.save_log()
+                log_is_target = True
             resolved_target.append(resolved)
         resolved_source = [namespace.eval(t) for t in as_list(source)]
         implicit = [namespace.eval(t) for t in as_list(implicit_source)]
         implicit_outputs = [namespace.eval(t) for t in as_list(implicit_target)]
+        self.logger.debug(f'before {log=}')
+        log = namespace.eval(log)
+        self.logger.debug(f'after {log=}')
         pool = self.pool
+        if log_is_target:
+            self.logger.debug(f'Log is explicit target: {resolved_target}')
+            self.rule.save_log()
+        elif log is not None:
+            self.logger.debug(f'Log is implicit target: {log}')
+            self.rule.save_log(log)
+            implicit_outputs.append(log)
         self.writer.rule(self.rule)
         self.writer.build(self.rule, resolved_target, resolved_source, variables, implicit, implicit_outputs, pool)
         r = resolved_target + implicit_outputs
