@@ -110,6 +110,10 @@ class Node:
         self.deps = deps
         if deps is None:
             self.deps = Namespace()
+    def __str__(self):
+        return f'Node<{self.name},{self.value},{self.deps}>'
+    def __repr__(self):
+        return f'Node({repr(self.name)},{repr(self.value)},{repr(self.deps)})'
     @property
     def template(self):
         return Template(self.value)

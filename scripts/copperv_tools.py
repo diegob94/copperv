@@ -81,19 +81,11 @@ def sim_builders(buildtool):
         rule = 'vvp',
         _vvpflags = ['-M.', '-mcopperv_tools', '$vvpflags'],
         plusargs = '+HEX_FILE=$hex_file +DISS_FILE=$diss_file',
-        implicit = [
-            '$hex_file',
-            '$diss_file',
-        ],
         check_log = 'grep -q "TEST PASSED" $log',
     )
     buildtool.builders['sim_compile'] = Builder(
         rule = 'iverilog',
         _iverilogflags = '-Wall -Wno-timescale -g2012 $iverilogflags',
-        implicit = [
-            '$header_files',
-            '$tools_vpi',
-        ],
         check_log = '! grep -q error $log',
     )
     buildtool.builders['vpi'] = Builder(

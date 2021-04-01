@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 from scripts.build_tools import Rule, Builder, BuildTool
+from scripts.namespace import Namespace
 import pytest
 import re
 
@@ -18,10 +19,27 @@ def fake_project(tmp_path: Path):
         files[name] = f
     return dict(root=tmp_path,files=files)
 
-def checkcmd(capfd,cmd):
+@pytest.fixture
+def buildtool1(fake_project):
+    def rules(buildtool):
+        buildtool.rules['rule1'] = Rule(
+            command = '$a $in | tee $out',
+        )
+    def builders(buildtool):
+        buildtool.builders['builder1'] = Builder(
+            rule = 'rule1',
+            a = 'echo',
+        )
+    buildtool = BuildTool(
+        root = fake_project['root'],
+        rules=[rules],
+        builders=[builders],
+    )
+    return buildtool
+
+def checkcmd(backend_out,cmd):
     __tracebackhide__ = True
     passed = False
-    backend_out = capfd.readouterr().out
     for line in backend_out.splitlines():
         if cmd[0] in line:
             if split(line)[1:] == cmd:
@@ -43,7 +61,7 @@ def checkcmd(capfd,cmd):
     pytest.param({'a':'a_$b','b':'b_builder'},{},'a_b_builder',id='builder_var_from_builder_var'),
     pytest.param({},{'a':'a_$b','b':'b_call'},'a_b_call',id='call_var_from_call_var'),
 ])
-def test_build(builder_args, call_args, expected_a_val, fake_project: Path, capfd):
+def test_build(builder_args, call_args, expected_a_val, fake_project, capfd):
     def rules(buildtool):
         buildtool.rules['rule1'] = Rule(
             command = '$a $in $out',
@@ -66,58 +84,20 @@ def test_build(builder_args, call_args, expected_a_val, fake_project: Path, capf
     ref_target = 'target_1'
     assert target == ref_target
     writer = buildtool.run(ninja_opts='-n')
-    checkcmd(capfd,[expected_a_val,str(fake_project["files"]["source_1"]),ref_target])
+    checkcmd(capfd.readouterr().out,[expected_a_val,str(fake_project["files"]["source_1"]),ref_target])
 
-def test_build_log_target(fake_project: Path, capfd):
-    def rules(buildtool):
-        buildtool.rules['rule1'] = Rule(
-            command = '$a $in',
-        )
-    def builders(buildtool):
-        buildtool.builders['builder1'] = Builder(
-            rule = 'rule1',
-            a = 'echo',
-        )
-    buildtool = BuildTool(
-        root = fake_project['root'],
-        rules=[rules],
-        builders=[builders],
-    )
-    target = buildtool.builder1(
-        source = '$source_dir/source_1',
-        target = 'foo.log',
-    )
-    ref_target = 'foo.log'
-    assert target == ref_target
-    writer = buildtool.run(ninja_opts='-n')
-    checkcmd(capfd,['echo',str(fake_project["files"]["source_1"]),'2>&1','|','tee',ref_target])
-
-def test_build_log_variable(fake_project: Path, capfd):
-    def rules(buildtool):
-        buildtool.rules['rule1'] = Rule(
-            command = '$a $in $out',
-        )
-    def builders(buildtool):
-        buildtool.builders['builder1'] = Builder(
-            rule = 'rule1',
-            a = 'echo',
-        )
-    buildtool = BuildTool(
-        root = fake_project['root'],
-        rules=[rules],
-        builders=[builders],
-    )
-    target = buildtool.builder1(
+def test_build_log_variable(buildtool1, fake_project, capfd):
+    target = buildtool1.builder1(
         source = '$source_dir/source_1',
         target = 'target_1',
         log = 'foo.log'
     )
     ref_target = 'target_1'
     assert target == [ref_target,'foo.log']
-    writer = buildtool.run(ninja_opts='-n')
-    checkcmd(capfd,['echo',str(fake_project["files"]["source_1"]),'target_1','2>&1','|','tee','foo.log'])
+    writer = buildtool1.run(ninja_opts='-n')
+    checkcmd(capfd.readouterr().out,['echo',str(fake_project["files"]["source_1"]),'|','tee','target_1','2>&1','|','tee','foo.log'])
 
-def test_build_unused_variable(fake_project: Path):
+def test_build_unused_variable(fake_project):
     def rules(buildtool):
         buildtool.rules['rule1'] = Rule(
             command = '$a $in',
@@ -140,31 +120,69 @@ def test_build_unused_variable(fake_project: Path):
     writer = buildtool.run(ninja_opts='-n')
     ninja = (fake_project['root']/'work/build.ninja').read_text()
     for line in ninja.splitlines():
-        if re.search('b\s*=',line):
+        if re.search(r'b\s*=',line):
             assert False, line
 
-def test_build_cwd(fake_project: Path, capfd):
-    def rules(buildtool):
-        buildtool.rules['rule1'] = Rule(
-            command = '$a $in',
-        )
-    def builders(buildtool):
-        buildtool.builders['builder1'] = Builder(
-            rule = 'rule1',
-            a = 'echo',
-        )
-    buildtool = BuildTool(
-        root = fake_project['root'],
-        rules=[rules],
-        builders=[builders],
-    )
-    target = buildtool.builder1(
+def test_build_cwd(buildtool1, fake_project, capfd):
+    target = buildtool1.builder1(
         source = '$source_dir/source_1',
         target = 'foo.log',
         cwd = 'subwork',
     )
-    writer = buildtool.run(ninja_opts='-n')
     ref_target = 'subwork/foo.log'
     assert target == ref_target
-    writer = buildtool.run(ninja_opts='-n')
-    checkcmd(capfd,['echo',str(fake_project["files"]["source_1"]),'2>&1','|','tee',ref_target])
+    writer = buildtool1.run(ninja_opts='-n')
+    checkcmd(capfd.readouterr().out,['echo',str(fake_project["files"]["source_1"]),'|','tee',ref_target])
+
+def test_build_cwd_absolute_target(buildtool1, fake_project, capfd):
+    target = buildtool1.builder1(
+        source = '$source_dir/source_1',
+        target = '$target_dir/subwork/foo.log',
+        cwd = 'subwork',
+    )
+    ref_target = 'subwork/foo.log'
+    assert target == ref_target
+    writer = buildtool1.run(ninja_opts='-n')
+    checkcmd(capfd.readouterr().out,['echo',str(fake_project["files"]["source_1"]),'|','tee',ref_target])
+
+def test_build_implicit_dependency(buildtool1, fake_project, capfd):
+    target = buildtool1.builder1(
+        source = '$source_dir/source_1',
+        target = 'target_1',
+        implicit_source = '$target_dir/implicit_1',
+    )
+    implicit = buildtool1.builder1(
+        source = '$source_dir/source_1',
+        target = 'implicit_1',
+    )
+    ref_target = 'target_1'
+    assert target == ref_target
+    ref_implicit = 'implicit_1'
+    assert implicit == ref_implicit
+    writer = buildtool1.run(ninja_opts='-n')
+    out = capfd.readouterr().out
+    checkcmd(out,['echo',str(fake_project["files"]["source_1"]),'|','tee',ref_target])
+    checkcmd(out,['echo',str(fake_project["files"]["source_1"]),'|','tee',ref_implicit])
+
+def test_resolve_out_path(buildtool1):
+    builder = buildtool1.builder1
+    namespace = Namespace(**{
+        'cwd': '$target_dir/subwork',
+        'source_dir': builder.source_dir,
+        'target_dir': builder.target_dir
+    })
+    resolve_out_path = builder.resolve_out_path(namespace)
+    target = '$target_dir/subwork/target_1'
+    assert str(resolve_out_path(target)) == 'subwork/target_1'
+
+def test_resolve_out_path_relative(buildtool1):
+    builder = buildtool1.builder1
+    namespace = Namespace(**{
+        'cwd': '$target_dir/subwork',
+        'source_dir': builder.source_dir,
+        'target_dir': builder.target_dir
+    })
+    resolve_out_path = builder.resolve_out_path(namespace)
+    target = 'subwork/target_1'
+    assert str(resolve_out_path(target)) == 'subwork/target_1'
+

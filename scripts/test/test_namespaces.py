@@ -105,4 +105,3 @@ def test_namespace_node_substitute_deps_none():
     assert node.substitute_deps().value == None
 
 
-

@@ -92,7 +92,7 @@ iverilogflags = " ".join([f'-I{i}' for i in inc_dir])
 sim_dir = 'sim'
 log_dir = 'log'
 
-tools_vpi = buildtool.vpi(
+tools_vpi,implicit = buildtool.vpi(
     target = f'$target_dir/{sim_dir}/copperv_tools.vpi',
     source = buildtool.root/'sim/copperv_tools.c',
     cwd = f'$target_dir/{sim_dir}',
@@ -103,7 +103,7 @@ vvp, sim_compile_log = buildtool.sim_compile(
     source = rtl_sources + sim_sources,
     log = f'$target_dir/{log_dir}/sim_compile.log',
     cwd = f'$target_dir/{sim_dir}',
-    implicit_source = rtl_headers + sim_headers + tools_vpi,
+    implicit_source = rtl_headers + sim_headers + [tools_vpi],
     iverilogflags = iverilogflags,
 )
 sim_run_log, fake_uart, vcd_file = buildtool.sim_run(
@@ -116,6 +116,7 @@ sim_run_log, fake_uart, vcd_file = buildtool.sim_run(
     cwd = f'$target_dir/{sim_dir}',
     hex_file = f'$target_dir/{test_hex}',
     diss_file = f'$target_dir/{test_diss}',
+    implicit_source = ['$hex_file', '$diss_file'],
 )
 
 if test.show_stdout:

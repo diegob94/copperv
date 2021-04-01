@@ -10,20 +10,13 @@ import scripts.ninja_syntax as ninja
 from scripts.namespace import Namespace, Template
 
 class BuildTool:
-    @enum.unique
-    class Writers(enum.Enum):
-        NINJA = enum.auto()
-        TEST = enum.auto()
-    def __init__(self, root, rules, builders, writer = Writers.NINJA):
+    def __init__(self, root, rules, builders):
         self.root = root
         self.target_dir = self.root / 'work'
         self.target_dir.mkdir(exist_ok=True)
         self.rules = {}
         self.builders = {}
-        if writer == self.Writers.NINJA:
-            self.writer = NinjaWriter(self.target_dir,self.root)
-        else:
-            self.writer = Writer(None,None,None,'test_writer')
+        self.writer = NinjaWriter(self.target_dir,self.root)
         if callable(rules):
             rules = [rules]
         if callable(builders):
@@ -96,15 +89,12 @@ def flatten(x):
     return r
 
 class Rule:
-    def __init__(self, command, depfile = None, log = None, no_output = False, pool = None):
+    def __init__(self, command, depfile = None, no_output = False, pool = None):
         self.depfile = depfile
         self.is_configured = False
-        self.log = log
         self.command = command
         if no_output:
             self.append_to_command('&& date > $out')
-        if self.log is not None:
-            self.save_log(self.log)
         self.pool = pool
         self.user_variables = [k for k in Template(self.command).get_var_names()]
     def configure(self, name):
@@ -120,11 +110,8 @@ class Rule:
         return f"Rule({', '.join(attrs)})"
     def append_to_command(self, value):
         self.command = self.command + value
-    def save_log(self,log_file=None):
-        if log_file is None:
-            log_file = '$out'
-        self.log = log_file
-        self.append_to_command(f' 2>&1 | tee {self.log}')
+    def save_log(self,log_file):
+        self.append_to_command(f' 2>&1 | tee {log_file}')
 
 class WriterParams:
     def replace_root(self,d,root):
@@ -286,6 +273,29 @@ class Builder:
     @property
     def source_dir(self):
         return self.buildtool.root
+    def is_relative_to(self, path, relative_to):
+        r = True
+        try:
+            path.relative_to(relative_to)
+        except ValueError:
+            r = False
+        return r
+    def resolve_out_path(self, namespace):
+        def resolve_path(path):
+            resolved = Path(namespace.eval(path))
+            relative_to = self.target_dir
+            if 'cwd' in namespace:
+                cwd = Path(namespace['cwd'].value)
+                if cwd.name == resolved.parts[0]:
+                    resolved = Path.joinpath(*[Path(i) for i in resolved.parts[1:]])
+                if not resolved.is_absolute():
+                    resolved = cwd/resolved
+            try:
+                resolved = resolved.relative_to(relative_to)
+            except ValueError:
+                pass
+            return resolved
+        return resolve_path
     def __call__(self, target, source, implicit_target = None, implicit_source = None, log = None, check_log = None, **kwargs):
         ## kwargs classes:
         ### define rule variable
@@ -294,35 +304,16 @@ class Builder:
         namespace = Namespace.collect(self.variables,kwargs,dict(target_dir=self.target_dir,source_dir=self.source_dir))
         variables = namespace.resolve()
         variables = {k:v for k,v in variables.items() if k in self.rule.user_variables}
-        resolved_target = []
-        log_is_target = False
-        for t in as_list(target):
-            resolved = Path(namespace.eval(t))
-            relative_to = self.target_dir
-            if 'cwd' in namespace:
-                cwd = namespace['cwd'].value
-                if resolved.is_absolute():
-                    relative_to = cwd
-                else:
-                    resolved = cwd/resolved
-            try:
-                resolved = resolved.relative_to(relative_to)
-            except ValueError:
-                pass
-            if resolved.suffix == '.log':
-                log_is_target = True
-            resolved_target.append(resolved)
+        resolve_out_path = self.resolve_out_path(namespace)
+        resolved_target = [resolve_out_path(t) for t in as_list(target)]
         resolved_source = [namespace.eval(t) for t in as_list(source)]
-        implicit = [namespace.eval(t) for t in as_list(implicit_source)]
+        implicit = [resolve_out_path(t) for t in as_list(implicit_source)]
         implicit_outputs = [namespace.eval(t) for t in as_list(implicit_target)]
         self.logger.debug(f'before {log=}')
         log = namespace.eval(log)
         self.logger.debug(f'after {log=}')
         pool = self.pool
-        if log_is_target:
-            self.logger.debug(f'Log is explicit target: {resolved_target}')
-            self.rule.save_log()
-        elif log is not None:
+        if log is not None:
             self.logger.debug(f'Log is implicit target: {log}')
             self.rule.save_log(log)
             implicit_outputs.append(log)
