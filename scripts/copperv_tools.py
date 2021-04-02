@@ -58,7 +58,7 @@ def test_builders(buildtool):
 
 def sim_rules(buildtool):
     buildtool.rules['vvp'] = Rule(
-        command = 'cd $cwd && vvp $_vvpflags $in $plusargs',
+        command = 'cd $cwd && vvp $_vvpflags $in $plusargs 2>&1 | tee $out',
         pool = 'console',
     )
     buildtool.rules['iverilog'] = Rule(
