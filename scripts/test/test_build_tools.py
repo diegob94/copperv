@@ -17,7 +17,7 @@ def fake_project(tmp_path: Path):
         f = tmp_path/name
         f.write_text(f'test file #{i}')
         files[name] = f
-    return dict(root=tmp_path,files=files)
+    return dict(root=tmp_path,files=files,target_dir=tmp_path/'work')
 
 @pytest.fixture
 def buildtool1(fake_project):
@@ -81,10 +81,9 @@ def test_build(builder_args, call_args, expected_a_val, fake_project, capfd):
         target = '$target_dir/target_1',
         **call_args,
     )
-    ref_target = 'target_1'
-    assert target == ref_target
+    assert target == str(fake_project['target_dir']/'target_1')
     writer = buildtool.run(ninja_opts='-n')
-    checkcmd(capfd.readouterr().out,[expected_a_val,str(fake_project["files"]["source_1"]),ref_target])
+    checkcmd(capfd.readouterr().out,[expected_a_val,str(fake_project["files"]["source_1"]),str(fake_project['target_dir']/'target_1')])
 
 def test_build_log_variable(buildtool1, fake_project, capfd):
     target = buildtool1.builder1(
@@ -92,12 +91,11 @@ def test_build_log_variable(buildtool1, fake_project, capfd):
         target = 'target_1',
         log = 'foo.log'
     )
-    ref_target = 'target_1'
-    assert target == [ref_target,'foo.log']
+    assert target == [str(fake_project['target_dir']/'target_1'),str(fake_project['target_dir']/'foo.log')]
     writer = buildtool1.run(ninja_opts='-n')
-    checkcmd(capfd.readouterr().out,['echo',str(fake_project["files"]["source_1"]),'|','tee','target_1','2>&1','|','tee','foo.log'])
+    checkcmd(capfd.readouterr().out,['echo',str(fake_project["files"]["source_1"]),'|','tee',str(fake_project['target_dir']/'target_1'),'2>&1','|','tee',str(fake_project['target_dir']/'foo.log')])
 
-def test_build_unused_variable(fake_project):
+def test_build_remove_unused_variables(fake_project):
     def rules(buildtool):
         buildtool.rules['rule1'] = Rule(
             command = '$a $in',
@@ -129,10 +127,18 @@ def test_build_cwd(buildtool1, fake_project, capfd):
         target = 'foo.log',
         cwd = 'subwork',
     )
-    ref_target = 'subwork/foo.log'
-    assert target == ref_target
+    assert target == str(fake_project['target_dir']/'subwork/foo.log')
     writer = buildtool1.run(ninja_opts='-n')
-    checkcmd(capfd.readouterr().out,['echo',str(fake_project["files"]["source_1"]),'|','tee',ref_target])
+    checkcmd(capfd.readouterr().out,['echo',str(fake_project["files"]["source_1"]),'|','tee',str(fake_project['target_dir']/'subwork/foo.log')])
+
+def test_build_relative_source(buildtool1, fake_project, capfd):
+    target = buildtool1.builder1(
+        source = 'source_1',
+        target = 'foo.log',
+    )
+    assert target == str(fake_project['target_dir']/'foo.log')
+    writer = buildtool1.run(ninja_opts='-n')
+    checkcmd(capfd.readouterr().out,['echo',str(fake_project["files"]["source_1"]),'|','tee',str(fake_project['target_dir']/'foo.log')])
 
 def test_build_cwd_absolute_target(buildtool1, fake_project, capfd):
     target = buildtool1.builder1(
@@ -140,10 +146,9 @@ def test_build_cwd_absolute_target(buildtool1, fake_project, capfd):
         target = '$target_dir/subwork/foo.log',
         cwd = 'subwork',
     )
-    ref_target = 'subwork/foo.log'
-    assert target == ref_target
+    assert target == str(fake_project['target_dir']/'subwork/foo.log')
     writer = buildtool1.run(ninja_opts='-n')
-    checkcmd(capfd.readouterr().out,['echo',str(fake_project["files"]["source_1"]),'|','tee',ref_target])
+    checkcmd(capfd.readouterr().out,['echo',str(fake_project["files"]["source_1"]),'|','tee',str(fake_project['target_dir']/'subwork/foo.log')])
 
 def test_build_implicit_dependency(buildtool1, fake_project, capfd):
     target = buildtool1.builder1(
@@ -155,14 +160,12 @@ def test_build_implicit_dependency(buildtool1, fake_project, capfd):
         source = '$source_dir/source_1',
         target = 'implicit_1',
     )
-    ref_target = 'target_1'
-    assert target == ref_target
-    ref_implicit = 'implicit_1'
-    assert implicit == ref_implicit
+    assert target == str(fake_project['target_dir']/'target_1')
+    assert implicit == str(fake_project['target_dir']/'implicit_1')
     writer = buildtool1.run(ninja_opts='-n')
     out = capfd.readouterr().out
-    checkcmd(out,['echo',str(fake_project["files"]["source_1"]),'|','tee',ref_target])
-    checkcmd(out,['echo',str(fake_project["files"]["source_1"]),'|','tee',ref_implicit])
+    checkcmd(out,['echo',str(fake_project["files"]["source_1"]),'|','tee',str(fake_project['target_dir']/'target_1')])
+    checkcmd(out,['echo',str(fake_project["files"]["source_1"]),'|','tee',str(fake_project['target_dir']/'implicit_1')])
 
 def test_resolve_out_path(buildtool1):
     builder = buildtool1.builder1
@@ -172,8 +175,7 @@ def test_resolve_out_path(buildtool1):
         'target_dir': builder.target_dir
     })
     resolve_out_path = builder.resolve_out_path(namespace)
-    target = '$target_dir/subwork/target_1'
-    assert str(resolve_out_path(target)) == 'subwork/target_1'
+    assert resolve_out_path('$target_dir/subwork/target_1') == builder.target_dir/'subwork/target_1'
 
 def test_resolve_out_path_relative(buildtool1):
     builder = buildtool1.builder1
@@ -183,6 +185,25 @@ def test_resolve_out_path_relative(buildtool1):
         'target_dir': builder.target_dir
     })
     resolve_out_path = builder.resolve_out_path(namespace)
-    target = 'subwork/target_1'
-    assert str(resolve_out_path(target)) == 'subwork/target_1'
+    assert resolve_out_path('subwork/target_1') == builder.target_dir/'subwork/target_1'
+
+def test_resolve_out_path_relative_cwd_relative(buildtool1):
+    builder = buildtool1.builder1
+    namespace = Namespace(**{
+        'cwd': 'subwork',
+        'source_dir': builder.source_dir,
+        'target_dir': builder.target_dir
+    })
+    resolve_out_path = builder.resolve_out_path(namespace)
+    assert resolve_out_path('subwork/target_1') == builder.target_dir/'subwork/target_1'
+
+def test_resolve_out_path_relative_cwd_relative_1(buildtool1):
+    builder = buildtool1.builder1
+    namespace = Namespace(**{
+        'cwd': 'subwork',
+        'source_dir': builder.source_dir,
+        'target_dir': builder.target_dir
+    })
+    resolve_out_path = builder.resolve_out_path(namespace)
+    assert resolve_out_path('target_1') == builder.target_dir/'subwork/target_1'
 

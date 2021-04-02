@@ -114,8 +114,8 @@ sim_run_log, fake_uart, vcd_file = buildtool.sim_run(
     ],
     source = vvp,
     cwd = f'$target_dir/{sim_dir}',
-    hex_file = f'$target_dir/{test_hex}',
-    diss_file = f'$target_dir/{test_diss}',
+    hex_file = test_hex,
+    diss_file = test_diss,
     implicit_source = ['$hex_file', '$diss_file'],
 )
 
