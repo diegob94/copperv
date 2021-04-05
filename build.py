@@ -47,8 +47,8 @@ test_dir = 'test_' + test.name
 test_objs = []
 for test_source in test.source:
     cflags = " ".join([f'-I{i}' for i in test.inc_dir])
-    if test.name == 'dhrystone':
-        cflags += ' -DENTRY_POINT=_init'
+    if test.cflags is not None:
+        cflags += ' ' + test.cflags
     test_objs.append(buildtool.test_object(
         target = f'$target_dir/{test_dir}/{test_source.stem}.o',
         source = test_source,
@@ -66,6 +66,7 @@ for test_source in test.source:
 test_elf = buildtool.test_link(
     target = f'$target_dir/{test_dir}/{test.name}.elf',
     source = test_objs,
+    implicit_source = '$linkerscript',
 )
 test_hex = buildtool.test_verilog_hex(
     target = f'$target_dir/{test_dir}/{test.name}.hex',

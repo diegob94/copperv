@@ -8,6 +8,7 @@ OUTPUT_FORMAT("elf32-littleriscv", "elf32-littleriscv",
 OUTPUT_ARCH(riscv)
 MEMORY {
 	mem : ORIGIN = 0x00000000, LENGTH = 0x0000ffff + 1
+	fakeio : ORIGIN = 0x80000000, LENGTH = 0x000000ff + 1
 }
 ENTRY(_start)
 /* SEARCH_DIR("/media/diegob/riscv/tools/riscv32-unknown-elf/lib"); */
@@ -249,7 +250,4 @@ SECTIONS
   .debug_addr     0 : { *(.debug_addr) }
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }
   /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
-  /* Dhrystone syscall */
-  .syscall 0xC000 : {KEEP(*(.syscall))}
 }
-

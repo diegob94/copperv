@@ -42,20 +42,28 @@ static void read_file(char* file_name, char** buf, PLI_UINT32* min_addr, PLI_UIN
     char * pch;
     size_t i;
     fp = fopen(file_name, "r");
+    // r equals number of chars read
     while((r = getline(&line,&n,fp)) != -1) {
         //printf("%d >%s<\n", r, line);
+        // Get span until character in string
         i = strcspn(line,":");
+        // if : in line
         if((ssize_t)i != r){
             addr = strtol(line,&pch,16);
+            // if addr ends same position as : in line
             if(pch == line + i) {
-                if(addr < *min_addr)
-                    *min_addr = addr;
-                if(addr > *max_addr)
-                    *max_addr = addr;
-                buf[addr>>2] = (char*)malloc(r);
-                line[r-1] = '\0';
-                strcpy(buf[addr>>2],line);
-//              printf("%d -> %s\n",addr,buf[addr>>2]);
+                strtol(line + i + 1,&pch,16);
+                // if number after : and whitespace after number
+                if(pch != line + i + 1 && *pch == ' ') {
+                    if(addr < *min_addr)
+                        *min_addr = addr;
+                    if(addr > *max_addr)
+                        *max_addr = addr;
+                    buf[addr>>2] = (char*)malloc(r);
+                    line[r-1] = '\0';
+                    strcpy(buf[addr>>2],line);
+                    //printf("DEBUG: %d -> %s\n",addr,buf[addr>>2]);
+                }
             }
         }
     }

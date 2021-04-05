@@ -7,12 +7,14 @@
 # Test beq instruction.
 #
 
+#define INSTRUCTION_ID 7
+#define TEST_NAME beq
+#define TEST_NAME_RET beq_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 7
 
   #-------------------------------------------------------------
   # Branch tests

@@ -7,12 +7,14 @@
 # Test sb instruction.
 #
 
+#define INSTRUCTION_ID 26
+#define TEST_NAME sb
+#define TEST_NAME_RET sb_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 26
 
   #-------------------------------------------------------------
   # Basic tests

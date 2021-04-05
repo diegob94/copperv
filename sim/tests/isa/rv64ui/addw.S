@@ -7,12 +7,14 @@
 # Test addw instruction.
 #
 
+#define INSTRUCTION_ID 3
+#define TEST_NAME addw
+#define TEST_NAME_RET addw_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 3
 
   #-------------------------------------------------------------
   # Arithmetic tests

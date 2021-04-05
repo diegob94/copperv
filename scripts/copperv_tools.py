@@ -35,13 +35,13 @@ def test_builders(buildtool):
         cc = toolchain + 'gcc',
         _cflags = buildtool.test_object.variables['_cflags'] + ["-E"],
     )
-    linker_script = buildtool.root/'sim/tests/common/linker.ld'
-    ldflags = ['-Wl','-T',str(linker_script),'-Bstatic']
+    ldflags = ['-Wl','-T','$linker_script','-Bstatic']
     #ldflags.append('--strip-debug')
     buildtool.builders['test_link'] = Builder(
         rule = 'link',
         cc = toolchain + 'gcc',
         _linkflags = cflags + [','.join(ldflags),'-nostartfiles','-ffreestanding', '$linkflags'],
+        linker_script = buildtool.root/'sim/tests/common/linker.ld',
     )
     dev_utils = buildtool.root/'scripts/dev_utils.py'
     buildtool.builders['test_verilog_hex'] = Builder(
@@ -112,35 +112,38 @@ class Test:
     source: list
     inc_dir: list = dataclasses.field(default_factory=list)
     show_stdout: bool = False
+    cflags: str = None
 
 tests = dict(
     simple = Test(
         name = 'simple',
-        source = [test_root/'common/asm/crt0.S',test_root/'simple/test_0.S'],
+        source = [test_root/'common/crt0.S',test_root/'simple/test_0.S'],
         inc_dir = [test_root/'common'],
     ),
     rv32ui = Test(
         name = 'rv32ui',
-        source = [test_root/'common/asm/crt0.S']
+        source = [test_root/'common/crt0.S']
             + list((test_root/'isa/rv32ui').glob('*.S')),
         inc_dir = [
             test_root/'common',
             test_root/'isa'
         ],
+        cflags = "-DISA_TEST"
     ),
     hello_world = Test(
         name = 'hello_world',
-        source = [test_root/'common/c/crt0.S']
+        source = [test_root/'common/crt0.S']
             + list((test_root/'hello_world').glob('*.c')),
         inc_dir = [
             test_root/'common',
             test_root/'common/c',
         ],
         show_stdout = True,
+        cflags = "-DENTRY_POINT=main"
     ),
     dhrystone = Test(
         name = 'dhrystone',
-        source = [test_root/'common/c/crt0.S']
+        source = [test_root/'common/crt0.S']
             + list((test_root/'dhrystone').glob('*.c')),
         inc_dir = [
             test_root/'common',
@@ -148,5 +151,6 @@ tests = dict(
             test_root/'dhrystone',
         ],
         show_stdout = True,
+        cflags = '-DENTRY_POINT=_init'
     ),
 )

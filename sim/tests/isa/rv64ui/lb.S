@@ -7,12 +7,14 @@
 # Test lb instruction.
 #
 
+#define INSTRUCTION_ID 16
+#define TEST_NAME lb
+#define TEST_NAME_RET lb_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 16
 
   #-------------------------------------------------------------
   # Basic tests

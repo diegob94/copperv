@@ -7,12 +7,14 @@
 # Test jal instruction.
 #
 
+#define INSTRUCTION_ID 15
+#define TEST_NAME jal
+#define TEST_NAME_RET jal_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 15
 
   #-------------------------------------------------------------
   # Test 2: Basic test

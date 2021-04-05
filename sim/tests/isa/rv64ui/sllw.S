@@ -7,12 +7,14 @@
 # Test sllw instruction.
 #
 
+#define INSTRUCTION_ID 33
+#define TEST_NAME sllw
+#define TEST_NAME_RET sllw_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 33
 
   #-------------------------------------------------------------
   # Arithmetic tests

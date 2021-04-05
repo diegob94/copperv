@@ -115,18 +115,24 @@ always @(posedge clk) begin
     // Output
     if(dw_data_addr_valid && dw_data_addr_ready) begin
         case (dw_addr)
-            32'h8000: begin
+            32'h80000000: begin
                 case (dw_data)
                     32'h01000001: test_passed;
                     32'h02000001: test_failed;
+                    32'h03000001: unit_test_passed;
                     default: test_failed;
                 endcase
             end
-            32'h8004: $fwrite(fake_uart_fp, "%c", dw_data[7:0]);
+            32'h80000004: $fwrite(fake_uart_fp, "%c", dw_data[7:0]);
         endcase
     end
 end
 
+task unit_test_passed;
+begin
+    $display($time, ": UNIT TEST PASSED");
+end
+endtask
 task test_passed;
 begin
     $display($time, ": TEST PASSED");
@@ -143,6 +149,7 @@ end
 endtask
 task finish_sim;
 begin
+    mon.finish_sim;
     $fwrite(fake_uart_fp, "\n# copperv testbench finished\n");
     $fclose(fake_uart_fp);  
     $finish;

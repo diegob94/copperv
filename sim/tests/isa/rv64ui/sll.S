@@ -7,12 +7,14 @@
 # Test sll instruction.
 #
 
+#define INSTRUCTION_ID 32
+#define TEST_NAME sll
+#define TEST_NAME_RET sll_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 32
 
   #-------------------------------------------------------------
   # Arithmetic tests

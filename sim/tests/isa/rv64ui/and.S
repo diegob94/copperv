@@ -7,12 +7,14 @@
 # Test and instruction.
 #
 
+#define INSTRUCTION_ID 5
+#define TEST_NAME and
+#define TEST_NAME_RET and_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 5
 
   #-------------------------------------------------------------
   # Logical tests

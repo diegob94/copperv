@@ -9,12 +9,14 @@
 # more complicated self checking tests.
 #
 
+#define INSTRUCTION_ID 29
+#define TEST_NAME simple
+#define TEST_NAME_RET simple_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
 RVTEST_RV64U
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 29
 
 RVTEST_PASS
 

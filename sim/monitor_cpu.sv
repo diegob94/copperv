@@ -9,6 +9,17 @@ module  monitor_cpu (
 `include "monitor_utils_h.v"
 `include "reg_name_h.v"
 reg [`INST_WIDTH-1:0] raddr_queue[$];
+integer f;
+initial begin
+    f = $fopen("data_bus.json","w");
+    $fwrite(f,"[\n");
+end
+task finish_sim;
+begin
+    $fwrite(f,"]\n");
+    $fclose(f);
+end
+endtask
 always @(posedge clk) begin
     if (rst) begin
         if(`CPU_INST.ir_addr_valid && `CPU_INST.ir_addr_ready) begin
@@ -34,17 +45,24 @@ always @(posedge clk) begin
             $display($time, ": BUS: ir_data   : 0x%08X", `CPU_INST.ir_data);
         if(`CPU_INST.ir_addr_valid && `CPU_INST.ir_addr_ready)
             $display($time, ": BUS: ir_addr   : 0x%08X", `CPU_INST.ir_addr);
-        if(`CPU_INST.dr_data_valid && `CPU_INST.dr_data_ready)
+        if(`CPU_INST.dr_data_valid && `CPU_INST.dr_data_ready) begin
             $display($time, ": BUS: dr_data   : 0x%08X", `CPU_INST.dr_data);
-        if(`CPU_INST.dr_addr_valid && `CPU_INST.dr_addr_ready)
+            $fwrite(f,"{\"sim_time\":%0d,},\n",$time);
+        end
+        if(`CPU_INST.dr_addr_valid && `CPU_INST.dr_addr_ready) begin
             $display($time, ": BUS: dr_addr   : 0x%08X", `CPU_INST.dr_addr);
+            $fwrite(f,"{\"sim_time\":%0d,},\n",$time);
+        end
         if(`CPU_INST.dw_data_addr_valid && `CPU_INST.dw_data_addr_ready) begin
             $display($time, ": BUS: dw_data   : 0x%08X", `CPU_INST.dw_data);
             $display($time, ": BUS: dw_addr   : 0x%08X", `CPU_INST.dw_addr);
             $display($time, ": BUS: dw_strobe : 0x%08X", `CPU_INST.dw_strobe);
+            $fwrite(f,"{\"sim_time\":%0d,},\n",$time);
         end
-        if(`CPU_INST.dw_resp_valid && `CPU_INST.dw_resp_ready)
+        if(`CPU_INST.dw_resp_valid && `CPU_INST.dw_resp_ready) begin
             $display($time, ": BUS: dw_resp   : 0x%08X", `CPU_INST.dw_resp);
+            $fwrite(f,"{\"sim_time\":%0d,},\n",$time);
+        end
     end
 end
 always @(posedge clk) begin
