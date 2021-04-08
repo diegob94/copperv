@@ -68,14 +68,13 @@ def as_list(x):
 
 def stringify(value):
     if isinstance(value, list):
-        return [stringify(i) for i in value]
+        return [stringify(i) for i in value if i is not None]
     elif isinstance(value, dict):
-        return {str(k):stringify(v) for k,v in value.items()}
+        return {str(k):stringify(v) for k,v in value.items() if v is not None}
     else:
         if value is not None:
             return str(value)
-        else:
-            return None
+    return None
 
 def flatten(x):
     if not isinstance(x,list):
@@ -291,6 +290,8 @@ class Builder:
         return resolve_path
     def resolve_in_path(self, namespace):
         def resolve_path(path):
+            if str(path).strip() == '':
+                return None
             resolved = Path(namespace.eval(path))
             if not resolved.is_absolute():
                 resolved = self.source_dir/resolved

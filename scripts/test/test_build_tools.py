@@ -167,6 +167,19 @@ def test_build_implicit_dependency(buildtool1, fake_project, capfd):
     checkcmd(out,['echo',str(fake_project["files"]["source_1"]),'|','tee',str(fake_project['target_dir']/'target_1')])
     checkcmd(out,['echo',str(fake_project["files"]["source_1"]),'|','tee',str(fake_project['target_dir']/'implicit_1')])
 
+def test_build_empty_implicit_source(buildtool1, fake_project, capfd):
+    target = buildtool1.builder1(
+        source = '$source_dir/source_1',
+        target = 'target_1',
+        implicit_source = '',
+    )
+    writer = buildtool1.run(ninja_opts='-n')
+    ninja = (fake_project['root']/'work/build.ninja').read_text()
+    for line in ninja.splitlines():
+        if re.search(r'rule1 \$\{root\}/source_1',line):
+            if not re.search(r'rule1 \$\{root\}/source_1\s*$',line):
+                assert False, line
+
 def test_resolve_out_path(buildtool1):
     builder = buildtool1.builder1
     namespace = Namespace(**{
@@ -206,4 +219,15 @@ def test_resolve_out_path_relative_cwd_relative_1(buildtool1):
     })
     resolve_out_path = builder.resolve_out_path(namespace)
     assert resolve_out_path('target_1') == builder.target_dir/'subwork/target_1'
+
+def test_resolve_in_path(buildtool1):
+    builder = buildtool1.builder1
+    namespace = Namespace(**{
+        'cwd': '$target_dir/subwork',
+        'source_dir': builder.source_dir,
+        'target_dir': builder.target_dir
+    })
+    resolve_in_path = builder.resolve_in_path(namespace)
+    assert resolve_in_path('source_1') == builder.source_dir/'source_1'
+    assert resolve_in_path('') is None
 
