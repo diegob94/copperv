@@ -57,8 +57,8 @@ _start:
     TEST(sw)
     TEST(xor)
     TEST(xori)
-    li t1, T_PASS;  \
-    li t2, T_ADDR;  \
+    li t1, T_PASS;
+    li t2, T_ADDR;
     sw t1, 0(t2);
 #endif
 #ifdef ENTRY_POINT
