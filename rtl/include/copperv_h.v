@@ -6,6 +6,7 @@
 `define UNSIGNED(x,wlhs,high,low) {{(wlhs-(high-low+1)){1'b0}},x[high:low]}
 
 // datapath
+`define PC_INIT                 32'h0
 `define DATA_WIDTH              32
 `define PC_WIDTH                32
 `define BUS_WIDTH               32

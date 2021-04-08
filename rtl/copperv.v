@@ -1,9 +1,7 @@
 `timescale 1ns/1ps
 `include "copperv_h.v"
 
-module copperv #(
-    parameter pc_init = 0
-) (
+module copperv (
     input clk,
     input rst,
     input ir_data_valid,
@@ -82,7 +80,7 @@ reg [(`BUS_WIDTH/8)-1:0] write_strobe;
 // datapath end
 always @(posedge clk) begin
     if (!rst) begin
-        pc <= pc_init;
+        pc <= `PC_INIT;
     end else if(pc_en) begin
         pc <= pc_next;
     end
