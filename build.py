@@ -66,7 +66,7 @@ for test_source in test.source:
 test_elf = buildtool.test_link(
     target = f'$target_dir/{test_dir}/{test.name}.elf',
     source = test_objs,
-    implicit_source = '$linkerscript',
+    implicit_source = '$linker_script',
 )
 test_hex = buildtool.test_verilog_hex(
     target = f'$target_dir/{test_dir}/{test.name}.hex',
