@@ -81,7 +81,7 @@ always @(posedge clk) begin
         end
         if(`CPU_INST.dw_resp_valid && `CPU_INST.dw_resp_ready) begin
             $display($time, ": BUS: dw_resp   : 0x%08X", `CPU_INST.dw_resp);
-            `dump_yaml(("sim_time:%0d,bus:dw,id:%0d,resp:%0d",$time,dw_id_queue.pop_back(),`CPU_INST.dw_resp));
+            `dump_yaml(("sim_time: %0d,bus: dw,id: %0d,resp: %0d",$time,dw_id_queue.pop_back(),`CPU_INST.dw_resp));
         end
     end
 end
