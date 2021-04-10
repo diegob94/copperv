@@ -43,7 +43,9 @@ logging.basicConfig(
 )
 
 test = tests[args.test]
-test_dir = 'test_' + test.name
+sim_dir = f'sim_{test.name}'
+sim_log_dir = f'{sim_dir}/logs'
+test_dir = f'{sim_dir}/test_build'
 test_objs = []
 for test_source in test.source:
     cflags = " ".join([f'-I{i}' for i in test.inc_dir])
@@ -90,9 +92,6 @@ sim_sources = [f for f in sim_sources if f.name != 'checker_cpu.v']
 inc_dir = [rtl_inc_dir, sim_inc_dir]
 iverilogflags = " ".join([f'-I{i}' for i in inc_dir])
 
-sim_dir = 'sim'
-log_dir = 'log'
-
 tools_vpi,implicit = buildtool.vpi(
     target = f'$target_dir/{sim_dir}/copperv_tools.vpi',
     source = buildtool.root/'sim/copperv_tools.c',
@@ -102,16 +101,16 @@ tools_vpi,implicit = buildtool.vpi(
 vvp, sim_compile_log = buildtool.sim_compile(
     target = f'$target_dir/{sim_dir}/sim.vvp',
     source = rtl_sources + sim_sources,
-    log = f'$target_dir/{log_dir}/sim_compile.log',
+    log = f'$target_dir/{sim_log_dir}/sim_compile.log',
     cwd = f'$target_dir/{sim_dir}',
     implicit_source = rtl_headers + sim_headers + [tools_vpi],
     iverilogflags = iverilogflags,
 )
 sim_run_log, fake_uart, vcd_file = buildtool.sim_run(
-    target = f'$target_dir/{log_dir}/sim_run_{test.name}.log',
+    target = f'$target_dir/{sim_log_dir}/sim_run_{test.name}.log',
     implicit_target = [
-        f'$target_dir/{sim_dir}/fake_uart.log',
-        f'$target_dir/{sim_dir}/tb.vcd',
+        f'{sim_dir}/fake_uart.log',
+        f'{sim_dir}/tb.vcd',
     ],
     source = vvp,
     cwd = f'$target_dir/{sim_dir}',
