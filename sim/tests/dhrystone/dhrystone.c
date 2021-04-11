@@ -181,9 +181,3 @@ Enumeration Enum_Par_Val;
     return (false);
 } /* Func_3 */
 
-void debug_printf(const char* str, ...){
-    va_list args;
-    va_start(args, str);
-    printf(str, args);
-    va_end(args);
-}

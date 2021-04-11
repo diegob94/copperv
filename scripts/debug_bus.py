@@ -14,6 +14,25 @@ df = df.astype({
     'strobe':pd.Int64Dtype(),
     'resp':pd.Int64Dtype()
 })
+tran_id_bus_map = dict(ir=1,iw=2,dr=3,dw=4)
+df.insert(3,'tid',df.apply(lambda row: int(f"{tran_id_bus_map[row.bus]}{row.id}"),axis='columns'))
+df = df.drop(columns='id')
 print(df)
 
-breakpoint()
+def get_inst(tran_idx):
+    idx = df.loc[:tran_idx][::-1].bus.eq('ir').idxmax()
+    return df.loc[idx]
+def bus_query(q):
+    df_sub = df.query(q)
+    tids = df_sub.tid.to_list()
+    for idx in df_sub.index:
+        tids.append(get_inst(idx).tid)
+    r = df.query('tid in @tids')
+    to_hex = lambda v: f'0x{v:X}' if not pd.isna(v) else '-'
+    hex_cols = ['addr','data','resp','strobe']
+    with pd.option_context('chained_assignment',None):
+        for col in hex_cols:
+            r[col] = r[col].apply(to_hex)
+    return r
+
+#print(bus_query('data == 0x309c or addr == 16777028'))
