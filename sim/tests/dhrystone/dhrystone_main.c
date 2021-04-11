@@ -92,7 +92,6 @@ int main (int argc, char** argv)
 
   debug_printf("\n");
   debug_printf("Dhrystone Benchmark, Version %s\n", Version);
-  return 0;
   if (Reg)
   {
     debug_printf("Program compiled with 'register' attribute\n");

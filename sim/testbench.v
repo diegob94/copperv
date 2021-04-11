@@ -35,11 +35,11 @@ initial begin
     $display($time, ": Reset finished");
     rst = 1;
 end
-initial begin
-    #timeout;
-    $display($time, ": Simulation timeout");
-    test_failed;
-end
+//initial begin
+//    #timeout;
+//    $display($time, ": Simulation timeout");
+//    test_failed;
+//end
 always #(`PERIOD/2) clk <= !clk;
 copperv dut (
     .clk(clk),
@@ -123,7 +123,11 @@ always @(posedge clk) begin
                     default: test_failed;
                 endcase
             end
-            32'h80000004: $fwrite(fake_uart_fp, "%c", dw_data[7:0]);
+            32'h80000004: begin
+                $fwrite(fake_uart_fp, "%c", dw_data[7:0]);
+                if(dw_data[7:0] == "\n")
+                    $fflush(fake_uart_fp);
+            end
         endcase
     end
 end
