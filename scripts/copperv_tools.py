@@ -151,6 +151,6 @@ tests = dict(
             test_root/'dhrystone',
         ],
         show_stdout = True,
-        cflags = '-DENTRY_POINT=_init'
+        cflags = '-DENTRY_POINT=_init -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns'
     ),
 )
