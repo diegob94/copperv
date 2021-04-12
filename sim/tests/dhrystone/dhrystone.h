@@ -381,11 +381,14 @@ extern clock_t	clock();
 
 #elif defined(__riscv)
 
-#define HZ 1000000
+#define HZ 100000000
 #define Too_Small_Time 1
 #define CLOCK_TYPE "rdcycle()"
-#define Start_Timer() Begin_Time = read_csr(mcycle)
-#define Stop_Timer() End_Time = read_csr(mcycle)
+
+#include "riscv_test.h"
+extern int volatile * const TIMER_COUNT;
+#define Start_Timer() Begin_Time = *TIMER_COUNT
+#define Stop_Timer() End_Time = *TIMER_COUNT
 
 #else
                 /* Use times(2) time function unless    */
@@ -413,8 +416,7 @@ struct tms      time_info;
 
 
 #define Mic_secs_Per_Second     1000000
-//#define NUMBER_OF_RUNS		500 /* Default number of runs */
-#define NUMBER_OF_RUNS		1 /* Default number of runs */
+#define NUMBER_OF_RUNS		500 /* Default number of runs */
 
 #ifdef  NOSTRUCTASSIGN
 #define structassign(d, s)      memcpy(&(d), &(s), sizeof(d))

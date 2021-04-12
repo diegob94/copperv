@@ -112,7 +112,8 @@ class Test:
     source: list
     inc_dir: list = dataclasses.field(default_factory=list)
     show_stdout: bool = False
-    cflags: str = None
+    cflags: str = ""
+    iverilogflags: str = ""
 
 tests = dict(
     simple = Test(
@@ -151,6 +152,7 @@ tests = dict(
             test_root/'dhrystone',
         ],
         show_stdout = True,
-        cflags = '-DENTRY_POINT=_init -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns'
+        cflags = '-DENTRY_POINT=_init -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns',
+        iverilogflags = '-DDISABLE_TIMEOUT',
     ),
 )

@@ -35,11 +35,13 @@ initial begin
     $display($time, ": Reset finished");
     rst = 1;
 end
-//initial begin
-//    #timeout;
-//    $display($time, ": Simulation timeout");
-//    test_failed;
-//end
+`ifndef DISABLE_TIMEOUT
+initial begin
+    #timeout;
+    $display($time, ": Simulation timeout");
+    test_failed;
+end
+`endif
 always #(`PERIOD/2) clk <= !clk;
 copperv dut (
     .clk(clk),
@@ -109,7 +111,8 @@ initial begin
     $dumpvars(0, tb);
     fake_uart_fp = $fopen("fake_uart.log","w");
 end
-
+reg [`DATA_WIDTH-1:0] timer_counter;
+initial timer_counter = 0;
 // Fake IO
 always @(posedge clk) begin
     // Output
@@ -130,6 +133,19 @@ always @(posedge clk) begin
             end
         endcase
     end
+    // Input
+    if(dr_addr_valid && dr_addr_ready) begin
+        case (dr_addr)
+            32'h80000008: begin
+                force dr_data = timer_counter;
+                force dr_data_valid = 1;
+                @(posedge clk);
+                release dr_data;
+                release dr_data_valid;
+            end
+        endcase
+    end
+    timer_counter = timer_counter + 1;
 end
 
 task unit_test_passed;

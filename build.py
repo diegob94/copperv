@@ -48,9 +48,7 @@ sim_log_dir = f'{sim_dir}/logs'
 test_dir = f'{sim_dir}/test_build'
 test_objs = []
 for test_source in test.source:
-    cflags = " ".join([f'-I{i}' for i in test.inc_dir])
-    if test.cflags is not None:
-        cflags += ' ' + test.cflags
+    cflags = " ".join([f'-I{i}' for i in test.inc_dir]) + ' ' + test.cflags
     test_objs.append(buildtool.test_object(
         target = f'$target_dir/{test_dir}/{test_source.stem}.o',
         source = test_source,
@@ -90,7 +88,7 @@ sim_sources.extend(list((buildtool.root/'sim').glob('*.sv')))
 sim_sources = [f for f in sim_sources if f.name != 'checker_cpu.v']
 
 inc_dir = [rtl_inc_dir, sim_inc_dir]
-iverilogflags = " ".join([f'-I{i}' for i in inc_dir])
+iverilogflags = test.iverilogflags + ' ' + " ".join([f'-I{i}' for i in inc_dir])
 
 tools_vpi,implicit = buildtool.vpi(
     target = f'$target_dir/{sim_dir}/copperv_tools.vpi',
