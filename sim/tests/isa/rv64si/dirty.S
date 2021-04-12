@@ -16,7 +16,6 @@
 
 RVTEST_RV64M
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 1
 
   # Turn on VM
   li a0, (SATP_MODE & ~(SATP_MODE<<1)) * SATP_MODE_SV39
@@ -79,8 +78,8 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
   .align 2
-  .global mtvec_handler_1
-mtvec_handler_1:
+  .global mtvec_handler
+mtvec_handler:
   csrr t0, mcause
   add t0, t0, -CAUSE_STORE_PAGE_FAULT
   bnez t0, die

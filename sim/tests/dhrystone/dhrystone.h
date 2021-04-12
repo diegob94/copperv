@@ -361,7 +361,9 @@
 #undef HZ
 #define HZ	(1) /* time() returns time in seconds */
 extern long     time(); /* see library function "time"  */
+#ifndef Too_Small_Time
 #define Too_Small_Time 2 /* Measurements should last at least 2 seconds */
+#endif
 #define Start_Timer() Begin_Time = time ( (long *) 0)
 #define Stop_Timer()  End_Time   = time ( (long *) 0)
 
@@ -375,17 +377,25 @@ extern long     time(); /* see library function "time"  */
 #define HZ	CLK_TCK
 #define CLOCK_TYPE "MSC clock()"
 extern clock_t	clock();
+#ifndef Too_Small_Time
 #define Too_Small_Time (2*HZ)
+#endif
 #define Start_Timer() Begin_Time = clock()
 #define Stop_Timer()  End_Time   = clock()
 
 #elif defined(__riscv)
 
-#define HZ 1000000
+#define HZ 100000000LL
+#ifndef Too_Small_Time
 #define Too_Small_Time 1
+#endif
 #define CLOCK_TYPE "rdcycle()"
-#define Start_Timer() Begin_Time = read_csr(mcycle)
-#define Stop_Timer() End_Time = read_csr(mcycle)
+
+#include "riscv_test.h"
+#include <stdint.h>
+uintptr_t syscall(uintptr_t, uint64_t , uint64_t , uint64_t);
+#define Start_Timer() Begin_Time = *(long*)syscall(63,0,0,0)
+#define Stop_Timer() End_Time = *(long*)syscall(63,0,0,0)
 
 #else
                 /* Use times(2) time function unless    */
@@ -403,7 +413,9 @@ struct tms      time_info;
 #endif
 /*extern  int     times ();*/
                 /* see library function "times" */
+#ifndef Too_Small_Time
 #define Too_Small_Time (2*HZ)
+#endif
                 /* Measurements should last at least about 2 seconds */
 #define Start_Timer() times(&time_info); Begin_Time=(long)time_info.tms_utime
 #define Stop_Timer()  times(&time_info); End_Time = (long)time_info.tms_utime
@@ -413,8 +425,9 @@ struct tms      time_info;
 
 
 #define Mic_secs_Per_Second     1000000
-//#define NUMBER_OF_RUNS		500 /* Default number of runs */
-#define NUMBER_OF_RUNS		1 /* Default number of runs */
+#ifndef NUMBER_OF_RUNS
+#define NUMBER_OF_RUNS		500 /* Default number of runs */
+#endif
 
 #ifdef  NOSTRUCTASSIGN
 #define structassign(d, s)      memcpy(&(d), &(s), sizeof(d))

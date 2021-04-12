@@ -7,9 +7,6 @@
 # Test bltu instruction.
 #
 
-#define INSTRUCTION_ID 11
-#define TEST_NAME bltu
-#define TEST_NAME_RET bltu_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

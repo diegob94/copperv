@@ -7,9 +7,6 @@
 # Test srliw instruction.
 #
 
-#define INSTRUCTION_ID 43
-#define TEST_NAME srliw
-#define TEST_NAME_RET srliw_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

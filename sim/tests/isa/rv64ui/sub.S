@@ -7,9 +7,6 @@
 # Test sub instruction.
 #
 
-#define INSTRUCTION_ID 46
-#define TEST_NAME sub
-#define TEST_NAME_RET sub_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

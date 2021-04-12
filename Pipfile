@@ -1,0 +1,35 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+attrs = "*"
+cocotb = "*"
+cocotb-bus = "*"
+cocotbext-wishbone = "*"
+execnet = "*"
+flake8 = "*"
+iniconfig = "*"
+mccabe = "*"
+pluggy = "*"
+py = "*"
+pycodestyle = "*"
+pyelftools = "*"
+pyflakes = "*"
+pyparsing = "*"
+pytest = "*"
+pytest-forked = "*"
+pytest-xdist = "*"
+rope = "*"
+tabulate = "*"
+toml = "*"
+pyverilog = "*"
+cocotbext-uart = {ref = "check_glitches", git = "https://github.com/diegob94/cocotbext-uart.git"}
+cocotb-test = {ref = "master", git = "https://github.com/themperek/cocotb-test.git"}
+pyserial = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"

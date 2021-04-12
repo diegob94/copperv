@@ -111,14 +111,28 @@ int main (int argc, char** argv)
     /* Start timer */
     /***************/
 
+#ifdef DEBUG_RUN
+  debug_printf("0\n");
+#endif
     setStats(1);
+#ifdef DEBUG_RUN
+  debug_printf("1\n");
+#endif
     Start_Timer();
-
+#ifdef DEBUG_RUN
+  debug_printf("2\n");
+#endif
     for (Run_Index = 1; Run_Index <= Number_Of_Runs; ++Run_Index)
     {
 
       Proc_5();
+#ifdef DEBUG_RUN
+  debug_printf("3\n");
+#endif
       Proc_4();
+#ifdef DEBUG_RUN
+  debug_printf("4\n");
+#endif
 	/* Ch_1_Glob == 'A', Ch_2_Glob == 'B', Bool_Glob == true */
       Int_1_Loc = 2;
       Int_2_Loc = 3;
@@ -129,15 +143,27 @@ int main (int argc, char** argv)
       while (Int_1_Loc < Int_2_Loc)  /* loop body executed once */
       {
 	Int_3_Loc = 5 * Int_1_Loc - Int_2_Loc;
+#ifdef DEBUG_RUN
+  debug_printf("5\n");
+#endif
 	  /* Int_3_Loc == 7 */
 	Proc_7 (Int_1_Loc, Int_2_Loc, &Int_3_Loc);
+#ifdef DEBUG_RUN
+  debug_printf("6\n");
+#endif
 	  /* Int_3_Loc == 7 */
 	Int_1_Loc += 1;
       } /* while */
 	/* Int_1_Loc == 3, Int_2_Loc == 3, Int_3_Loc == 7 */
       Proc_8 (Arr_1_Glob, Arr_2_Glob, Int_1_Loc, Int_3_Loc);
+#ifdef DEBUG_RUN
+  debug_printf("7\n");
+#endif
 	/* Int_Glob == 5 */
       Proc_1 (Ptr_Glob);
+#ifdef DEBUG_RUN
+  debug_printf("8\n");
+#endif
       for (Ch_Index = 'A'; Ch_Index <= Ch_2_Glob; ++Ch_Index)
 			       /* loop body executed twice */
       {
@@ -145,6 +171,9 @@ int main (int argc, char** argv)
 	    /* then, not executed */
 	  {
 	  Proc_6 (Ident_1, &Enum_Loc);
+#ifdef DEBUG_RUN
+  debug_printf("9\n");
+#endif
 	  strcpy (Str_2_Loc, "DHRYSTONE PROGRAM, 3'RD STRING");
 	  Int_2_Loc = Run_Index;
 	  Int_Glob = Run_Index;
@@ -156,6 +185,9 @@ int main (int argc, char** argv)
       Int_2_Loc = 7 * (Int_2_Loc - Int_3_Loc) - Int_1_Loc;
 	/* Int_1_Loc == 1, Int_2_Loc == 13, Int_3_Loc == 7 */
       Proc_2 (&Int_1_Loc);
+#ifdef DEBUG_RUN
+  debug_printf("10\n");
+#endif
 	/* Int_1_Loc == 5 */
 
     } /* loop "for Run_Index" */
@@ -169,9 +201,15 @@ int main (int argc, char** argv)
 
     User_Time = End_Time - Begin_Time;
 
+#ifdef DEBUG_RUN
+  debug_printf("11\n");
+#endif
     if (User_Time < Too_Small_Time)
     {
       printf("Measured time too small to obtain meaningful results\n");
+#ifdef DEBUG_RUNTIME
+      printf("DEBUG: User_Time = %ld Too_Small_Time = %ld Number_Of_Runs = %ld\n", User_Time, Too_Small_Time, Number_Of_Runs);
+#endif
       Number_Of_Runs = Number_Of_Runs * 10;
       printf("\n");
     } else Done = true;
@@ -235,6 +273,9 @@ int main (int argc, char** argv)
   printf("Microseconds for one run through Dhrystone: %ld\n", Microseconds);
   printf("Dhrystones per Second:                      %ld\n", Dhrystones_Per_Second);
 
+#ifdef DEBUG_RUNTIME
+  printf("\nDEBUG: User_Time = %ld Number_Of_Runs = %ld Mic_secs_Per_Second = %ld HZ = %ld\n", User_Time, Number_Of_Runs, Mic_secs_Per_Second, HZ);
+#endif
   return 0;
 }
 

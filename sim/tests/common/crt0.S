@@ -1,5 +1,9 @@
 #include "riscv_test.h"
 
+#ifndef ENTRY_POINT
+#define ENTRY_POINT _init
+#endif
+
 .section .init, "ax"
 .global _start
 _start:
@@ -7,63 +11,24 @@ _start:
     .cfi_undefined ra
     .option push
     .option norelax
+    // initialize RISCV global pointer
     la gp, __global_pointer$
     .option pop
+    // initialize C stack
     la sp, __stack_top
     add s0, sp, zero
-#ifdef ISA_TEST
-#define TEST(n) \
-    .global n; \
-    jal zero,n; \
-    .global n ## _ret; \
-    n ## _ret:
-
-    TEST(simple)
-    TEST(add)
-    TEST(addi)
-    TEST(and)
-    TEST(andi)
-    TEST(auipc)
-    TEST(beq)
-    TEST(bge)
-    TEST(bgeu)
-    TEST(blt)
-    TEST(bltu)
-    TEST(bne)
-    TEST(fence_i)
-    TEST(jal)
-    TEST(jalr)
-    TEST(lb)
-    TEST(lbu)
-    TEST(lh)
-    TEST(lhu)
-    TEST(lui)
-    TEST(lw)
-    TEST(or)
-    TEST(ori)
-    TEST(sb)
-    TEST(sh)
-    TEST(sll)
-    TEST(slli)
-    TEST(slt)
-    TEST(slti)
-    TEST(sltiu)
-    TEST(sltu)
-    TEST(sra)
-    TEST(srai)
-    TEST(srl)
-    TEST(srli)
-    TEST(sub)
-    TEST(sw)
-    TEST(xor)
-    TEST(xori)
-    li t1, T_PASS;
-    li t2, T_ADDR;
-    sw t1, 0(t2);
-#endif
-#ifdef ENTRY_POINT
+    // initialize C BSS section to zero
+    .global __BSS_START__
+    .global __BSS_END__
+    la t0, __BSS_START__
+    la t1, __BSS_END__
+loop:
+    sw zero, 0(t0)
+    addi t0, t0, 4
+    bgtu t1, t0, loop
+    // go to _init or custom entry point
+    .global ENTRY_POINT;
     jal zero, ENTRY_POINT
-#endif
     .cfi_endproc
     .end
 

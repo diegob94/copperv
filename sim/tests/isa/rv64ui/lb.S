@@ -7,9 +7,6 @@
 # Test lb instruction.
 #
 
-#define INSTRUCTION_ID 16
-#define TEST_NAME lb
-#define TEST_NAME_RET lb_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

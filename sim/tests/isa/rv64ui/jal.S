@@ -7,9 +7,6 @@
 # Test jal instruction.
 #
 
-#define INSTRUCTION_ID 15
-#define TEST_NAME jal
-#define TEST_NAME_RET jal_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

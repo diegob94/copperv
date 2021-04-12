@@ -7,9 +7,6 @@
 # Test jalr instruction.
 #
 
-#define INSTRUCTION_ID 14
-#define TEST_NAME jalr
-#define TEST_NAME_RET jalr_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

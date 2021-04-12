@@ -7,9 +7,6 @@
 # Test bne instruction.
 #
 
-#define INSTRUCTION_ID 12
-#define TEST_NAME bne
-#define TEST_NAME_RET bne_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

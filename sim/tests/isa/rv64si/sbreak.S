@@ -12,15 +12,15 @@
 
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 4
 
 #ifdef __MACHINE_MODE
   #define sscratch mscratch
   #define sstatus mstatus
   #define scause mcause
+  #define stvec mtvec
   #define sepc mepc
   #define sret mret
-  #define stvec_handler_4 mtvec_handler_4
+  #define stvec_handler mtvec_handler
 #endif
 
   li TESTNUM, 2
@@ -32,10 +32,17 @@ do_break:
   TEST_PASSFAIL
 
   .align 2
-  .global stvec_handler_4
-stvec_handler_4:
+  .global stvec_handler
+stvec_handler:
   li t1, CAUSE_BREAKPOINT
   csrr t0, scause
+  # Check if CLIC mode
+  csrr t2, stvec
+  andi t2, t2, 2
+  # Skip masking if non-CLIC mode
+  beqz t2, skip_mask 
+  andi t0, t0, 255
+skip_mask:
   bne t0, t1, fail
   la t1, do_break
   csrr t0, sepc

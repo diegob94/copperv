@@ -7,9 +7,6 @@
 # Test sraiw instruction.
 #
 
-#define INSTRUCTION_ID 39
-#define TEST_NAME sraiw
-#define TEST_NAME_RET sraiw_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

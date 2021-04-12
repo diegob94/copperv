@@ -11,4 +11,8 @@ __pycache__/
 *.D
 *.map
 *.debug_hex
+*.elf
+*.E
+*.debug
+.vim/
 

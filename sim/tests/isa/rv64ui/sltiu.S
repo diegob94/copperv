@@ -7,9 +7,6 @@
 # Test sltiu instruction.
 #
 
-#define INSTRUCTION_ID 35
-#define TEST_NAME sltiu
-#define TEST_NAME_RET sltiu_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

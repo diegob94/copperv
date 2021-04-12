@@ -7,9 +7,6 @@
 # Test slt instruction.
 #
 
-#define INSTRUCTION_ID 36
-#define TEST_NAME slt
-#define TEST_NAME_RET slt_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

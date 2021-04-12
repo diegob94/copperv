@@ -7,9 +7,6 @@
 # Test blt instruction.
 #
 
-#define INSTRUCTION_ID 10
-#define TEST_NAME blt
-#define TEST_NAME_RET blt_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

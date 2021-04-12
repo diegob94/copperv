@@ -7,9 +7,6 @@
 # Test sh instruction.
 #
 
-#define INSTRUCTION_ID 28
-#define TEST_NAME sh
-#define TEST_NAME_RET sh_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
