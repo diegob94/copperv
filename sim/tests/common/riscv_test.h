@@ -18,18 +18,20 @@ TEST_NAME:
 #define TC_ADDR 0x80000008
 #define T_PASS 0x01000001
 #define T_FAIL 0x02000001
-#define T_UNIT_PASS 0x03000001
 
 #define RVTEST_PASS \
-    li t1, T_UNIT_PASS;  \
+    loop_pass: \
+    li t1, T_PASS;  \
     li t2, T_ADDR;  \
     sw t1, 0(t2); \
-    jal zero, TEST_NAME_RET;
+    jal zero, loop_pass;
 
 #define RVTEST_FAIL \
+    loop_fail: \
     li t1, T_FAIL;  \
     li t2, T_ADDR;  \
-    sw t1, 0(t2);
+    sw t1, 0(t2); \
+    jal zero, loop_fail;
 
 #define RVTEST_CODE_END
 

@@ -7,9 +7,6 @@
 # Test lbu instruction.
 #
 
-#define INSTRUCTION_ID 17
-#define TEST_NAME lbu
-#define TEST_NAME_RET lbu_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

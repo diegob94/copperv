@@ -1,9 +1,0 @@
-// DESCRIPTION: Verilator output: Waivers generated with --waiver-output
-
-`verilator_config
-
-lint_off -rule DECLFILENAME -file "*/rtl/execution.v" -match "Filename 'execution' does not match MODULE name: 'arith_logic_unit'"
-
-// Need to implement wait for bus ready in testbench and rtl
-lint_off -rule UNUSED -file "*/rtl/copperv.v" -match "Signal is not used: 'ir_addr_ready'"
-

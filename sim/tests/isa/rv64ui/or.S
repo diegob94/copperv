@@ -7,9 +7,6 @@
 # Test or instruction.
 #
 
-#define INSTRUCTION_ID 25
-#define TEST_NAME or
-#define TEST_NAME_RET or_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

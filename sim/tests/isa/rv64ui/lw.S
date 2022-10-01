@@ -7,9 +7,6 @@
 # Test lw instruction.
 #
 
-#define INSTRUCTION_ID 22
-#define TEST_NAME lw
-#define TEST_NAME_RET lw_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

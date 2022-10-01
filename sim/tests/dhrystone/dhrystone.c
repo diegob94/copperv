@@ -3,7 +3,6 @@
 #pragma GCC optimize ("no-inline")
 
 #include "dhrystone.h"
-int volatile * const TIMER_COUNT = TC_ADDR;
 #include <stdarg.h>
 
 #ifndef REG

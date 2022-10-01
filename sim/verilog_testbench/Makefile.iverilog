@@ -1,0 +1,21 @@
+.PHONY: all
+all: run
+
+include Makefile.common
+
+sim.vvp: testbench.v fake_memory.v include/testbench_h.v
+	iverilog -s $(TOPLEVEL) $(VERILOG_SOURCES) -o $@ $(COMPILE_ARGS)
+
+.PHONY: run
+run: sim.vvp $(HEX_FILE)
+	date
+	vvp sim.vvp $(PLUSARGS)
+	date
+	@echo
+	@echo fake_uart:
+	@cat fake_uart.log
+
+.PHONY: clean
+clean:
+	rm -rfv *.log *.vcd *.vvp
+

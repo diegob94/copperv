@@ -7,9 +7,6 @@
 # Test addiw instruction.
 #
 
-#define INSTRUCTION_ID 1
-#define TEST_NAME addiw
-#define TEST_NAME_RET addiw_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

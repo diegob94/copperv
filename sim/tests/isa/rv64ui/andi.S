@@ -7,9 +7,6 @@
 # Test andi instruction.
 #
 
-#define INSTRUCTION_ID 4
-#define TEST_NAME andi
-#define TEST_NAME_RET andi_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

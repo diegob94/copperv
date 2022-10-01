@@ -12,7 +12,6 @@
 
 RVTEST_RV64S
 RVTEST_CODE_BEGIN
-#define INSTRUCTION_ID 3
 
 #ifdef __MACHINE_MODE
   #define sscratch mscratch
@@ -21,7 +20,7 @@ RVTEST_CODE_BEGIN
   #define sbadaddr mbadaddr
   #define sepc mepc
   #define sret mret
-  #define stvec_handler_3 mtvec_handler_3
+  #define stvec_handler mtvec_handler
 #endif
 
   .align 2
@@ -157,8 +156,8 @@ RVTEST_CODE_BEGIN
   TEST_PASSFAIL
 
   .align 2
-  .global stvec_handler_3
-stvec_handler_3:
+  .global stvec_handler
+stvec_handler:
   # tests 2, 4, 5, 6, and 8 should trap
   li a0, 2
   beq TESTNUM, a0, 1f

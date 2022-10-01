@@ -7,9 +7,6 @@
 # Test self-modifying code and the fence.i instruction.
 #
 
-#define INSTRUCTION_ID 13
-#define TEST_NAME fence_i
-#define TEST_NAME_RET fence_i_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

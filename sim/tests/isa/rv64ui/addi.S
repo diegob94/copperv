@@ -7,9 +7,6 @@
 # Test addi instruction.
 #
 
-#define INSTRUCTION_ID 0
-#define TEST_NAME addi
-#define TEST_NAME_RET addi_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

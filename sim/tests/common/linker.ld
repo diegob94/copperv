@@ -10,7 +10,6 @@ MEMORY {
 	mem : ORIGIN = 0x00000000, LENGTH = 0x00ffffff + 1
 }
 ENTRY(_start)
-/* SEARCH_DIR("/media/diegob/riscv/tools/riscv32-unknown-elf/lib"); */
 SECTIONS
 {
   /* Read-only sections, merged into text segment: */
@@ -180,7 +179,7 @@ SECTIONS
   } >mem
   _edata = .; PROVIDE (edata = .);
   . = .;
-  __bss_start = .;
+  __BSS_START__ = .;
   .sbss           :
   {
     *(.dynsbss)
@@ -250,4 +249,3 @@ SECTIONS
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }
   /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
 }
-

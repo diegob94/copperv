@@ -7,9 +7,6 @@
 # Test slti instruction.
 #
 
-#define INSTRUCTION_ID 34
-#define TEST_NAME slti
-#define TEST_NAME_RET slti_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
