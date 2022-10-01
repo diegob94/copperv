@@ -6,8 +6,7 @@ from cocotb_test.simulator import run
 
 root_dir = Path(__file__).resolve().parent.parent
 sim_dir = root_dir/'sim'
-chisel_dir = root_dir/'work/rtl'
-rtl_v1_dir = root_dir/'src/main/resources/rtl_v1'
+rtl_dir = root_dir/'rtl'
 
 toml_path = sim_dir/"tests/unit_tests.toml"
 unit_tests = toml.loads(toml_path.read_text())
@@ -15,12 +14,15 @@ unit_tests = toml.loads(toml_path.read_text())
 rv_asm_paths = list(sim_dir.glob('tests/isa/rv32ui/*.S'))
 
 common_run_opts = dict(
-    verilog_sources=[
-        chisel_dir/"copperv2.v",
-        rtl_v1_dir/"idecoder.v",
+    verilog_sources=[ # replace by .flist ???
+        rtl_dir/"idecoder.v",
+        rtl_dir/"control_unit.v",
+        rtl_dir/"copperv.v",
+        rtl_dir/"execution.v",
+        rtl_dir/"register_file.v",
     ],
-    includes=[rtl_v1_dir/'include'],
-    toplevel="Copperv2",
+    includes=[rtl_dir/'include'],
+    toplevel="copperv",
     module="cocotb_tests",
     waves = True,
 )

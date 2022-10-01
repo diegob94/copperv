@@ -56,8 +56,6 @@ class Testbench():
         self.log.debug(f"Memory: {self.memory}")
         ## Bus functional models
         prefix = None
-        if not cocotb.plusargs.get('dut_copperv1',False):
-            prefix = "bus"
         ## Instruction read
         self.bus_ir_monitor = CoppervBusIrMonitor(
             clock = self.clock,
