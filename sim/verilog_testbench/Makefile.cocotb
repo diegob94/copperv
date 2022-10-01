@@ -1,0 +1,15 @@
+.PHONY: all
+all: sim
+
+CUSTOM_COMPILE_DEPS = $(HEX_FILE)
+export PYTHONPATH = $(ROOT_DIR)/sim
+SIM ?= icarus
+TOPLEVEL_LANG ?= verilog
+MODULE = cocotb_wrapper
+
+clean_all: clean
+	rm -rf *.log *.vcd __pycache__ *.xml
+
+include Makefile.common
+override PLUSARGS += +cocotb
+include $(shell cocotb-config --makefiles)/Makefile.sim

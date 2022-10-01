@@ -7,9 +7,6 @@
 # Test slli instruction.
 #
 
-#define INSTRUCTION_ID 30
-#define TEST_NAME slli
-#define TEST_NAME_RET slli_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

@@ -7,9 +7,6 @@
 # Test sw instruction.
 #
 
-#define INSTRUCTION_ID 48
-#define TEST_NAME sw
-#define TEST_NAME_RET sw_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

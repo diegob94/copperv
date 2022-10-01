@@ -7,9 +7,6 @@
 # Test slliw instruction.
 #
 
-#define INSTRUCTION_ID 31
-#define TEST_NAME slliw
-#define TEST_NAME_RET slliw_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

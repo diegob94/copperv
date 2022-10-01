@@ -7,9 +7,6 @@
 # Test bgeu instruction.
 #
 
-#define INSTRUCTION_ID 9
-#define TEST_NAME bgeu
-#define TEST_NAME_RET bgeu_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

@@ -7,9 +7,6 @@
 # Test auipc instruction.
 #
 
-#define INSTRUCTION_ID 6
-#define TEST_NAME auipc
-#define TEST_NAME_RET auipc_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

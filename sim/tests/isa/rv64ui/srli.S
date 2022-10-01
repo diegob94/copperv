@@ -7,9 +7,6 @@
 # Test srli instruction.
 #
 
-#define INSTRUCTION_ID 42
-#define TEST_NAME srli
-#define TEST_NAME_RET srli_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

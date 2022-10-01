@@ -7,9 +7,6 @@
 # Test ld instruction.
 #
 
-#define INSTRUCTION_ID 18
-#define TEST_NAME ld
-#define TEST_NAME_RET ld_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 

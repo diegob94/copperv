@@ -7,9 +7,6 @@
 # Test sd instruction.
 #
 
-#define INSTRUCTION_ID 27
-#define TEST_NAME sd
-#define TEST_NAME_RET sd_ret
 #include "riscv_test.h"
 #include "test_macros.h"
 
