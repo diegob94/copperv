@@ -1,19 +1,21 @@
 TEST ?= dhrystone
+
 ROOT_DIR = $(abspath ../..)
-RESOURCES_DIR = $(ROOT_DIR)/src/main/resources
+RTL_DIR = $(ROOT_DIR)/rtl
 TOPLEVEL = tb
-VERILOG_SOURCES = $(RESOURCES_DIR)/rtl_v1/copperv.v \
-	$(RESOURCES_DIR)/rtl_v1/control_unit.v \
-	$(RESOURCES_DIR)/rtl_v1/idecoder.v \
-	$(RESOURCES_DIR)/rtl_v1/register_file.v \
-	$(RESOURCES_DIR)/rtl_v1/execution.v \
+VERILOG_SOURCES = $(RTL_DIR)/copperv.v \
+	$(RTL_DIR)/control_unit.v \
+	$(RTL_DIR)/idecoder.v \
+	$(RTL_DIR)/register_file.v \
+	$(RTL_DIR)/execution.v \
     testbench.v fake_memory.v
-COMPILE_ARGS=-I$(RESOURCES_DIR)/rtl_v1/include -Iinclude -DDISABLE_TIMEOUT
+COMPILE_ARGS=-I$(RTL_DIR)/include -Iinclude -DDISABLE_TIMEOUT
 TESTS_DIR=$(ROOT_DIR)/sim/tests
 TEST_DIR=$(TESTS_DIR)/$(TEST)
 HEX_FILE=$(TEST_DIR)/$(TEST).hex
-override PLUSARGS += +HEX_FILE=$(HEX_FILE) +dut_copperv1
+override PLUSARGS += +HEX_FILE=$(HEX_FILE)
 
 .PHONY: $(HEX_FILE)
 $(HEX_FILE):
 	$(MAKE) -C $(TEST_DIR)
+

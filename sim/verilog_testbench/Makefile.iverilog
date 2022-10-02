@@ -3,17 +3,19 @@ all: run
 
 include Makefile.common
 
-work/sim.vvp: testbench.v fake_memory.v include/testbench_h.v
-	mkdir -p work
+sim.vvp: testbench.v fake_memory.v include/testbench_h.v
 	iverilog -s $(TOPLEVEL) $(VERILOG_SOURCES) -o $@ $(COMPILE_ARGS)
 
 .PHONY: run
-run: work/sim.vvp $(HEX_FILE)
+run: sim.vvp $(HEX_FILE)
 	date
-	cd work; vvp sim.vvp $(PLUSARGS)
+	vvp sim.vvp $(PLUSARGS)
 	date
+	@echo
+	@echo fake_uart:
+	@cat fake_uart.log
 
 .PHONY: clean
 clean:
-	rm -rf work
+	rm -rfv *.log *.vcd *.vvp
 

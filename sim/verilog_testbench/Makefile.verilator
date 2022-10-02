@@ -5,17 +5,15 @@ include Makefile.common
 
 .PHONY: clean
 clean:
-	rm -rf obj_dir
+	rm -rfv obj_dir *.vcd *.log
 
-.PHONY: obj_dir/sim
 obj_dir/sim:
-	mkdir -p obj_dir
 	verilator -Wall -Wno-fatal --threads $(shell nproc) $(COMPILE_ARGS) -o $(notdir $@) --trace-fst --top-module $(TOPLEVEL) --cc --exe --build sim_main.cpp $(VERILOG_SOURCES) 
 
 .PHONY: run
 run: obj_dir/sim $(HEX_FILE)
 	date
-	cd obj_dir && ./sim $(PLUSARGS)
+	./obj_dir/sim $(PLUSARGS)
 	date
 	@echo
 	@echo fake_uart:
