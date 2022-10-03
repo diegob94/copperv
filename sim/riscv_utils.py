@@ -13,6 +13,7 @@ sim_dir = Path(__file__).resolve().parent
 linker_script = sim_dir/'tests/common/linker.ld'
 
 def read_elf(test_elf,sections=['.text']):
+    test_elf = Path(test_elf)
     log = SimLog(__name__+'.read_elf')
     with test_elf.open('rb') as file:
         elffile = ELFFile(file)

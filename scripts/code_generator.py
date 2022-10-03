@@ -22,11 +22,21 @@ def Bundle(prefix,ports):
             _ports.extend(p.children()[0] for p in Bundle(prefix,port.children()).children())
             continue
         elif isinstance(port,vast.Ioport):
-            port.children()[0].name = prefix + port.children()[0].name
-            _ports.append(port.children()[0])
-        else:
-            port.name = prefix + port.name
-            _ports.append(port)
+            port = port.children()[0]
+        port.name = prefix + port.name
+        _ports.append(port)
+    return vast.Portlist([vast.Ioport(port) for port in _ports])
+
+def Flipped(ports):
+    _ports = []
+    for port in ports.children():
+        if isinstance(port,vast.Ioport):
+            port = port.children()[0]
+        constructor = vast.Output
+        if isinstance(port,vast.Output):
+            constructor = vast.Input
+        port = constructor(port.name,port.width,port.signed,port.dimensions,port.value,port.lineno)
+        _ports.append(port)
     return vast.Portlist([vast.Ioport(port) for port in _ports])
 
 if __name__ == "__main__":
@@ -44,13 +54,16 @@ if __name__ == "__main__":
     ports = Bundle("bus_",[
         Bundle("dr_",[
             ReadyValid("addr_",vast.Output("addr",width=ParamWidth(addr_width))),
-            ReadyValid("data_",vast.Input("data",width=ParamWidth(data_width))),
+            Flipped(ReadyValid("data_",vast.Output("data",width=ParamWidth(data_width)))),
         ]),
         Bundle("dw_",[
             ReadyValid("data_addr_",data_addr),
-            ReadyValid("resp_",vast.Input("resp",width=ParamWidth(resp_width)))
+            Flipped(ReadyValid("resp_",vast.Output("resp",width=ParamWidth(resp_width)))),
         ])
     ])
 
     print(codegen(ports))
+    print()
+    print("Flipped:")
+    print(codegen(Flipped(ports)))
 

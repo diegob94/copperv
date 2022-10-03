@@ -5,16 +5,18 @@ from pathlib import Path
 from itertools import repeat
 
 import cocotb
-from cocotb.triggers import Join, Event, RisingEdge
+from cocotb.triggers import Join, Event, RisingEdge, Edge
 from cocotb.log import SimLog
 import toml
 import cocotb_utils as utils
 from bus import BusReadTransaction, CoppervBusRDriver, CoppervBusWDriver, BusWriteTransaction
 
 from testbench import Testbench
-from riscv_utils import compile_instructions, parse_data_memory, compile_riscv_test
+from riscv_utils import compile_instructions, parse_data_memory, compile_riscv_test, process_elf
 
+from cocotbext.uart import UartSource, UartSink
 from cocotbext.wishbone.monitor import WishboneSlave
+from cocotbext.wishbone.driver import WishboneMaster, WBOp
 from cocotb.clock import Clock
 from cocotb.queue import Queue
 
@@ -85,8 +87,8 @@ async def riscv_test(dut):
 
 class AdapterTestbench:
     def __init__(self,dut,datGen):
-        self._reset = dut.reset
         self.clock = dut.clock
+        self._reset = dut.reset
         self.queue = Queue()
         period = 10
         period_unit = "ns"
@@ -146,4 +148,155 @@ async def wishbone_adapter_write_test(dut):
     assert bus_transaction.data == data
     assert bus_transaction.strobe == strobe
     assert bus_transaction.response == 1
+
+async def monitor(log,signal):
+    while True:
+        await Edge(signal)
+        log.info("%s = %d",signal.name,signal.value)
+
+async def assert_hold(signal):
+    await Edge(signal)
+    assert False, "Unexpected transition"
+
+class Wb2uartMonitor:
+    def __init__(self,tx,rx,resp_callback=None):
+        self.log = SimLog(f"cocotb.{type(self).__qualname__}")
+        self.tx = tx
+        self.rx = rx
+        self.source = UartSource(self.rx, baud=115200, bits=8)
+        self.sink = UartSink(self.tx, baud=115200, bits=8)
+        self.resp_callback = resp_callback
+        self._assert_coro = None
+        self.recvQ = Queue()
+        cocotb.start_soon(self.run())
+    async def receive(self,count=4):
+        if self._assert_coro is not None:
+            self._assert_coro.kill()
+        recv = await self.sink.read(count)
+        self._assert_coro = cocotb.start_soon(assert_hold(self.tx))
+        data = int.from_bytes(recv, byteorder='little', signed=False)
+        return data
+    def send(self,data):
+        self.source.write_nowait(data.to_bytes(4,byteorder='little'))
+    async def read(self):
+        return await self.recvQ.get()
+    async def run(self):
+        while True:
+            op = await self.receive(1)
+            address = await self.receive()
+            data = None
+            sel = None
+            if op == 1:
+                data = await self.receive()
+                sel = await self.receive(1)
+            if self.resp_callback is not None:
+                resp = self.resp_callback(op,address,data,sel)
+                self.send(resp)
+            info = f"transaction: address = 0x{address:X}"
+            if op == 1:
+                info = "Write " + info + f" data = 0x{data:X} sel = 0x{sel:X}"
+            else:
+                info = "Read " + info
+            info = info + f" resp = 0x{resp:X}"
+            self.log.info(info)
+            self.recvQ.put_nowait(dict(op=op,address=address,data=data,sel=sel))
+
+class Wb2uartTestbench:
+    def __init__(self,dut,resp_callback):
+        self.clock = dut.clock
+        self._reset = dut.reset
+        self.queue = Queue()
+        period = 40
+        period_unit = "ns"
+#       cocotb.start_soon(monitor(dut._log,dut.uart_tx))
+        self.uart = Wb2uartMonitor(dut.uart_tx,dut.uart_rx,resp_callback)
+        self.wb = WishboneMaster(dut, "wb", dut.clock, width=32)
+        cocotb.start_soon(Clock(dut.clock,period,period_unit).start())
+    async def reset(self):
+        await RisingEdge(self.clock)
+        self._reset.value = 1
+        await RisingEdge(self.clock)
+        self._reset.value = 0
+    async def _send(self,ops):
+        res = await self.wb.send_cycle(ops)
+        self.queue.put_nowait(res)
+    def send_wb(self,transaction):
+        cocotb.start_soon(self._send([transaction]))
+    async def receive_wb(self):
+        wb_transaction = await self.queue.get()
+        return wb_transaction[0]
+
+@cocotb.test(timeout_time=2,timeout_unit='ms')
+async def wb2uart_read_test(dut):
+    """ Wishbone to UART adapter read test """
+    op = 0
+    data = 101
+    addr = 123
+    resp_callback = lambda op,addr,data,sel,_data=data: _data
+    tb = Wb2uartTestbench(dut,resp_callback)
+    await tb.reset()
+    tb.send_wb(WBOp(adr=addr))
+    uart = await tb.uart.read()
+    assert uart["op"] == op, f"UART received wrong op: 0x{uart['op']:X} != 0x{op:X}"
+    assert uart["address"] == addr, f"UART received wrong address: 0x{uart['address']:X} != 0x{addr:X}"
+    wb_transaction = await tb.receive_wb()
+    assert wb_transaction.datrd == data, f"WB received wrong data: 0x{wb_transaction.datrd.integer:X} != 0x{data:X}"
+
+@cocotb.test(timeout_time=2,timeout_unit='ms')
+async def wb2uart_write_test(dut):
+    """ Wishbone to UART adapter write test """
+    op = 1
+    data = 101
+    addr = 123
+    sel = 0b0100
+    ack = 1
+    resp_callback = lambda op,addr,data,sel,_ack=ack: _ack
+    tb = Wb2uartTestbench(dut,resp_callback)
+    await tb.reset()
+    tb.send_wb(WBOp(adr=addr,dat=data,sel=sel))
+    uart = await tb.uart.read()
+    assert uart["op"] == op, f"UART received wrong op: 0x{uart['op']:X} != 0x{op:X}"
+    assert uart["address"] == addr, f"UART received wrong address: 0x{uart['address']:X} != 0x{addr:X}"
+    assert uart["data"] == data, f"UART received wrong data: 0x{uart['data']:X} != 0x{data:X}"
+    assert uart["sel"] == sel, f"UART received wrong sel: 0x{uart['sel']:X} != 0x{sel:X}"
+    wb_transaction = await tb.receive_wb()
+    assert wb_transaction.ack == ack, f"WB received wrong ack: 0x{wb_transaction.ack:X} != 0x{ack:X}"
+
+class TopTestbench:
+    def __init__(self,dut,resp_callback = None):
+        self.clock = dut.clock
+        self._reset = dut.reset
+        period = 40
+        period_unit = "ns"
+        self.uart = Wb2uartMonitor(dut.uart_tx,dut.uart_rx,resp_callback)
+        cocotb.start_soon(Clock(dut.clock,period,period_unit).start())
+    async def reset(self):
+        await RisingEdge(self.clock)
+        self._reset.value = 1
+        await RisingEdge(self.clock)
+        self._reset.value = 0
+
+@cocotb.test()
+async def top_c_nop_test(dut):
+    end_test = Event()
+    utils.run('make',cwd=sim_dir/'tests/c_nop_test')
+    imem,dmem = process_elf(sim_dir/'tests/c_nop_test/c_nop_test.elf')
+    memory = {**imem,**dmem}
+    def resp_callback(op,address,data,sel):
+        if op == 0:
+            return utils.from_array(memory,address)
+        elif op == 1:
+            if address == T_ADDR:
+                assert data == T_PASS, "Received test fail from bus"
+                end_test.set()
+            else:
+                mask = f"{sel:04b}"
+                for i in range(4):
+                    if int(mask[3-i]):
+                        memory[address+i] = utils.to_bytes(data)[i]
+                return 1
+    tb = TopTestbench(dut,resp_callback)
+    await tb.reset()
+    await end_test.wait()
+
 

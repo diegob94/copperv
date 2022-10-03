@@ -15,11 +15,11 @@ rv_asm_paths = list(sim_dir.glob('tests/isa/rv32ui/*.S'))
 
 common_run_opts = dict(
     verilog_sources=[ # replace by .flist ???
-        rtl_dir/"idecoder.v",
-        rtl_dir/"control_unit.v",
-        rtl_dir/"copperv.v",
-        rtl_dir/"execution.v",
-        rtl_dir/"register_file.v",
+        rtl_dir/"copperv/idecoder.v",
+        rtl_dir/"copperv/control_unit.v",
+        rtl_dir/"copperv/copperv.v",
+        rtl_dir/"copperv/execution.v",
+        rtl_dir/"copperv/register_file.v",
     ],
     includes=[rtl_dir/'include'],
     toplevel="copperv",
@@ -49,3 +49,4 @@ def test_riscv(parameters):
         sim_build=f"work/sim/test_riscv_{parameters['TEST_NAME']}",
         testcase = "riscv_test",
     )
+

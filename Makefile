@@ -1,6 +1,7 @@
 
 PYTHON ?= $(if $(shell which python),python,python3)
 SHELL = bash
+RTL_SOURCES = $(shell find ./rtl -name '*.v')
 
 .PHONY: all
 all: work/sim/result.xml
@@ -13,6 +14,20 @@ clean:
 	pip install --user pipenv
 	pipenv install
 
-work/sim/result.xml: .venv $(shell find ./rtl -name '*.v') $(shell find ./sim -name '*.py')
-	pipenv run pytest -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
+work/sim/result.xml: .venv $(RTL_SOURCES) $(shell find ./sim -name '*.py')
+	pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
+
+work/top.json: $(RTL_SOURCES) scripts/fpga.ys
+	yosys -s scripts/fpga.ys
+
+work/top.config: work/top.json
+	nextpnr-ecp5 --package CABGA381 --85k --json $< \
+		--lpf scripts/ulx3s_v20.lpf --textcfg $@
+
+work/ulx3s.bit: work/top.config
+	ecppack $< $@
+
+.PHONY: program
+program: work/ulx3s.bit
+	openFPGALoader -b ulx3s $<
 
