@@ -267,27 +267,26 @@ class CoppervBusDriver(Driver):
 
 class CoppervBusRDriver(CoppervBusDriver):
     _signals = [
-        "r_addr_ready", "r_addr_valid", "r_addr_bits",
-        "r_data_ready", "r_data_valid", "r_data_bits",
+        "r_addr_ready", "r_addr_valid", "r_addr",
+        "r_data_ready", "r_data_valid", "r_data",
     ]
     def __init__(self, entity, prefix, clock, signals_dict=None, **kwargs):
         super().__init__(entity,prefix,clock,BusReadTransaction,"bus_r",
             signals_dict=signals_dict,
-            req_ch = dict(ready="r_addr_ready",valid="r_addr_valid",payload=dict(addr="r_addr_bits")),
-            resp_ch = dict(ready="r_data_ready",valid="r_data_valid",payload=dict(data="r_data_bits")),
+            req_ch = dict(ready="r_addr_ready",valid="r_addr_valid",payload=dict(addr="r_addr")),
+            resp_ch = dict(ready="r_data_ready",valid="r_data_valid",payload=dict(data="r_data")),
             **kwargs)
 
 class CoppervBusWDriver(CoppervBusDriver):
     _signals = [
-        "w_req_ready",  "w_req_valid",  "w_req_bits_data",
-        "w_req_bits_addr", "w_req_bits_strobe",
-        "w_resp_ready", "w_resp_valid", "w_resp_bits",
+        "w_data_addr_ready",  "w_data_addr_valid",  "w_data", "w_addr", "w_strobe",
+        "w_resp_ready", "w_resp_valid", "w_resp",
     ]
     def __init__(self, entity, prefix, clock, signals_dict=None, **kwargs):
         super().__init__(entity,prefix,clock,BusWriteTransaction,"bus_w",
             signals_dict=signals_dict,
-            req_ch = dict(ready="w_req_ready",valid="w_req_valid",
-                payload=dict(addr="w_req_bits_addr",data="w_req_bits_data",strobe="w_req_bits_strobe")),
-            resp_ch = dict(ready="w_resp_ready",valid="w_resp_valid",payload=dict(resp="w_resp_bits")),
+            req_ch = dict(ready="w_data_addr_ready",valid="w_data_addr_valid",
+                payload=dict(addr="w_addr",data="w_data",strobe="w_strobe")),
+            resp_ch = dict(ready="w_resp_ready",valid="w_resp_valid",payload=dict(resp="w_resp")),
             **kwargs)
 

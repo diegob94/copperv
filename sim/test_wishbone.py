@@ -15,13 +15,13 @@ def timescale_fix(verilog):
 
 wb_adapter_rtl = timescale_fix(rtl_dir/"wb_adapter.v")
 common_run_opts = dict(
-    toplevel = "WishboneAdapter",
+    toplevel = "wb_adapter",
     verilog_sources=[wb_adapter_rtl],
     module = "cocotb_tests",
     waves = True,
+    parameters=dict(data_width=32,addr_width=32),
 )
 
-@pytest.mark.skip(reason="Wishbone adapter is not implemented")
 def test_wishbone_adapter_read():
     run(
         **common_run_opts,
@@ -29,7 +29,6 @@ def test_wishbone_adapter_read():
         testcase = "wishbone_adapter_read_test",
     )
 
-@pytest.mark.skip(reason="Wishbone adapter is not implemented")
 def test_wishbone_adapter_write():
     run(
         **common_run_opts,
