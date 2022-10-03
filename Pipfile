@@ -25,6 +25,7 @@ pytest-xdist = "==2.5.0"
 rope = "==0.22.0"
 tabulate = "==0.8.9"
 toml = "==0.10.2"
+pyverilog = "*"
 
 [dev-packages]
 

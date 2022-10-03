@@ -36,3 +36,4 @@ def test_wishbone_adapter_write():
         sim_build=f"work/sim/test_wishbone_adapter_write",
         testcase = "wishbone_adapter_write_test",
     )
+
