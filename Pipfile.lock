@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "02974eefc142e1f6ebccb03f4244621289fca23c99bdfa005925ba99c6dc7385"
+            "sha256": "6650084b74ce7e8596f047e321f63270fedb98962355bc3eef8a75ed4aad8f7c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -44,6 +44,10 @@
             ],
             "index": "pypi",
             "version": "==0.2.1"
+        },
+        "cocotbext-uart": {
+            "git": "https://github.com/diegob94/cocotbext-uart.git",
+            "ref": "b8dff5b80d2165ad1bda9f336e315216ab780ba1"
         },
         "cocotbext-wishbone": {
             "hashes": [

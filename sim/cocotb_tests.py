@@ -5,7 +5,7 @@ from pathlib import Path
 from itertools import repeat
 
 import cocotb
-from cocotb.triggers import Join, Event, RisingEdge
+from cocotb.triggers import Join, Event, RisingEdge, Edge
 from cocotb.log import SimLog
 import toml
 import cocotb_utils as utils
@@ -14,7 +14,9 @@ from bus import BusReadTransaction, CoppervBusRDriver, CoppervBusWDriver, BusWri
 from testbench import Testbench
 from riscv_utils import compile_instructions, parse_data_memory, compile_riscv_test
 
+from cocotbext.uart import UartSource, UartSink
 from cocotbext.wishbone.monitor import WishboneSlave
+from cocotbext.wishbone.driver import WishboneMaster, WBOp
 from cocotb.clock import Clock
 from cocotb.queue import Queue
 
@@ -85,8 +87,8 @@ async def riscv_test(dut):
 
 class AdapterTestbench:
     def __init__(self,dut,datGen):
-        self._reset = dut.reset
         self.clock = dut.clock
+        self._reset = dut.reset
         self.queue = Queue()
         period = 10
         period_unit = "ns"
@@ -146,4 +148,90 @@ async def wishbone_adapter_write_test(dut):
     assert bus_transaction.data == data
     assert bus_transaction.strobe == strobe
     assert bus_transaction.response == 1
+
+async def monitor(log,signal):
+    while True:
+        await Edge(signal)
+        log.info("%s = %d",signal.name,signal.value)
+
+async def assert_hold(signal):
+    await Edge(signal)
+    assert False, "Unexpected transition"
+
+class Wb2uartTestbench:
+    def __init__(self,dut):
+        self.clock = dut.clock
+        self._reset = dut.reset
+        self.uart_tx = dut.uart_tx
+        self.queue = Queue()
+        period = 40
+        period_unit = "ns"
+#       cocotb.start_soon(monitor(dut._log,dut.uart_tx))
+        self.wb = WishboneMaster(dut, "wb", dut.clock, width=32)
+        self.uart_source = UartSource(dut.uart_rx, baud=115200, bits=8)
+        self.uart_sink = UartSink(dut.uart_tx, baud=115200, bits=8)
+        cocotb.start_soon(Clock(dut.clock,period,period_unit).start())
+        self._assert_coro = None
+    async def reset(self):
+        await RisingEdge(self.clock)
+        self._reset.value = 1
+        await RisingEdge(self.clock)
+        self._reset.value = 0
+    async def _send(self,ops):
+        res = await self.wb.send_cycle(ops)
+        self.queue.put_nowait(res)
+    def send(self,transaction):
+        cocotb.start_soon(self._send([transaction]))
+    async def receive_uart(self,count=4):
+        if self._assert_coro is not None:
+            self._assert_coro.kill()
+        recv = await self.uart_sink.read(count)
+        self._assert_coro = cocotb.start_soon(assert_hold(self.uart_tx))
+        data = int.from_bytes(recv, byteorder='little', signed=False)
+        return data
+    def send_uart(self,data):
+        self.uart_source.write_nowait(data.to_bytes(4,byteorder='little'))
+    async def receive_wb(self):
+        wb_transaction = await self.queue.get()
+        return wb_transaction[0]
+
+@cocotb.test(timeout_time=2,timeout_unit='ms')
+async def wb2uart_read_test(dut):
+    """ Wishbone to UART adapter read test """
+    op = 0
+    data = 101
+    addr = 123
+    tb = Wb2uartTestbench(dut)
+    await tb.reset()
+    tb.send(WBOp(adr=addr))
+    uart_op = await tb.receive_uart(1)
+    uart_address = await tb.receive_uart()
+    assert uart_op == op, f"UART received wrong op: 0x{uart_op:X} != 0x{op:X}"
+    assert uart_address == addr, f"UART received wrong address: 0x{uart_address:X} != 0x{addr:X}"
+    tb.send_uart(data)
+    wb_transaction = await tb.receive_wb()
+    assert wb_transaction.datrd == data, f"WB received wrong data: 0x{wb_transaction.datrd:X} != 0x{data:X}"
+
+@cocotb.test(timeout_time=2,timeout_unit='ms')
+async def wb2uart_write_test(dut):
+    """ Wishbone to UART adapter write test """
+    op = 1
+    data = 101
+    addr = 123
+    sel = 0b0100
+    ack = 1
+    tb = Wb2uartTestbench(dut)
+    await tb.reset()
+    tb.send(WBOp(adr=addr,dat=data,sel=sel))
+    uart_op = await tb.receive_uart(1)
+    uart_address = await tb.receive_uart()
+    uart_data = await tb.receive_uart()
+    uart_sel = await tb.receive_uart(1)
+    assert uart_op == op, f"UART received wrong op: 0x{uart_op:X} != 0x{op:X}"
+    assert uart_address == addr, f"UART received wrong address: 0x{uart_address:X} != 0x{addr:X}"
+    assert uart_data == data, f"UART received wrong data: 0x{uart_data:X} != 0x{data:X}"
+    assert uart_sel == sel, f"UART received wrong sel: 0x{uart_sel:X} != 0x{sel:X}"
+    tb.send_uart(ack)
+    wb_transaction = await tb.receive_wb()
+    assert wb_transaction.ack == ack, f"WB received wrong ack: 0x{wb_transaction.ack:X} != 0x{ack:X}"
 

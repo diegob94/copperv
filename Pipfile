@@ -26,6 +26,7 @@ rope = "==0.22.0"
 tabulate = "==0.8.9"
 toml = "==0.10.2"
 pyverilog = "*"
+cocotbext-uart = {ref = "check_glitches", git = "https://github.com/diegob94/cocotbext-uart.git"}
 
 [dev-packages]
 
