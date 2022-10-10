@@ -14,5 +14,5 @@ clean:
 	pipenv install
 
 work/sim/result.xml: .venv $(shell find ./rtl -name '*.v') $(shell find ./sim -name '*.py')
-	pytest -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
+	pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
 
