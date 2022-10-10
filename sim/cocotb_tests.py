@@ -210,7 +210,7 @@ async def wb2uart_read_test(dut):
     assert uart_address == addr, f"UART received wrong address: 0x{uart_address:X} != 0x{addr:X}"
     tb.send_uart(data)
     wb_transaction = await tb.receive_wb()
-    assert wb_transaction.datrd == data, f"WB received wrong data: 0x{wb_transaction.datrd:X} != 0x{data:X}"
+    assert wb_transaction.datrd == data, f"WB received wrong data: 0x{wb_transaction.datrd.integer:X} != 0x{data:X}"
 
 @cocotb.test(timeout_time=2,timeout_unit='ms')
 async def wb2uart_write_test(dut):
