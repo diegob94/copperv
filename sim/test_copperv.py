@@ -49,3 +49,4 @@ def test_riscv(parameters):
         sim_build=f"work/sim/test_riscv_{parameters['TEST_NAME']}",
         testcase = "riscv_test",
     )
+
