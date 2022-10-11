@@ -4,7 +4,7 @@ SHELL = bash
 RTL_SOURCES = $(shell find ./rtl -name '*.v')
 
 .PHONY: all
-all: work/sim/result.xml work/top.json
+all: work/sim/result.xml
 
 .PHONY: clean
 clean:
@@ -19,4 +19,15 @@ work/sim/result.xml: .venv $(RTL_SOURCES) $(shell find ./sim -name '*.py')
 
 work/top.json: $(RTL_SOURCES) scripts/fpga.ys
 	yosys -s scripts/fpga.ys
+
+work/top.config: work/top.json
+	nextpnr-ecp5 --package CABGA381 --85k --json $< \
+		--lpf scripts/ulx3s_v20.lpf --textcfg $@
+
+work/ulx3s.bit: work/top.config
+	ecppack $< $@
+
+.PHONY: program
+program: work/ulx3s.bit
+	openFPGALoader -b ulx3s $<
 

@@ -26,9 +26,9 @@ common_run_opts = dict(
     waves = True,
 )
 
-def test_top_hello_world(request):
+def test_top(request):
     run(**common_run_opts,
         sim_build = sim_dir/request.node.name,
-        testcase = "top_hello_world_test",
+        testcase = "top_c_nop_test",
     )
 

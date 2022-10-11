@@ -277,14 +277,13 @@ class TopTestbench:
         self._reset.value = 0
 
 @cocotb.test()
-async def top_hello_world_test(dut):
+async def top_c_nop_test(dut):
     end_test = Event()
-    utils.run('make',cwd=sim_dir/'tests/hello_world')
-    imem,dmem = process_elf(sim_dir/'tests/hello_world/hello_world.elf')
+    utils.run('make',cwd=sim_dir/'tests/c_nop_test')
+    imem,dmem = process_elf(sim_dir/'tests/c_nop_test/c_nop_test.elf')
     memory = {**imem,**dmem}
     def resp_callback(op,address,data,sel):
         if op == 0:
-            assert address in memory, f"Invalid read address: 0x{address:X}"
             return utils.from_array(memory,address)
         elif op == 1:
             if address == T_ADDR:
