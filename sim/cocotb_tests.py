@@ -160,12 +160,15 @@ async def assert_hold(signal):
 
 class Wb2uartMonitor:
     def __init__(self,tx,rx,resp_callback=None):
+        self.log = SimLog(f"cocotb.{type(self).__qualname__}")
         self.tx = tx
         self.rx = rx
         self.source = UartSource(self.rx, baud=115200, bits=8)
         self.sink = UartSink(self.tx, baud=115200, bits=8)
         self.resp_callback = resp_callback
         self._assert_coro = None
+        self.recvQ = Queue()
+        cocotb.start_soon(self.run())
     async def receive(self,count=4):
         if self._assert_coro is not None:
             self._assert_coro.kill()
@@ -176,16 +179,27 @@ class Wb2uartMonitor:
     def send(self,data):
         self.source.write_nowait(data.to_bytes(4,byteorder='little'))
     async def read(self):
-        op = await self.receive(1)
-        address = await self.receive()
-        data = None
-        sel = None
-        if op == 1:
-            data = await self.receive()
-            sel = await self.receive(1)
-        if self.resp_callback is not None:
-            self.send(self.resp_callback(op,address,data,sel))
-        return dict(op=op,address=address,data=data,sel=sel)
+        return await self.recvQ.get()
+    async def run(self):
+        while True:
+            op = await self.receive(1)
+            address = await self.receive()
+            data = None
+            sel = None
+            if op == 1:
+                data = await self.receive()
+                sel = await self.receive(1)
+            if self.resp_callback is not None:
+                resp = self.resp_callback(op,address,data,sel)
+                self.send(resp)
+            info = f"transaction: address = 0x{address:X}"
+            if op == 1:
+                info = "Write " + info + f" data = 0x{data:X} sel = 0x{sel:X}"
+            else:
+                info = "Read " + info
+            info = info + f" resp = 0x{resp:X}"
+            self.log.info(info)
+            self.recvQ.put_nowait(dict(op=op,address=address,data=data,sel=sel))
 
 class Wb2uartTestbench:
     def __init__(self,dut,resp_callback):
@@ -262,7 +276,7 @@ class TopTestbench:
         await RisingEdge(self.clock)
         self._reset.value = 0
 
-@cocotb.test(timeout_time=2,timeout_unit='ms')
+@cocotb.test()
 async def top_hello_world_test(dut):
     end_test = Event()
     utils.run('make',cwd=sim_dir/'tests/hello_world')

@@ -40,6 +40,13 @@ module copperv_wb #(
     wire [addr_width-1:0] dw_addr;
     wire [strobe_width-1:0] dw_strobe;
 
+    reg [addr_width-1:0]   wb_adr;
+    reg [data_width-1:0]   wb_datwr;
+    reg                    wb_we;
+    reg                    wb_stb;
+    reg                    wb_cyc;
+    reg [strobe_width-1:0] wb_sel;
+
     wire [addr_width-1:0]   d_wb_adr;
     wire [data_width-1:0]   d_wb_datwr;
     wire [data_width-1:0]   d_wb_datrd;
@@ -58,9 +65,43 @@ module copperv_wb #(
     wire                    i_wb_cyc;
     wire [strobe_width-1:0] i_wb_sel;
 
+    reg d_transaction;
+    reg i_transaction;
+
+    assign d_wb_datrd = wb_datrd;
+    assign i_wb_datrd = wb_datrd;
+    assign d_wb_ack = d_transaction ? wb_ack : 0;
+    assign i_wb_ack = i_transaction ? wb_ack : 0;
+
+    always @(*) begin
+        wb_stb = 0;
+        wb_cyc = 0;
+        wb_we = 0;
+        wb_adr = 0;
+        wb_datwr = 0;
+        wb_sel = 0;
+        d_transaction = d_wb_stb && !i_wb_stb;
+        i_transaction = !d_wb_stb && i_wb_stb;
+        if(d_transaction) begin
+            wb_stb = d_wb_stb;
+            wb_cyc = d_wb_cyc;
+            wb_we = d_wb_we;
+            wb_adr = d_wb_adr;
+            wb_datwr = d_wb_datwr;
+            wb_sel = d_wb_sel;
+        end else if(i_transaction) begin
+            wb_stb = i_wb_stb;
+            wb_cyc = i_wb_cyc;
+            wb_we = i_wb_we;
+            wb_adr = i_wb_adr;
+            wb_datwr = i_wb_datwr;
+            wb_sel = i_wb_sel;
+        end
+    end
+
     copperv core(
         .clk(clock),
-        .rst(reset),
+        .rst(!reset),
         .ir_data_valid(ir_data_valid),
         .ir_addr_ready(ir_addr_ready),
         .ir_data(ir_data),
