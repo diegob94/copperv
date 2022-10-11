@@ -7,6 +7,10 @@ CC = riscv64-unknown-elf-gcc
 OBJCOPY = riscv64-unknown-elf-objcopy
 override CFLAGS += -march=rv32i -mabi=ilp32 -I$(COMMON_DIR)
 LDFLAGS += -march=rv32i -mabi=ilp32
+INIT_OBJ = crt0.o syscalls.o
+ifdef NO_INIT
+INIT_OBJ = 
+endif
 
 crt0.o: $(COMMON_DIR)/crt0.S
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -26,7 +30,7 @@ syscalls.E: $(COMMON_DIR)/syscalls.c
 %.E: %.c
 	$(CC) $(CFLAGS) -E $< -o $@
 
-%.hex: %.o crt0.o syscalls.o
+%.hex: %.o $(INIT_OBJ)
 	$(CC) $(LDFLAGS) -Wl,-T,$(LINKER_SCRIPT),-Bstatic -nostartfiles -ffreestanding $^ -o $(@:.hex=.elf)
 	$(SCRIPTS_DIR)/utils.py debug $(@:.hex=.elf) || true
 	$(OBJCOPY) -O verilog $(@:.hex=.elf) $@

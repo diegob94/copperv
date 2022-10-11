@@ -27,6 +27,7 @@ toml = "*"
 pyverilog = "*"
 cocotbext-uart = {ref = "check_glitches", git = "https://github.com/diegob94/cocotbext-uart.git"}
 cocotb-test = {ref = "master", git = "https://github.com/themperek/cocotb-test.git"}
+pyserial = "*"
 
 [dev-packages]
 

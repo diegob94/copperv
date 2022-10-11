@@ -277,10 +277,11 @@ class TopTestbench:
         self._reset.value = 0
 
 @cocotb.test()
-async def top_c_nop_test(dut):
+async def top_wb2uart_test(dut):
     end_test = Event()
-    utils.run('make',cwd=sim_dir/'tests/c_nop_test')
-    imem,dmem = process_elf(sim_dir/'tests/c_nop_test/c_nop_test.elf')
+    test_name = 'wb2uart_test'
+    utils.run('make',cwd=sim_dir/f'tests/{test_name}')
+    imem,dmem = process_elf(sim_dir/f'tests/{test_name}/{test_name}.elf')
     memory = {**imem,**dmem}
     def resp_callback(op,address,data,sel):
         if op == 0:
@@ -289,6 +290,7 @@ async def top_c_nop_test(dut):
             if address == T_ADDR:
                 assert data == T_PASS, "Received test fail from bus"
                 end_test.set()
+                return 1
             else:
                 mask = f"{sel:04b}"
                 for i in range(4):
