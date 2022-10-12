@@ -29,6 +29,6 @@ common_run_opts = dict(
 def test_top(request):
     run(**common_run_opts,
         sim_build = sim_dir/request.node.name,
-        testcase = "top_c_nop_test",
+        testcase = "top_wb2uart_test",
     )
 

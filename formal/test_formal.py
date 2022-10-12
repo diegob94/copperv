@@ -21,6 +21,5 @@ def test_uart_tx_cover(sby_run):
         engines = "smtbmc",
         script = ["read_verilog -formal -DCOVER_BASIC_TX=1 wb2uart.v","prep -top uart_tx"],
         files = ["../rtl/uart/wb2uart.v","formal/uart_tx.v uart_tx.v"],
-
     )
 
