@@ -34,9 +34,9 @@ def to_bytes(data):
 def run(*args,**kwargs):
     log = SimLog("cocotb")
     log.debug(f"run: {args}")
-    r = subprocess.run(*args,shell=True,encoding='utf-8',capture_output=True,**kwargs)
+    r = subprocess.run(*args,shell=True,encoding='utf-8',capture_output=True,text=True,**kwargs)
     if r.returncode != 0:
         log.error(f"run stdout: {r.stdout}")
         log.error(f"run stderr: {r.stderr}")
         raise ChildProcessError(f"Error during command execution: {args}")
-    return r
+    return r.stdout.strip()

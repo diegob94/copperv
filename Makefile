@@ -22,7 +22,8 @@ work/top.json: $(RTL_SOURCES) scripts/fpga.ys
 
 work/top.config: work/top.json scripts/ulx3s_v20.lpf
 	nextpnr-ecp5 --package CABGA381 --85k --json work/top.json \
-		--lpf scripts/ulx3s_v20.lpf --textcfg $@
+		--lpf scripts/ulx3s_v20.lpf --textcfg $@ --write work/top.nextpnr.json
+	yosys -p "read_json work/top.nextpnr.json; write_verilog -noattr work/top.nextpnr.v"
 
 work/ulx3s.bit: work/top.config
 	ecppack $< $@
