@@ -42,7 +42,7 @@ def test_top(request):
     )
 
 def test_top_fpga_fe(request):
-    common_run_opts["verilog_sources"] = [timescale_fix("work/top.v"), utils.run("yosys-config --datdir/ecp5/cells_sim.v")]
+    common_run_opts["verilog_sources"] = [timescale_fix("work/top.yosys.v"), utils.run("yosys-config --datdir/ecp5/cells_sim.v")]
     common_run_opts["includes"] = [utils.run("yosys-config --datdir/ecp5")]
     run(**common_run_opts,
         sim_build = sim_dir/request.node.name,
@@ -56,3 +56,4 @@ def test_top_fpga_be(request):
         sim_build = sim_dir/request.node.name,
         testcase = "top_wb2uart_test",
     )
+

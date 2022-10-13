@@ -179,11 +179,11 @@ module copperv_wb #(
          .bus_r_data_valid(ir_data_valid),
          .bus_r_data(ir_data),
          .bus_w_data_addr_ready(),
-         .bus_w_data_addr_valid(),
-         .bus_w_data(),
-         .bus_w_addr(),
-         .bus_w_strobe(),
-         .bus_w_resp_ready(),
+         .bus_w_data_addr_valid(0),
+         .bus_w_data(0),
+         .bus_w_addr(0),
+         .bus_w_strobe(0),
+         .bus_w_resp_ready(0),
          .bus_w_resp_valid(),
          .bus_w_resp()
     );

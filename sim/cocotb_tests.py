@@ -276,7 +276,7 @@ class TopTestbench:
         await RisingEdge(self.clock)
         self._reset.value = 0
 
-@cocotb.test()
+@cocotb.test(timeout_time=4,timeout_unit="ms")
 async def top_wb2uart_test(dut):
     end_test = Event()
     test_name = 'wb2uart_test'

@@ -1,14 +1,18 @@
+echo on
+
 verilog_defaults -add -I./rtl/include
 
+read_verilog rtl/wishbone/copperv_wb.v
 read_verilog rtl/wishbone/wb_adapter.v
 read_verilog rtl/copperv/execution.v
 read_verilog rtl/copperv/idecoder.v
 read_verilog rtl/copperv/register_file.v
 read_verilog rtl/copperv/control_unit.v
 read_verilog rtl/copperv/copperv.v
-read_verilog rtl/copperv/copperv_wb.v
 read_verilog rtl/uart/wb2uart.v
 read_verilog rtl/top.v
 
-synth_ecp5 -noccu2 -nomux -nodram -json work/top.json
-write_verilog -noattr work/top.v 
+synth_ecp5 -noccu2 -nomux -nodram
+
+write_verilog -noattr work/top.yosys.v 
+write_json work/top.json

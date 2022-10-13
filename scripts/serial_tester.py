@@ -10,13 +10,14 @@ TC_ADDR = 0x80000008
 T_PASS = 0x01000001
 T_FAIL = 0x02000001
 
-test = "hello_world"
+test_passed = False
+test = "wb2uart_test"
 utils.run('make',cwd=f'sim/tests/{test}')
 imem,dmem = process_elf(f'sim/tests/{test}/{test}.elf')
 memory = {**imem,**dmem}
 
-print("Memory size [bytes]:",len(memory))
-print("Press button B1 to reset copperv CPU")
+print("Virtual memory size [bytes]:",len(memory))
+print("Press button B1 to reset")
 
 def receive(ser,count=4):
     data = ser.read(count)
@@ -32,13 +33,14 @@ def send(ser,data,count=4):
     print(count)
 
 def resp_callback(op,address,data,sel):
+    global test_passed
     if op == 0:
         return utils.from_array(memory,address)
     elif op == 1:
         if address == T_ADDR:
             assert data == T_PASS, "Received test fail from bus"
-            print("Test PASSED")
-            sys.exit(0)
+            test_passed = True
+            return 1
         else:
             mask = f"{sel:04b}"
             for i in range(4):
@@ -64,6 +66,9 @@ with serial.Serial('/dev/ttyUSB0', 115200) as ser:
             info = "Read " + info
         info = info + f" resp = 0x{resp:X}"
         print(info)
+        if test_passed:
+            print("Test PASSED")
+            sys.exit(0)
         send(ser,resp,4 if op == 0 else 1)
 
 
