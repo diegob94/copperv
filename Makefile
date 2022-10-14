@@ -19,7 +19,7 @@ setup: .venv
 	pip install --user pipenv
 	pipenv install
 
-work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') work/top.config | setup
+work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') | setup
 	pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
 
 work/top.json: $(RTL_SOURCES) scripts/fpga.ys | setup

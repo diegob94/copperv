@@ -159,12 +159,12 @@ async def assert_hold(signal):
     assert False, "Unexpected transition"
 
 class Wb2uartMonitor:
-    def __init__(self,tx,rx,resp_callback=None):
+    def __init__(self,tx,rx,baud=115200,resp_callback=None):
         self.log = SimLog(f"cocotb.{type(self).__qualname__}")
         self.tx = tx
         self.rx = rx
-        self.source = UartSource(self.rx, baud=115200, bits=8)
-        self.sink = UartSink(self.tx, baud=115200, bits=8)
+        self.source = UartSource(self.rx, baud=baud, bits=8)
+        self.sink = UartSink(self.tx, baud=baud, bits=8)
         self.resp_callback = resp_callback
         self._assert_coro = None
         self.recvQ = Queue()
@@ -209,7 +209,7 @@ class Wb2uartTestbench:
         period = 40
         period_unit = "ns"
 #       cocotb.start_soon(monitor(dut._log,dut.uart_tx))
-        self.uart = Wb2uartMonitor(dut.uart_tx,dut.uart_rx,resp_callback)
+        self.uart = Wb2uartMonitor(dut.uart_tx,dut.uart_rx,resp_callback=resp_callback)
         self.wb = WishboneMaster(dut, "wb", dut.clock, width=32)
         cocotb.start_soon(Clock(dut.clock,period,period_unit).start())
     async def reset(self):
@@ -268,7 +268,7 @@ class TopTestbench:
         self._reset = dut.reset
         period = 40
         period_unit = "ns"
-        self.uart = Wb2uartMonitor(dut.uart_tx,dut.uart_rx,resp_callback)
+        self.uart = Wb2uartMonitor(dut.uart_tx,dut.uart_rx,resp_callback=resp_callback)
         cocotb.start_soon(Clock(dut.clock,period,period_unit).start())
     async def reset(self):
         await RisingEdge(self.clock)
