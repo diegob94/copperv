@@ -7,6 +7,7 @@ cover
 bmc:
 mode bmc
 depth 10
+append 2
 --
 prove:
 mode prove
@@ -23,11 +24,13 @@ smtbmc
 
 [script]
 ~cover: read_verilog -formal wb_sram.v
+~cover: read_verilog -formal -assert-assumes sram_32_sp.v
 cover: read_verilog -sv -formal -DCOVER_WB_SRAM=1 wb_sram.v
 prep -top wb_sram
 
 [files]
 ../rtl/wishbone/wb_sram.v
+../rtl/wishbone/sram_32_sp.v
 formal/wb.v wb.v
 formal/wb_sram.v wb_sram.v
 formal/sram_32_sp.v sram_32_sp.v
