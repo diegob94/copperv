@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 `default_nettype none
 
-module sram_wb #(
+module wb_sram #(
     parameter addr_width = 32,
     parameter data_width = 32,
     parameter strobe_width = addr_width/8,
@@ -19,18 +19,23 @@ module sram_wb #(
     input  [strobe_width-1:0] wb_sel,
 );
 
-    reg [data_width-1:0] wb_datrd;
+    `ifdef FORMAL
+        `include "formal/wb_sram.v"
+    `endif
+
+    wire [data_width-1:0] wb_datrd;
     reg wb_ack;
     wire en_sram;
 
     assign en_sram = (wb_stb && wb_cyc) && !wb_ack;
 
     always @(posedge clock)
-        if(wb_stb && wb_cyc) begin
-            wb_ack <= 1;
-        end else begin
+        if(reset)
             wb_ack <= 0;
-        end
+        else if(!wb_ack && wb_stb && wb_cyc)
+            wb_ack <= 1;
+        else
+            wb_ack <= 0;
 
     sram_32_sp sram(
         .clock(clock),
@@ -57,25 +62,30 @@ module sram_32_sp #(
     input  [data_width-1:0]  din,
     output [data_width-1:0]  dout,
 );
-parameter length = 1 << addr_width;
-reg [data_width-1:0] mem [length-1:0];
-reg [data_width-1:0] dout;
+    parameter length = 1 << addr_width;
 
-always @(posedge clock)
-    if(en && wen) begin
-        if(wmask[0])
-            mem[addr][7:0] <= din[7:0];
-        if(wmask[1])
-            mem[addr][15:8] <= din[15:8];
-        if(wmask[2])
-            mem[addr][23:16] <= din[23:16];
-        if(wmask[3])
-            mem[addr][31:24] <= din[31:24];
-    end
+    `ifdef FORMAL
+        `include "formal/sram_32_sp.v"
+    `endif
 
-always @(posedge clock)
-    if(en && !wen)
-        dout <= mem[addr];
+    reg [data_width-1:0] mem [length-1:0];
+    reg [data_width-1:0] dout;
+
+    always @(posedge clock)
+        if(en && wen) begin
+            if(wmask[0])
+                mem[addr][7:0] <= din[7:0];
+            if(wmask[1])
+                mem[addr][15:8] <= din[15:8];
+            if(wmask[2])
+                mem[addr][23:16] <= din[23:16];
+            if(wmask[3])
+                mem[addr][31:24] <= din[31:24];
+        end
+
+    always @(posedge clock)
+        if(en && !wen)
+            dout <= mem[addr];
 
 endmodule
 

@@ -1,0 +1,33 @@
+[tasks]
+bmc
+prove
+cover
+
+[options]
+bmc:
+mode bmc
+depth 10
+--
+prove:
+mode prove
+depth 10
+--
+cover:
+mode cover
+depth 30
+append 2
+--
+
+[engines]
+smtbmc
+
+[script]
+~cover: read_verilog -formal wb_sram.v
+cover: read_verilog -sv -formal -DCOVER_WB_SRAM=1 wb_sram.v
+prep -top wb_sram
+
+[files]
+../rtl/wishbone/wb_sram.v
+formal/wb.v wb.v
+formal/wb_sram.v wb_sram.v
+formal/sram_32_sp.v sram_32_sp.v

@@ -328,11 +328,6 @@ module uart_tx(
     assign baud_count_done = baud_count == clock_per_bit - 1;
     always @(*)
         tx_done = shift_done;
-//    always @(posedge clock)
-//        if(reset)
-//            tx_done <= 0;
-//        else
-//            tx_done <= shift_done;
     always @(posedge clock)
         if(reset)
             state <= IDLE;
