@@ -16,7 +16,7 @@ def pytest_addoption(parser):
 
 def run(cmd):
     if not isinstance(cmd,str):
-        cmd = shlex.join([str(i) for i in cmd])
+        cmd = " ".join([str(i) for i in cmd])
     r = ""
     try:
         print("subprocess>",cmd)
@@ -66,8 +66,7 @@ def _sby_run(sby_path,log_path,options,engines,script,files):
     print("SBY file:")
     print(textwrap.indent(sby_file," "*indent))
     sby_path.write_text(sby_file)
-    sby_log = run(["sby",sby_path])
-    log_path.write_text(sby_log)
+    sby_log = run(["sby","-f",sby_path,"2>&1","|","tee",log_path])
     print("SBY log:")
     print(textwrap.indent(sby_log," "*indent))
     for line in sby_log.splitlines():

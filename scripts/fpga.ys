@@ -2,7 +2,7 @@ echo on
 
 verilog_defaults -add -I./rtl/include
 
-read_verilog rtl/wishbone/copperv_wb.v
+read_verilog rtl/wishbone/wb_copperv.v
 read_verilog rtl/wishbone/wb_adapter.v
 read_verilog rtl/copperv/execution.v
 read_verilog rtl/copperv/idecoder.v
