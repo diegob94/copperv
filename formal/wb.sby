@@ -24,8 +24,9 @@ smtbmc
 
 [script]
 ~cover: read_verilog -formal wb_sram.v
-~cover: read_verilog -formal -assert-assumes sram_32_sp.v
-cover: read_verilog -sv -formal -DCOVER_WB_SRAM=1 wb_sram.v
+~cover: read_verilog -formal sram_32_sp.v
+cover: read_verilog -formal -DCOVER_WB_SRAM=1 wb_sram.v
+cover: read_verilog -formal -DCOVER_WB_SRAM=1 sram_32_sp.v
 prep -top wb_sram
 
 [files]

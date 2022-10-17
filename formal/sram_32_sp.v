@@ -1,3 +1,4 @@
+
 reg f_past_valid = 0;
 always @(posedge clock) begin
     f_past_valid <= 1;
