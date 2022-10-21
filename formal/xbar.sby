@@ -1,0 +1,35 @@
+[tasks]
+bmc
+prove
+cover
+
+[options]
+bmc:
+mode bmc
+depth 10
+#append 2
+--
+prove:
+mode prove
+depth 10
+--
+cover:
+mode cover
+depth 30
+append 2
+--
+
+[engines]
+smtbmc
+
+[script]
+exec -expect-return 0 -- sv2v -DFORMAL=1 -wadjacent wb_xbar.sv
+read_verilog -formal wb_xbar.v
+read_verilog -formal wb.v
+read_verilog -DFORMAL_WB_M -assume-asserts -assert-assumes -formal wb.v
+prep -top test_wb_xbar
+
+[files]
+../rtl/wishbone/wb_xbar.sv
+wb.v
+formal/wb_xbar.v wb_xbar.v
