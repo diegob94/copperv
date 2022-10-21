@@ -27,5 +27,5 @@ read_verilog -formal sram_32_sp.v
 prep -top sram_32_sp
 
 [files]
-../rtl/wishbone/sram_32_sp.v
+../rtl/memory/sram_32_sp.v
 formal/sram_32_sp.v sram_32_sp.v

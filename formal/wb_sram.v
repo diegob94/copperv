@@ -1,5 +1,20 @@
-`define FORMAL_WB_S 1
-`include "formal/wb.v"
+
+formal_wb_s #(
+    .adr_width(addr_width),
+    .dat_width(data_width),
+    .sel_width(strobe_width)
+) u_formal_wb_s (
+    .clock(clock),
+    .reset(reset),
+    .wb_adr(wb_adr),
+    .wb_datrd(wb_datrd),
+    .wb_datwr(wb_datwr),
+    .wb_sel(wb_sel),
+    .wb_we(wb_we),
+    .wb_stb(wb_stb),
+    .wb_cyc(wb_cyc),
+    .wb_ack(wb_ack)
+);
 
 reg f_past_valid = 0;
 initial begin 
