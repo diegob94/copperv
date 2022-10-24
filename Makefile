@@ -1,7 +1,7 @@
 
 PYTHON ?= $(if $(shell which python),python,python3)
 SHELL = bash
-RTL_SOURCES = $(shell find ./rtl -name '*.v')
+RTL_SOURCES = $(shell find ./rtl -name '*.v') $(shell find ./rtl -name '*.sv')
 LOGS_DIR = work/logs
 
 .PHONY: all
@@ -37,3 +37,6 @@ work/ulx3s.bit: work/top.config | setup
 program: work/ulx3s.bit | setup
 	openFPGALoader -b ulx3s $<
 
+.PHONY: rtl
+rtl: $(RTL_SOURCES) | setup
+	sv2v -w work/top.sv2v.v -Irtl/include $^
