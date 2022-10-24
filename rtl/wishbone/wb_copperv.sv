@@ -33,13 +33,6 @@ module wb_copperv #(
     wire [addr_width-1:0] dw_addr;
     wire [strobe_width-1:0] dw_strobe;
 
-    reg [addr_width-1:0]   wb.adr;
-    reg [data_width-1:0]   wb.datwr;
-    reg                    wb.we;
-    reg                    wb.stb;
-    reg                    wb.cyc;
-    reg [strobe_width-1:0] wb.sel;
-
     wire [addr_width-1:0]   d_wb_adr;
     wire [data_width-1:0]   d_wb_datwr;
     wire [data_width-1:0]   d_wb_datrd;

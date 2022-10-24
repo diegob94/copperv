@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
 `default_nettype none
 `include "copperv_h.v"
+//`include "wishbone.sv"
 
 module top (
     input clock,
@@ -12,8 +13,8 @@ parameter bus_width = `BUS_WIDTH;
 parameter strobe_width = bus_width/8;
 parameter clk_per_bit = 217; //115200 @25MHz
 
-wishbone_bus_if #(.dat_width(bus_width),.adr_width(bus_width)) cpu_bus;
-wishbone_bus_if #(.dat_width(bus_width),.adr_width(bus_width)) uart_bus;
+wishbone_bus_if #(.dat_width(bus_width),.adr_width(bus_width)) cpu_bus();
+wishbone_bus_if #(.dat_width(bus_width),.adr_width(bus_width)) uart_bus();
 
 wb_copperv #(
     .addr_width(bus_width),
@@ -42,8 +43,8 @@ wb_xbar #(
     .adr_map(0)
 ) xbar (
     .*,
-    .m_arr(`{cpu_bus}),
-    .s_arr(`{uart_bus})
+    .m_arr(cpu_bus),
+    .s_arr(uart_bus)
 );
 
 endmodule
