@@ -34,10 +34,10 @@ module formal_wb_m #(
             assume(!wb_stb && !wb_cyc);
             assert(!wb_ack); // is this stated in spec?
         end
-        if(reset)
+        if(f_past_valid && $past(reset))
             assume(!wb_stb && !wb_cyc);
         // RULE 3.25
-        if(!wb_cyc)
+        if(!reset && !wb_cyc)
             assume(!wb_stb);
         // RULE 3.50
         if(!reset && !wb_stb)
@@ -46,20 +46,20 @@ module formal_wb_m #(
         if(f_past_valid && !reset && $fell(wb_stb))
             assert($fell(wb_ack));
         // RULE 3.60
-        if(f_past_valid && $past(wb_stb)) begin
+        if(f_past_valid && !$past(reset) && $past(wb_stb)) begin
             assume($stable(wb_sel));
             assume($stable(wb_adr));
             assume($stable(wb_datwr));
             assume($stable(wb_we));
         end
         // RULE 3.65
-        if(f_past_valid && $past(wb_ack)) begin
+        if(f_past_valid && !$past(reset) && $past(wb_ack)) begin
             assert($stable(wb_datrd));
         end
         // Handshaking Protocol
-        if(f_past_valid && $past(wb_stb) && !$past(wb_ack))
+        if(f_past_valid && !reset && $past(wb_stb) && !$past(wb_ack))
             assume(wb_stb);
-        if(f_past_valid && $past(wb_stb) && $past(wb_ack))
+        if(f_past_valid && !reset && $past(wb_stb) && $past(wb_ack))
             assume(!wb_stb);
         // Cover
         if(!reset) begin

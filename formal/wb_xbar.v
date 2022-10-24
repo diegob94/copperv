@@ -2,11 +2,11 @@
 genvar i;
 generate
     for (i = 0; i < s_count; i = i + 1) begin
-        formal_wb_s #(
+        formal_wb_m #(
             .adr_width(s_arr[i].adr_width),
             .dat_width(s_arr[i].dat_width),
             .sel_width(s_arr[i].sel_width)
-        ) u_formal_wb_s (
+        ) u_formal_wb_m (
             .clock(clock),
             .reset(reset),
             .wb_adr(s_arr[i].adr),
@@ -20,11 +20,11 @@ generate
         );
     end
     for (i = 0; i < m_count; i = i + 1) begin
-        formal_wb_m #(
+        formal_wb_s #(
             .adr_width(m_arr[i].adr_width),
             .dat_width(m_arr[i].dat_width),
             .sel_width(m_arr[i].sel_width)
-        ) u_formal_wb_m (
+        ) u_formal_wb_s (
             .clock(clock),
             .reset(reset),
             .wb_adr(m_arr[i].adr),
@@ -39,11 +39,37 @@ generate
     end
 endgenerate
 
-//reg f_past_valid = 0;
-//initial begin 
-//    assume(reset == 1);
-//end
-//always @(posedge clock) begin
-//    f_past_valid <= 1;
-//end
+reg f_past_valid = 0;
+initial begin 
+    assume(reset == 1);
+end
+always @(posedge clock) begin
+    f_past_valid <= 1;
+end
+
+(* anyconst *) wire [adr_width-1:0] f_adr_map_1;
+(* anyconst *) wire [adr_width-1:0] f_adr_map_2;
+initial begin
+    assume(f_adr_map_1 < f_adr_map_2);
+end
+
+always @(posedge clock) begin
+    assume(!((m_arr[0].stb && m_arr[0].cyc) && (m_arr[1].stb && m_arr[1].cyc)));
+end
+
+genvar j;
+generate
+    for (i = 0; i < m_count; i = i + 1) begin
+        for (j = 0; j < s_count; j = j + 1) begin
+            always @(posedge clock) begin
+                if(f_past_valid && !reset && $past(m_arr[i].cyc) && $past(m_arr[i].stb)) begin
+                    if($past(m_arr[i].adr) >= xbar.adr_map[j] && $past(m_arr[i].adr) < ((j == s_count - 1) ? 1 : xbar.adr_map[j + 1]))
+                        assert(s_arr[j].stb && s_arr[j].cyc);
+                    else
+                        assert(!s_arr[j].stb && !s_arr[j].cyc);
+                end
+            end
+        end
+    end
+endgenerate
 

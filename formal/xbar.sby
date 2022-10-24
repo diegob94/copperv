@@ -23,11 +23,13 @@ append 2
 smtbmc
 
 [script]
-exec -expect-return 0 -- sv2v -DFORMAL=1 -wadjacent wb_xbar.sv
+exec -expect-return 0 -- sv2v -wadjacent wb_xbar.sv
+exec -expect-return 0 -- sed -i '/^endmodule/ i `ifdef FORMAL\n`include "formal/wb_xbar.v"\n`endif' wb_xbar.v
 read_verilog -formal wb_xbar.v
 read_verilog -formal wb.v
 read_verilog -DFORMAL_WB_M -assume-asserts -assert-assumes -formal wb.v
 prep -top test_wb_xbar
+write_verilog wb_xbar.prep.v
 
 [files]
 ../rtl/wishbone/wb_xbar.sv
