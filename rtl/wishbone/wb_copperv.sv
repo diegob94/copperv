@@ -9,14 +9,7 @@ module wb_copperv #(
 ) (
     input                     clock,
     input                     reset,
-    output [addr_width-1:0]   wb_adr,
-    output [data_width-1:0]   wb_datwr,
-    input  [data_width-1:0]   wb_datrd,
-    output                    wb_we,
-    output                    wb_stb,
-    input                     wb_ack,
-    output                    wb_cyc,
-    output [strobe_width-1:0] wb_sel
+    wishbone_bus_if.m_modport wb
 );
 
     wire ir_data_valid;
@@ -40,12 +33,12 @@ module wb_copperv #(
     wire [addr_width-1:0] dw_addr;
     wire [strobe_width-1:0] dw_strobe;
 
-    reg [addr_width-1:0]   wb_adr;
-    reg [data_width-1:0]   wb_datwr;
-    reg                    wb_we;
-    reg                    wb_stb;
-    reg                    wb_cyc;
-    reg [strobe_width-1:0] wb_sel;
+    reg [addr_width-1:0]   wb.adr;
+    reg [data_width-1:0]   wb.datwr;
+    reg                    wb.we;
+    reg                    wb.stb;
+    reg                    wb.cyc;
+    reg [strobe_width-1:0] wb.sel;
 
     wire [addr_width-1:0]   d_wb_adr;
     wire [data_width-1:0]   d_wb_datwr;
@@ -68,34 +61,34 @@ module wb_copperv #(
     reg d_transaction;
     reg i_transaction;
 
-    assign d_wb_datrd = wb_datrd;
-    assign i_wb_datrd = wb_datrd;
-    assign d_wb_ack = d_transaction ? wb_ack : 0;
-    assign i_wb_ack = i_transaction ? wb_ack : 0;
+    assign d_wb_datrd = wb.datrd;
+    assign i_wb_datrd = wb.datrd;
+    assign d_wb_ack = d_transaction ? wb.ack : 0;
+    assign i_wb_ack = i_transaction ? wb.ack : 0;
 
     always @(*) begin
-        wb_stb = 0;
-        wb_cyc = 0;
-        wb_we = 0;
-        wb_adr = 0;
-        wb_datwr = 0;
-        wb_sel = 0;
+        wb.stb = 0;
+        wb.cyc = 0;
+        wb.we = 0;
+        wb.adr = 0;
+        wb.datwr = 0;
+        wb.sel = 0;
         d_transaction = d_wb_stb && !i_wb_stb;
         i_transaction = !d_wb_stb && i_wb_stb;
         if(d_transaction) begin
-            wb_stb = d_wb_stb;
-            wb_cyc = d_wb_cyc;
-            wb_we = d_wb_we;
-            wb_adr = d_wb_adr;
-            wb_datwr = d_wb_datwr;
-            wb_sel = d_wb_sel;
+            wb.stb = d_wb_stb;
+            wb.cyc = d_wb_cyc;
+            wb.we = d_wb_we;
+            wb.adr = d_wb_adr;
+            wb.datwr = d_wb_datwr;
+            wb.sel = d_wb_sel;
         end else if(i_transaction) begin
-            wb_stb = i_wb_stb;
-            wb_cyc = i_wb_cyc;
-            wb_we = i_wb_we;
-            wb_adr = i_wb_adr;
-            wb_datwr = i_wb_datwr;
-            wb_sel = i_wb_sel;
+            wb.stb = i_wb_stb;
+            wb.cyc = i_wb_cyc;
+            wb.we = i_wb_we;
+            wb.adr = i_wb_adr;
+            wb.datwr = i_wb_datwr;
+            wb.sel = i_wb_sel;
         end
     end
 

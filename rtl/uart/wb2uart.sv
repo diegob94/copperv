@@ -16,14 +16,7 @@ module wb2uart #(
 )(
     input                     clock,
     input                     reset,
-    input  [addr_width-1:0]   wb_adr,
-    input  [data_width-1:0]   wb_datwr,
-    output [data_width-1:0]   wb_datrd,
-    input                     wb_we,
-    input                     wb_stb,
-    output                    wb_ack,
-    input                     wb_cyc,
-    input  [strobe_width-1:0] wb_sel,
+    wishbone_bus_if.s_modport wb,
     output                    uart_tx,
     input                     uart_rx
 );
@@ -52,16 +45,16 @@ module wb2uart #(
     wire send_done;
     reg [$clog2(write_send_bytes)-1:0] send_bytes;
     reg [$clog2(read_receive_bytes)-1:0] receive_bytes;
-    assign wb_ack = (receive_done ? (rx_buffer != 0) : 0) && wb_stb;
-    assign wb_datrd = receive_done ? rx_buffer : 0;
+    assign wb.ack = (receive_done ? (rx_buffer != 0) : 0) && wb.stb;
+    assign wb.datrd = receive_done ? rx_buffer : 0;
     always @(posedge clock)
-        if(wb_stb && wb_cyc) begin
-            if(wb_we == 0) begin
-                wb_buffer <= {8'd0,8'd0,wb_adr,{7'd0,wb_we}};
+        if(wb.stb && wb.cyc) begin
+            if(wb.we == 0) begin
+                wb_buffer <= {8'd0,8'd0,wb.adr,{7'd0,wb.we}};
                 send_bytes <= read_send_bytes;
                 receive_bytes <= read_receive_bytes;
             end else begin
-                wb_buffer <= {wb_sel,wb_datwr,wb_adr,{7'd0,wb_we}};
+                wb_buffer <= {wb.sel,wb.datwr,wb.adr,{7'd0,wb.we}};
                 send_bytes <= write_send_bytes;
                 receive_bytes <= write_receive_bytes;
             end
@@ -75,7 +68,7 @@ module wb2uart #(
         next_state = IDLE;
         case(state)
             IDLE: begin
-                if(wb_stb && wb_cyc)
+                if(wb.stb && wb.cyc)
                     next_state = LOAD_TX;
             end 
             LOAD_TX: begin

@@ -13,14 +13,13 @@ logic we;
 logic stb;
 logic cyc;
 logic ack;
-logic rty;
 modport m_modport (
     output adr, datwr, sel, we, stb, cyc,
-    input  datrd, ack, rty
+    input  datrd, ack
 );
 modport s_modport (
     input  adr, datwr, sel, we, stb, cyc,
-    output datrd, ack, rty
+    output datrd, ack
 );
 endinterface : wishbone_bus_if
 
@@ -44,7 +43,6 @@ typedef struct {
     logic [dat_width-1:0] datwr;
     logic [sel_width-1:0] sel;
     logic ack;
-    logic rty;
     logic we;
 } wb_transaction_t;
 
