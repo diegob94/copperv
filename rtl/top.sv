@@ -13,8 +13,8 @@ parameter bus_width = `BUS_WIDTH;
 parameter strobe_width = bus_width/8;
 parameter clk_per_bit = 217; //115200 @25MHz
 
-wishbone_bus_if #(.dat_width(bus_width),.adr_width(bus_width)) cpu_bus();
-wishbone_bus_if #(.dat_width(bus_width),.adr_width(bus_width)) uart_bus();
+wishbone_bus_if #(.dat_width(bus_width),.adr_width(bus_width)) m_arr [1-1:0] ();
+wishbone_bus_if #(.dat_width(bus_width),.adr_width(bus_width)) s_arr [1-1:0] ();
 
 wb_copperv #(
     .addr_width(bus_width),
@@ -22,7 +22,7 @@ wb_copperv #(
 ) cpu (
     .clock(clock),
     .reset(reset),
-    .wb(cpu_bus)
+    .wb(m_arr[0])
 );
 
 wb2uart #(
@@ -32,7 +32,7 @@ wb2uart #(
 ) uart (
     .clock(clock),
     .reset(reset),
-    .wb(uart_bus),
+    .wb(s_arr[0]),
     .uart_tx(uart_tx),
     .uart_rx(uart_rx)
 );
@@ -41,10 +41,6 @@ wb_xbar #(
     .m_count(1),
     .s_count(1),
     .adr_map(0)
-) xbar (
-    .*,
-    .m_arr(cpu_bus),
-    .s_arr(uart_bus)
-);
+) xbar (.*);
 
 endmodule

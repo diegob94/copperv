@@ -22,8 +22,8 @@ setup: .venv
 work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') | setup
 	pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
 
-work/top.json: $(RTL_SOURCES) scripts/fpga.ys | setup
-	yosys -s scripts/fpga.ys |& tee $(LOGS_DIR)/yosys_fpga.log
+work/top.json: $(RTL_SOURCES) scripts/fpga.tcl | setup
+	yosys -c scripts/fpga.tcl |& tee $(LOGS_DIR)/yosys_fpga.log
 
 work/top.config: work/top.json scripts/ulx3s_v20.lpf | setup
 	nextpnr-ecp5 --package CABGA381 --85k --json work/top.json \
@@ -37,6 +37,6 @@ work/ulx3s.bit: work/top.config | setup
 program: work/ulx3s.bit | setup
 	openFPGALoader -b ulx3s $<
 
-.PHONY: rtl
-rtl: $(RTL_SOURCES) | setup
-	sv2v -w work/top.sv2v.v -Irtl/include $^
+.PHONY: lint
+lint:
+	verilator --lint-only -Wno-UNPACKED -I./rtl/include $(RTL_SOURCES)

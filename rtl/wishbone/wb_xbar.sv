@@ -1,10 +1,8 @@
 `default_nettype none
 
-//`include "wishbone.sv"
-
 module wb_xbar #(
     parameter m_count = 2,
-    parameter s_count = 2,
+    parameter s_count = 2
 ) (
     input clock,
     input reset,
@@ -15,6 +13,9 @@ parameter adr_width = m_arr[0].adr_width;
 parameter dat_width = m_arr[0].dat_width;
 parameter sel_width = m_arr[0].sel_width;
 parameter [adr_width-1:0] adr_map [s_count-1:0] = 0;
+
+logic [adr_width-1:0] logic_adr_map;
+assign logic_adr_map = adr_map;
 
 typedef struct {
     logic [adr_width-1:0] adr;
@@ -70,10 +71,10 @@ generate
             end
             for(int k = 0; k < m_count; k++) begin
                 if(buf_arr[k].flag) begin
-                    adr_greater_than_map[k][j] = buf_arr[k].wb.adr >= adr_map[j];
+                    adr_greater_than_map[k][j] = buf_arr[k].wb.adr >= logic_adr_map[j];
                     adr_less_than_map[k][j] = 1;
                     if (j < s_count - 1)
-                        adr_less_than_map[k][j] = buf_arr[k].wb.adr < adr_map[j + 1];
+                        adr_less_than_map[k][j] = buf_arr[k].wb.adr < logic_adr_map[j + 1];
                     if(adr_greater_than_map[k][j] && adr_less_than_map[k][j]) begin
                         dst_to_src_map[j].src = k;
                         dst_to_src_map[j].valid = 1;
@@ -91,6 +92,7 @@ generate
             s_arr[j].adr = 0;
             s_arr[j].datwr = 0;
             s_arr[j].sel = 0;
+            buf_entry = 0;
             if(dst_to_src_map[j].valid) begin
                 buf_entry = buf_arr[dst_to_src_map[j].src];
                 if(buf_entry.flag) begin
