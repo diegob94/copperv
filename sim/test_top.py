@@ -23,7 +23,7 @@ copperv_rtl=[ # replace by .flist ???
     rtl_dir/"copperv/register_file.v",
     rtl_dir/"copperv/copperv.v",
 ]
-top_rtl = [rtl_dir/"wishbone/copperv_wb.v",rtl_dir/"top.v"]
+top_rtl = [rtl_dir/"wishbone/wb_copperv.v",rtl_dir/"top.v"]
 wb_adapter_rtl = [rtl_dir/"wishbone/wb_adapter.v"]
 wb2uart_rtl = [rtl_dir/"uart/wb2uart.v"]
 

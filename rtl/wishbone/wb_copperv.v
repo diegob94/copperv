@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 `include "copperv_h.v"
 
-module copperv_wb #(
+module wb_copperv #(
     parameter addr_width = 4,
     parameter data_width = 8,
     parameter strobe_width = addr_width/8,
