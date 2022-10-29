@@ -9,7 +9,7 @@ module sram_32_sp #(
     input  [mask_width-1:0]  wmask,
     input  [addr_width-1:0]  addr,
     input  [data_width-1:0]  din,
-    output [data_width-1:0]  dout,
+    output [data_width-1:0]  dout
 );
     parameter length = 1 << addr_width;
 

@@ -16,7 +16,7 @@ module wb_sram #(
     input                     wb_stb,
     output                    wb_ack,
     input                     wb_cyc,
-    input  [strobe_width-1:0] wb_sel,
+    input  [strobe_width-1:0] wb_sel
 );
 
     `ifdef FORMAL

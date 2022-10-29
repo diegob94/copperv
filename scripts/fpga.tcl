@@ -22,7 +22,11 @@ yosys exec -- sv2v -w work/top.sv2v.v -I./rtl/include [concat {*}$RTL_SOURCES]
 
 yosys read_verilog work/top.sv2v.v
 
-yosys synth_ecp5 -noccu2 -nomux -nodram
+## no support for interface_array (29/10/22)
+#yosys plugin -i systemverilog
+#yosys read_systemverilog -debug {*}[concat {*}$RTL_SOURCES]
+
+yosys synth_ecp5 ;#-noccu2 -nomux -nodram
 
 yosys write_verilog -noattr work/top.yosys.v 
 yosys write_json work/top.json

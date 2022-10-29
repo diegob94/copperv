@@ -47,12 +47,6 @@ always @(posedge clock) begin
     f_past_valid <= 1;
 end
 
-(* anyconst *) wire [adr_width-1:0] f_adr_map_1;
-(* anyconst *) wire [adr_width-1:0] f_adr_map_2;
-initial begin
-    assume(f_adr_map_1 < f_adr_map_2);
-end
-
 always @(posedge clock) begin
     assume(!((m_arr[0].stb && m_arr[0].cyc) && (m_arr[1].stb && m_arr[1].cyc)));
 end
@@ -63,7 +57,7 @@ generate
         for (j = 0; j < s_count; j = j + 1) begin
             always @(posedge clock) begin
                 if(f_past_valid && !reset && $past(m_arr[i].cyc) && $past(m_arr[i].stb)) begin
-                    if($past(m_arr[i].adr) >= xbar.adr_map[j] && $past(m_arr[i].adr) < ((j == s_count - 1) ? 1 : xbar.adr_map[j + 1]))
+                    if($past(m_arr[i].adr) >= xbar.adr_map[j] && ((j == s_count - 1) ? 1 : $past(m_arr[i].adr) < xbar.adr_map[j + 1]))
                         assert(s_arr[j].stb && s_arr[j].cyc);
                     else
                         assert(!s_arr[j].stb && !s_arr[j].cyc);
