@@ -44,7 +44,7 @@ class Toolchain:
 toolchain = Toolchain('riscv64-unknown-elf-')
 
 def _generate_dissassembly_file(elf_file):
-    inst_sections = ['.init', '.text']
+    inst_sections = ['.boot', '.init', '.text']
     r = toolchain.read_elf_dump_instruction_sections(elf_file,inst_sections)
     all_sections = toolchain.read_elf_sections_header(elf_file).splitlines()
     start = next((i for i,line in enumerate(all_sections) if line.startswith('Sections:')),None)

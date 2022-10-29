@@ -1,5 +1,10 @@
 `timescale 1ns/1ps
-`include "testbench_h.v"
+
+`define STRING              reg [1023:0]
+`define TRUE                1
+`define FALSE               0
+
+`include "magic_constants_h.v"
 `include "copperv_h.v"
 
 module tb(
@@ -8,9 +13,8 @@ module tb(
     input rst
 `endif
 );
-`ifndef DISABLE_TIMEOUT
-parameter timeout = `PERIOD*1000000;
-`endif
+parameter period = 10;
+parameter timeout = 430000*period;
 reg finish_cocotb = 0;
 // copperv inputs
 wire dr_data_valid;
@@ -40,19 +44,20 @@ reg rst;
 initial begin
     rst = 0;
     clk = 0;
-    #(`PERIOD*10);
+    #(period*10);
     $display($time, ": Reset finished");
     rst = 1;
 end
-always #(`PERIOD/2) clk <= !clk;
+always #(period/2) clk <= !clk;
 `endif
-`ifndef DISABLE_TIMEOUT
 initial begin
-    #timeout;
-    $display($time, ": Simulation timeout");
-    test_failed;
+    if ($test$plusargs("disable_timeout") == 0) begin
+        $display($time, ": timeout = %0d",timeout);
+        #(timeout);
+        $display($time, ": Simulation timeout");
+        test_failed;
+    end
 end
-`endif
 copperv dut (
     .clk(clk),
     .rst(rst),
@@ -119,14 +124,14 @@ always @(posedge clk) begin
     // Output
     if(dw_data_addr_valid && dw_data_addr_ready) begin
         case (dw_addr)
-            32'h80000000: begin
+            `T_ADDR: begin
                 case (dw_data)
-                    32'h01000001: test_passed;
-                    32'h02000001: test_failed;
+                    `T_PASS: test_passed;
+                    `T_FAIL: test_failed;
                     default: test_failed;
                 endcase
             end
-            32'h80000004: begin
+            `O_ADDR: begin
                 $fwrite(fake_uart_fp, "%c", dw_data[7:0]);
                 if(dw_data[7:0] == "\n")
                     $fflush(fake_uart_fp);
@@ -136,7 +141,7 @@ always @(posedge clk) begin
     // Input
     if(dr_addr_valid && dr_addr_ready) begin
         case (dr_addr)
-            32'h80000008: begin
+            `TC_ADDR: begin
                 force dr_data = timer_counter;
                 force dr_data_valid = 1;
                 flag = 1;
@@ -160,9 +165,7 @@ begin
 end
 endtask
 task test_failed;
-reg [`DATA_WIDTH-1:0] test_id;
 begin
-    test_id = `CPU_INST.regfile.mem[`REG_T3];
     $display($time, ": TEST FAILED");
     finish_sim;
 end

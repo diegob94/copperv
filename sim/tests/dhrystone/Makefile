@@ -1,5 +1,6 @@
 
-dhrystone.hex: dhrystone_main.o dhrystone.o | dhrystone.E dhrystone_main.E syscalls.E
+dhrystone.hex: dhrystone.elf
+dhrystone.elf: dhrystone_main.o dhrystone.o
 
 #CFLAGS+=-DToo_Small_Time=0 -DNUMBER_OF_RUNS=1 -DDEBUG_RUN
 #CFLAGS+=-DDEBUG_RUN

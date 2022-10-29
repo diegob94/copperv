@@ -25,6 +25,7 @@ common_run_opts = dict(
     toplevel="copperv",
     module="cocotb_tests",
     waves = True,
+    parameters = dict(pc_init = 0x1000),
 )
 
 @pytest.mark.parametrize(
