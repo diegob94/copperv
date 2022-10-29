@@ -1,8 +1,9 @@
 
-SCRIPTS_DIR ?= ../../../scripts
-COMMON_DIR ?= ../common
+COMMON_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+ROOT_DIR := $(realpath $(COMMON_DIR)/../../..)
+SCRIPTS_DIR := $(ROOT_DIR)/scripts
 
-LINKER_SCRIPT = $(COMMON_DIR)/linker.ld
+LINKER_SCRIPT ?= $(COMMON_DIR)/linker.ld
 CC = riscv64-unknown-elf-gcc
 OBJCOPY = riscv64-unknown-elf-objcopy
 override CFLAGS += -march=rv32i -mabi=ilp32 -I$(COMMON_DIR)
@@ -11,29 +12,37 @@ INIT_OBJ = crt0.o syscalls.o
 ifdef NO_INIT
 INIT_OBJ = 
 endif
-
-crt0.o: $(COMMON_DIR)/crt0.S
-	$(CC) $(CFLAGS) -c $< -o $@
-
-syscalls.o: $(COMMON_DIR)/syscalls.c
-	$(CC) $(CFLAGS) -c $< -o $@
+ifdef NO_SYSCALLS
+INIT_OBJ = crt0.o
+endif
+ifdef BOOTLOADER
+INIT_OBJ += bootloader.o
+else
+override CFLAGS += -DNO_BOOTLOADER
+endif
 
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -E $< -o $(@:.o=.E)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -E $< -o $(@:.o=.E)
 
-syscalls.E: $(COMMON_DIR)/syscalls.c
-	$(CC) $(CFLAGS) -E $< -o $@
+%.o: $(COMMON_DIR)/%.S
+	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -E $< -o $(@:.o=.E)
 
-%.E: %.c
-	$(CC) $(CFLAGS) -E $< -o $@
+%.o: $(COMMON_DIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -E $< -o $(@:.o=.E)
 
-%.hex: %.o $(INIT_OBJ)
-	$(CC) $(LDFLAGS) -Wl,-T,$(LINKER_SCRIPT),-Bstatic -nostartfiles -ffreestanding $^ -o $(@:.hex=.elf)
-	$(SCRIPTS_DIR)/utils.py debug $(@:.hex=.elf) || true
-	$(OBJCOPY) -O verilog $(@:.hex=.elf) $@
+%.elf: %.o $(INIT_OBJ) $(LINKER_SCRIPT)
+	$(CC) $(LDFLAGS) -Wl,-T,$(LINKER_SCRIPT),-Bstatic -nostartfiles -ffreestanding $(filter %.o,$^) -o $@
+	$(SCRIPTS_DIR)/utils.py debug $@ || true
+
+%.hex: %.elf
+	$(OBJCOPY) -O verilog $< $@
 
 .PHONY: clean
 clean:

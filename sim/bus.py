@@ -90,24 +90,26 @@ class BusWriteTransaction:
         return f'{self.__class__.__name__}(bus_name={self.bus_name}, addr={addr}, data={data}, strobe={strobe}, response={response})'
 
 class CoppervBusChannel:
-    def __init__(self,clock,ready,valid,payload,bus,reset=None,reset_n=None,relaxed_mode=False):
+    def __init__(self,clock,ready,valid,payload,bus,reset=None,reset_n=None,passive_mode=False):
         self.log = SimLog(f"cocotb.{type(self).__qualname__}")
         self.payload = {k:getattr(bus,v) for k,v in payload.items()}
         self.ready = getattr(bus,ready)
         self.valid = getattr(bus,valid)
         self.queue = Queue()
-        self.relaxed_mode = relaxed_mode
         self._reset = reset
         self._reset_n = reset_n
         self.clock = clock
+        self.passive_mode = passive_mode
     def init_sink(self):
-        self.ready.setimmediatevalue(1)
+        if not self.passive_mode:
+            self.ready.setimmediatevalue(1)
         cocotb.start_soon(self.recv_payload())
     def init_source(self):
-        self.valid.setimmediatevalue(0)
+        if not self.passive_mode:
+            self.valid.setimmediatevalue(0)
         cocotb.start_soon(self.recv_payload())
     def to_int(self,value):
-        if self.relaxed_mode:
+        if self.passive_mode:
             return int(value.binstr.replace('x','0'),2)
         else:
             return int(value)
@@ -138,7 +140,6 @@ class CoppervBusChannel:
                 continue
             if self.ready.value and self.valid.value:
                 actual_payload = {k:self.to_int(p.value) for k,p in self.payload.items()}
-                self.log.debug(f"Receiving payload: {actual_payload}")
                 self.queue.put_nowait(actual_payload)
     async def send_payload(self,**kwargs):
         self.log.debug(f"Send payload: {kwargs}")
@@ -162,7 +163,7 @@ class CoppervBusMonitor(Monitor):
     _signals = []
     def __init__(self, entity, name, clock, transaction_type, bus_name,
             req_ch, resp_ch, signals_dict=None, resp_gen=None, reset=None,
-            reset_n=None, callback=None, event=None, **kwargs):
+            reset_n=None, callback=None, event=None, passive_mode=False, **kwargs):
         self.entity = entity
         self.name = name
         self.clock = clock
@@ -171,33 +172,36 @@ class CoppervBusMonitor(Monitor):
         if signals_dict is not None:
             self._signals = signals_dict
         self.bus = Bus(self.entity, self.name, self._signals)
-        self.req_ch = CoppervBusChannel(self.clock,bus=self.bus,**req_ch)
-        self.resp_ch = CoppervBusChannel(self.clock,bus=self.bus,**resp_ch)
+        self.req_ch = CoppervBusChannel(self.clock,bus=self.bus,passive_mode=passive_mode,**req_ch)
+        self.resp_ch = CoppervBusChannel(self.clock,bus=self.bus,passive_mode=passive_mode,**resp_ch)
         self.resp_gen = resp_gen
         if self.resp_gen is None:
             self.resp_gen = lambda x: {k:0 for k in self.resp_ch.payload}
         self.req_ch.init_sink()
         self.resp_ch.init_source()
+        self.passive_mode = passive_mode
         super().__init__(callback=callback,event=event)
     async def _monitor_recv(self):
         while True:
             req_payload = await self.req_ch.queue.get()
             req_transaction = self.transaction_type.from_reqresp(bus_name=self.bus_name,request=req_payload)
-            resp_transaction = self.resp_gen(req_transaction)
-            if isinstance(resp_transaction, self.transaction_type):
-                temp = self.transaction_type.to_reqresp(resp_transaction)
-                self.log.debug("responding read transaction: %s", temp)
-                await self.resp_ch.send_payload(**temp['response'])
-            elif resp_transaction == "assert_ready":
-                await self.resp_ch.drive_ready(True)
-            elif resp_transaction == "deassert_ready":
-                await self.resp_ch.drive_ready(False)
+            if not self.passive_mode:
+                resp_transaction = self.resp_gen(req_transaction)
+                if isinstance(resp_transaction, self.transaction_type):
+                    temp = self.transaction_type.to_reqresp(resp_transaction)
+                    self.log.debug("responding read transaction: %s", temp)
+                    await self.resp_ch.send_payload(**temp['response'])
+                elif resp_transaction == "assert_ready":
+                    await self.resp_ch.drive_ready(True)
+                elif resp_transaction == "deassert_ready":
+                    await self.resp_ch.drive_ready(False)
             resp_payload = await self.resp_ch.queue.get()
             transaction = self.transaction_type.from_reqresp(
                 bus_name = self.bus_name,
                 request = req_payload,
                 response = resp_payload
             )
+            self.log.debug("Recv: %s",transaction)
             self._recv(transaction)
 
 class CoppervBusIrMonitor(CoppervBusMonitor):

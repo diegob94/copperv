@@ -17,12 +17,13 @@ class Testbench():
             expected_regfile_write = None,
             expected_data_read = None,
             expected_data_write = None,
-            instruction_memory = None,
-            data_memory = None,
+            instruction_memory = {},
+            data_memory = {},
             enable_self_checking = True,
             pass_fail_address = None,
             pass_fail_values = None,
             output_address = None,
+            passive_mode = False,
         ):
         self.period = 10
         self.period_unit = "ns"
@@ -31,7 +32,6 @@ class Testbench():
         self.dut = dut
         self.clock = self.dut.clk
         self._reset_n = self.dut.rst
-        core = self.dut
         self._reset_n.setimmediatevalue(0)
         self.pass_fail_address = pass_fail_address
         self.pass_fail_values = pass_fail_values
@@ -56,36 +56,26 @@ class Testbench():
         self.log.debug(f"Memory: {self.memory}")
         ## Bus functional models
         prefix = None
+        monitor_opts = dict(
+            clock = self.clock,
+            reset_n = self._reset_n,
+            entity = self.dut,
+            prefix = prefix,
+            resp_gen = self.memory_callback,
+            passive_mode = passive_mode,
+        )
         ## Instruction read
-        self.bus_ir_monitor = CoppervBusIrMonitor(
-            clock = self.clock,
-            reset_n = self._reset_n,
-            entity = self.dut,
-            prefix = prefix,
-            resp_gen = self.memory_callback,
-        )
+        self.bus_ir_monitor = CoppervBusIrMonitor(**monitor_opts)
         ## Data read
-        self.bus_dr_monitor = CoppervBusDrMonitor(
-            clock = self.clock,
-            reset_n = self._reset_n,
-            entity = self.dut,
-            prefix = prefix,
-            resp_gen = self.memory_callback,
-        )
+        self.bus_dr_monitor = CoppervBusDrMonitor(**monitor_opts)
         ## Data write
-        self.bus_dw_monitor = CoppervBusDwMonitor(
-            clock = self.clock,
-            reset_n = self._reset_n,
-            entity = self.dut,
-            prefix = prefix,
-            resp_gen = self.memory_callback,
-        )
+        self.bus_dw_monitor = CoppervBusDwMonitor(**monitor_opts)
         ## Regfile
         self.regfile_write_monitor = RegFileWriteMonitor(
             prefix=None,
             clock = self.clock,
             reset_n = self._reset_n,
-            entity = core.regfile,
+            entity = self.dut.regfile,
             signals_dict = dict(
                 rd_en = "rd_en",
                 rd_addr = "rd",
@@ -96,7 +86,7 @@ class Testbench():
             prefix=None,
             clock = self.clock,
             reset_n = self._reset_n,
-            entity = core.regfile,
+            entity = self.dut.regfile,
             signals_dict = dict(
                 rs1_en = "rs1_en",
                 rs1_addr = "rs1",

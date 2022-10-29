@@ -1,24 +1,25 @@
 `timescale 1ns/1ps
 `include "copperv_h.v"
 
-module copperv_wb #(
+module wb_copperv #(
     parameter addr_width = 4,
     parameter data_width = 8,
     parameter strobe_width = addr_width/8,
-    parameter resp_width = 1
+    parameter resp_width = 1,
+    parameter pc_init = 0
 ) (
-    input                     clock,
-    input                     reset,
-    output [addr_width-1:0]   wb_adr,
-    output [data_width-1:0]   wb_datwr,
-    input  [data_width-1:0]   wb_datrd,
-    output                    wb_we,
-    output                    wb_stb,
-    input                     wb_ack,
-    output                    wb_cyc,
-    output [strobe_width-1:0] wb_sel
+    input                         clock,
+    input                         reset,
+    output reg [addr_width-1:0]   wb_adr,
+    output reg [data_width-1:0]   wb_datwr,
+    input  [data_width-1:0]       wb_datrd,
+    output reg                    wb_we,
+    output reg                    wb_stb,
+    input                         wb_ack,
+    output reg                    wb_cyc,
+    output reg [strobe_width-1:0] wb_sel
 );
-
+    
     wire ir_data_valid;
     wire ir_addr_ready;
     wire [data_width-1:0] ir_data;
@@ -39,13 +40,6 @@ module copperv_wb #(
     wire [data_width-1:0] dw_data;
     wire [addr_width-1:0] dw_addr;
     wire [strobe_width-1:0] dw_strobe;
-
-    reg [addr_width-1:0]   wb_adr;
-    reg [data_width-1:0]   wb_datwr;
-    reg                    wb_we;
-    reg                    wb_stb;
-    reg                    wb_cyc;
-    reg [strobe_width-1:0] wb_sel;
 
     wire [addr_width-1:0]   d_wb_adr;
     wire [data_width-1:0]   d_wb_datwr;
@@ -80,8 +74,8 @@ module copperv_wb #(
         wb_adr = 0;
         wb_datwr = 0;
         wb_sel = 0;
-        d_transaction = d_wb_stb && !i_wb_stb;
-        i_transaction = !d_wb_stb && i_wb_stb;
+        d_transaction = d_wb_cyc && !i_wb_cyc;
+        i_transaction = !d_wb_cyc && i_wb_cyc;
         if(d_transaction) begin
             wb_stb = d_wb_stb;
             wb_cyc = d_wb_cyc;
@@ -99,7 +93,7 @@ module copperv_wb #(
         end
     end
 
-    copperv core(
+    copperv #(.pc_init(pc_init)) core (
         .clk(clock),
         .rst(!reset),
         .ir_data_valid(ir_data_valid),

@@ -1,56 +1,51 @@
 import sys
-sys.path.append("sim")
+from pathlib import Path
+sim_dir = (Path(__file__).parent.parent/'sim').resolve()
+sys.path.append(str(sim_dir))
 import serial
 import cocotb_utils as utils
-from riscv_utils import process_elf
+from cocotb_utils import BOOTLOADER_MAGIC_ADDR
+from cocotb_tests import VirtualMemory
+from riscv_utils import PcMonitor, StackMonitor, compile_instructions, parse_data_memory, compile_riscv_test, process_elf, read_elf, elf_to_memory
 
-T_ADDR = 0x80000000
-O_ADDR = 0x80000004
-TC_ADDR = 0x80000008
-T_PASS = 0x01000001
-T_FAIL = 0x02000001
+test_name = 'hello_world'
+#test_name = 'bootloader_test'
+
+def end_test():
+    global test_passed
+    test_passed = True
 
 test_passed = False
-test = "wb2uart_test"
-utils.run('make',cwd=f'sim/tests/{test}')
-imem,dmem = process_elf(f'sim/tests/{test}/{test}.elf')
-memory = {**imem,**dmem}
+r = utils.run('make clean && make BOOTLOADER=1',cwd=sim_dir/f'tests/{test_name}')
+print(r)
+elf_path = sim_dir/f'tests/{test_name}/{test_name}.elf'
+imem,dmem = process_elf(elf_path)
+boot_elf = read_elf(elf_path,sections=['.boot'])
+boot_memory = elf_to_memory(boot_elf)
+app_memory = {**imem,**dmem}
+memory_callback = VirtualMemory(boot_memory,app_memory,end_test)
 
-print("Virtual memory size [bytes]:",len(memory))
+print(memory_callback)
 print("Press button B1 to reset")
 
 def receive(ser,count=4):
     data = ser.read(count)
-    print("Read bytes:",data)
+    #print("Read bytes:",data)
     data = int.from_bytes(data, byteorder='little', signed=False)
     return data
 
 def send(ser,data,count=4):
     data = data.to_bytes(length=count,byteorder="little")
-    print("Send bytes:",data,"",end="")
+    #print("Send bytes:",data,"",end="")
     count = ser.write(data)
     ser.flush()
-    print(count)
+    #print(count)
 
-def resp_callback(op,address,data,sel):
-    global test_passed
-    if op == 0:
-        return utils.from_array(memory,address)
-    elif op == 1:
-        if address == T_ADDR:
-            assert data == T_PASS, "Received test fail from bus"
-            test_passed = True
-            return 1
-        else:
-            mask = f"{sel:04b}"
-            for i in range(4):
-                if int(mask[3-i]):
-                    memory[address+i] = utils.to_bytes(data)[i]
-            return 1
+programmer_counter = -1
 
 with serial.Serial('/dev/ttyUSB0', 115200) as ser:
     while True:
-        print("Waiting op")
+        #print("Waiting op")
         op = receive(ser,1)
         address = receive(ser)
         data = None
@@ -58,7 +53,8 @@ with serial.Serial('/dev/ttyUSB0', 115200) as ser:
         if op == 1:
             data = receive(ser)
             sel = receive(ser,1)
-        resp = resp_callback(op,address,data,sel)
+        resp = memory_callback(op,address,data,sel)
+        resp = int.from_bytes(resp,byteorder='little')
         info = f"transaction: address = 0x{address:X}"
         if op == 1:
             info = "Write " + info + f" data = 0x{data:X} sel = 0x{sel:X}"
@@ -66,6 +62,9 @@ with serial.Serial('/dev/ttyUSB0', 115200) as ser:
             info = "Read " + info
         info = info + f" resp = 0x{resp:X}"
         print(info)
+        if op == 0 and address == BOOTLOADER_MAGIC_ADDR:
+            programmer_counter += 1
+            print(f"programmer_counter = {programmer_counter*4}")
         if test_passed:
             print("Test PASSED")
             sys.exit(0)

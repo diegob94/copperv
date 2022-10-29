@@ -52,7 +52,7 @@ module wb2uart #(
     wire send_done;
     reg [$clog2(write_send_bytes)-1:0] send_bytes;
     reg [$clog2(read_receive_bytes)-1:0] receive_bytes;
-    assign wb_ack = (receive_done ? (rx_buffer != 0) : 0) && wb_stb;
+    assign wb_ack = receive_done && wb_cyc;
     assign wb_datrd = receive_done ? rx_buffer : 0;
     always @(posedge clock)
         if(wb_stb && wb_cyc) begin
@@ -154,11 +154,9 @@ module shift_reg #(
     input [out_width-1:0] pardata_in,
     input parload,
     input [counter_width-1:0] max_length,
-    output done,
-    output [out_width-1:0] data_out
+    output reg done,
+    output reg [out_width-1:0] data_out
 );
-    reg done;
-    reg [out_width-1:0] data_out;
     reg [counter_width-1:0] counter;
     always @(posedge clock)
         if (reset) begin
@@ -188,8 +186,8 @@ module uart_rx(
     input rst,
     input [31:0] clk_per_bit,
     input rx,
-    output [7:0] data,
-    output data_valid
+    output reg [7:0] data,
+    output reg data_valid
 );
     // Control states
     parameter IDLE = 0;
@@ -210,8 +208,6 @@ module uart_rx(
     wire do_sample;
     reg sample_rx;
     reg [shift_length-1:0] buffer;
-    reg [7:0] data;
-    reg data_valid;
     reg data_valid_next;
     reg sync_rx;
     reg sync_rx_temp;
@@ -306,7 +302,7 @@ module uart_tx(
     input [7:0] data,
     input data_load,
     output tx,
-    output tx_done
+    output reg tx_done
 );
     `ifdef FORMAL
     `include "formal/uart_tx.v"
@@ -318,7 +314,6 @@ module uart_tx(
     parameter shift_length = 1 + data_bits + stop_bits;
     reg [2:0] state;
     reg [2:0] next_state;
-    reg tx_done;
     wire baud_count_up;
     wire shift_done;
     wire baud_count_done;

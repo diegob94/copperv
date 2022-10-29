@@ -4,6 +4,11 @@
 #define ENTRY_POINT _init
 #endif
 
+#ifdef NO_BOOTLOADER
+.section .boot, "ax"
+jal zero, _start
+#endif
+
 .section .init, "ax"
 .global _start
 _start:

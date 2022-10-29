@@ -7,7 +7,8 @@ OUTPUT_FORMAT("elf32-littleriscv", "elf32-littleriscv",
 	      "elf32-littleriscv")
 OUTPUT_ARCH(riscv)
 MEMORY {
-	mem : ORIGIN = 0x00000000, LENGTH = 0x00ffffff + 1
+    bootloader : ORIGIN = 0x00000000, LENGTH = 0x00001000
+	mem        : ORIGIN = 0x00001000, LENGTH = 0x00003FFF + 1 - 0x00001000
 }
 ENTRY(_start)
 SECTIONS
@@ -49,6 +50,10 @@ SECTIONS
     {
       *(.rela.plt)
     }
+  .boot           :
+  {
+    KEEP (*(SORT_NONE(.boot)))
+  } >bootloader
   .init           :
   {
     KEEP (*(SORT_NONE(.init)))

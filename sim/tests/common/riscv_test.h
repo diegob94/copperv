@@ -1,6 +1,7 @@
 #ifndef RISCV_TEST_H
 #define RISCV_TEST_H
 
+#include "magic_constants.h"
 #include "encoding.h"
 
 #define RVTEST_RV32U
@@ -12,12 +13,6 @@
 #define RVTEST_CODE_BEGIN \
   .global TEST_NAME; \
 TEST_NAME:
-
-#define T_ADDR 0x80000000
-#define O_ADDR 0x80000004
-#define TC_ADDR 0x80000008
-#define T_PASS 0x01000001
-#define T_FAIL 0x02000001
 
 #define RVTEST_PASS \
     loop_pass: \

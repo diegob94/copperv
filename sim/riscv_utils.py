@@ -8,6 +8,7 @@ from regfile import RegFileWriteTransaction
 from bus import BusWriteTransaction, BusReadTransaction
 from cocotb_utils import run, to_bytes
 from cocotb.triggers import Edge
+from elftools.elf.elffile import ELFFile
 
 sim_dir = Path(__file__).resolve().parent
 linker_script = sim_dir/'tests/common/linker.ld'
@@ -95,7 +96,7 @@ def parse_data_memory(params_data_memory):
     return data_memory
 
 class StackMonitor:
-    def __init__(self,regfile_write_monitor: Monitor, pc_monitor: Monitor):
+    def __init__(self,regfile_write_monitor: Monitor, pc_monitor: Monitor, elf_path = None):
         self.log = SimLog('cocotb.'+__name__+'.'+self.__class__.__name__)
         regfile_write_monitor.add_callback(self.regfile_callback)
         pc_monitor.add_callback(self.pc_callback)
@@ -104,15 +105,26 @@ class StackMonitor:
         self.stack = []
         self.direction = 'in'
         self.pc = None
+        self.symbols = None
+        if elf_path is not None:
+            with Path(elf_path).open('rb') as file:
+                elffile = ELFFile(file)
+                self.symbols = [(symbol.name,symbol.entry['st_value'],symbol.entry['st_info']['type']) for symbol in elffile.get_section_by_name(".symtab").iter_symbols()]
+    def get_symbol_name(self,addr):
+        addr = f'0x{addr:X}'
+        if self.symbols is not None:
+            name = [row[0] for row in self.symbols if row[1] == int(addr,0) and row[2] == 'STT_FUNC'][0]
+            return f"{addr}({name})"
+        return addr
     def stack_push(self,new):
         if len(self.stack) == 0 or new != self.stack[-1]:
-            self.log.debug('Stack push: [%s] 0x%X',self.stack_string(),new)
+            self.log.debug('Stack push: [%s] %s',self.stack_string(),self.get_symbol_name(new))
             self.stack.append(new)
     def stack_pop(self):
         old = self.stack.pop()
-        self.log.debug('Stack pop:  [%s] 0x%X',self.stack_string(),old)
+        self.log.debug('Stack pop:  [%s] %s',self.stack_string(),self.get_symbol_name(old))
     def stack_string(self):
-        return ', '.join([f'0x{i:X}' for i in self.stack])
+        return ', '.join([self.get_symbol_name(i) for i in self.stack])
     def pc_callback(self, value: int):
         self.pc = value
     def regfile_callback(self,transaction: RegFileWriteTransaction):
@@ -121,7 +133,7 @@ class StackMonitor:
                 self.skip -= 1
             else:
                 if self.stack_pointer is not None:
-                    self.direction = 'in' if self.stack_pointer > transaction.data else 'out' 
+                    self.direction = 'in' if self.stack_pointer > transaction.data else 'out'
                 #self.log.debug('stackmonitor regfile %s %s',transaction,self.direction)
                 self.stack_pointer = transaction.data
                 if self.direction == 'out':
@@ -139,6 +151,6 @@ class PcMonitor(Monitor):
         while True:
             await Edge(self.pc)
             value = int(self.pc.value)
-            self.log.debug("Program counter: 0x%X", value)
+            self.log.debug("Recv: 0x%X", value)
             self._recv(value)
 
