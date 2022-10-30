@@ -1,8 +1,38 @@
 
 PYTHON ?= $(if $(shell which python),python,python3)
 SHELL = bash
-RTL_SOURCES = $(shell find ./rtl -name '*.v')
+RTL_SOURCES = $(realpath $(COPPERV_RTL) $(TOP_RTL))
 LOGS_DIR = work/logs
+
+COPPERV_RTL = 	rtl/copperv/copperv.v \
+				rtl/copperv/control_unit.v \
+				rtl/copperv/execution.v \
+				rtl/copperv/idecoder.v \
+				rtl/copperv/register_file.v
+
+COPPERV_INCLUDES = rtl/include
+
+TOP_RTL = 	rtl/top.v \
+			rtl/uart/wb2uart.v \
+			rtl/memory/sram_32_sp.v \
+			rtl/wishbone/wb_adapter.v \
+			rtl/wishbone/wb_copperv.v \
+			rtl/wishbone/wb_sram.v
+
+space := $(subst ,, )
+comma := $(subst ,,,)
+
+var2toml = $(addprefix $(1)=[\n,$(addsuffix \n]\n,$(subst $(space),$(comma)\n,$(patsubst %,"%",$($(1))))))
+
+rtl/files.toml:
+	$(info Generating $@)
+	@printf '$(call var2toml,COPPERV_RTL)' > $@
+	@printf '$(call var2toml,TOP_RTL)' >> $@
+	@printf '$(call var2toml,COPPERV_INCLUDES)' >> $@
+
+getvar-%:
+	$(info $($*))
+	@true
 
 .PHONY: all
 all: work/sim/result.xml
@@ -15,11 +45,15 @@ clean:
 setup: .venv
 	mkdir -p $(LOGS_DIR)
 
+work/external_ip/wb2axip: setup
+	git clone https://github.com/ZipCPU/wb2axip $@
+	git -C $@ checkout -b freeze 91d1aa7
+
 .venv:
 	pip install --user pipenv
 	pipenv install
 
-work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') | setup
+work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') work/external_ip/wb2axip | setup
 	pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
 
 work/top.json: $(RTL_SOURCES) scripts/fpga.ys | setup

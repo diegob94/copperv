@@ -4,10 +4,10 @@ from cocotb_test.simulator import run
 import os
 
 import cocotb_utils as utils
+import toml
 
 root_dir = Path(__file__).resolve().parent.parent
 sim_dir = root_dir/'sim'
-rtl_dir = root_dir/'rtl'
 
 def timescale_fix(verilog):
     verilog = Path(verilog)
@@ -16,21 +16,16 @@ def timescale_fix(verilog):
         verilog.write_text("`timescale 1ns/1ps\n"+lines)
     return verilog
 
-copperv_rtl=[ # replace by .flist ???
-    rtl_dir/"copperv/idecoder.v",
-    rtl_dir/"copperv/control_unit.v",
-    rtl_dir/"copperv/execution.v",
-    rtl_dir/"copperv/register_file.v",
-    rtl_dir/"copperv/copperv.v",
-]
-top_rtl = [rtl_dir/"wishbone/wb_copperv.v",rtl_dir/"top.v"]
-wb_adapter_rtl = [rtl_dir/"wishbone/wb_adapter.v"]
-wb2uart_rtl = [rtl_dir/"uart/wb2uart.v"]
+sources = toml.load(root_dir/'rtl/files.toml')
+sources = {k:[root_dir/f for f in v] for k,v in sources.items()}
+copperv_rtl = sources['COPPERV_RTL']
+top_rtl = sources['TOP_RTL']
+rtl_includes = sources['COPPERV_INCLUDES']
 
 common_run_opts = dict(
     toplevel = "top",
-    verilog_sources=top_rtl+copperv_rtl+wb_adapter_rtl+wb2uart_rtl,
-    includes=[rtl_dir/'include'],
+    verilog_sources=top_rtl+copperv_rtl,
+    includes=rtl_includes,
     module = "cocotb_tests",
     waves = True,
 )

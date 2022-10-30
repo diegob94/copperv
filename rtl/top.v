@@ -21,7 +21,7 @@ wire                    wb_ack;
 wire                    wb_cyc;
 wire [strobe_width-1:0] wb_sel;
 
-copperv_wb #(
+wb_copperv #(
     .addr_width(bus_width),
     .data_width(bus_width)
 ) cpu (
