@@ -45,7 +45,7 @@ clean:
 setup: .venv
 	mkdir -p $(LOGS_DIR)
 
-work/external_ip/wb2axip: setup
+work/external_ip/wb2axip: | setup
 	git clone https://github.com/ZipCPU/wb2axip $@
 	git -C $@ checkout -b freeze 91d1aa7
 
