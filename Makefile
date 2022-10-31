@@ -47,14 +47,14 @@ clean:
 .PHONY: setup
 setup: .venv
 	mkdir -p $(LOGS_DIR)
-	git submodule init
-	git submodule update
+	git submodule update --init
 
 .venv:
 	$(PYTHON) -m venv .venv
+	source .venv/bin/activate; pip install wheel
 	source .venv/bin/activate; pip install -r requirements.txt
 
-work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') rtl/external_ip/wb2axip | setup
+work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') | setup
 	source .venv/bin/activate; pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
 
 work/top.json: $(RTL_SOURCES) scripts/fpga.ys | setup

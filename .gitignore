@@ -16,3 +16,4 @@ __pycache__/
 *.debug
 .vim/
 rtl/files.toml
+.venv
