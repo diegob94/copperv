@@ -1,4 +1,4 @@
-module sram_32_sp #(
+module sram_1r1w #(
     parameter data_width = 32, // fixed
     parameter addr_width = 8, // dynamic
     parameter mask_width = data_width/8 // fixed

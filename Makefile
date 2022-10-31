@@ -14,7 +14,7 @@ COPPERV_INCLUDES = rtl/include
 
 TOP_RTL = 	rtl/top.v \
 			rtl/uart/wb2uart.v \
-			rtl/memory/sram_32_sp.v \
+			rtl/memory/sram_1r1w.v \
 			rtl/wishbone/wb_adapter.v \
 			rtl/wishbone/wb_copperv.v \
 			rtl/wishbone/wb_sram.v \
