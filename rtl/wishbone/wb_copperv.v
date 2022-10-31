@@ -80,8 +80,8 @@ module wb_copperv #(
         wb_adr = 0;
         wb_datwr = 0;
         wb_sel = 0;
-        d_transaction = d_wb_stb && !i_wb_stb;
-        i_transaction = !d_wb_stb && i_wb_stb;
+        d_transaction = d_wb_cyc && !i_wb_cyc;
+        i_transaction = !d_wb_cyc && i_wb_cyc;
         if(d_transaction) begin
             wb_stb = d_wb_stb;
             wb_cyc = d_wb_cyc;

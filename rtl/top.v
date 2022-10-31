@@ -89,10 +89,10 @@ wbxbar #(
     .o_saddr({wb_wb2uart_adr}),
     .o_sdata({wb_wb2uart_datwr}),
     .o_ssel({wb_wb2uart_sel}),
-    .i_sstall({0}),
+    .i_sstall({sel_width{1'b0}}),
     .i_sack({wb_wb2uart_ack}),
     .i_sdata({wb_wb2uart_datrd}),
-    .i_serr({0})
+    .i_serr({1'b0})
 );
 
 endmodule

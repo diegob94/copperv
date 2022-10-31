@@ -46,19 +46,25 @@ module wb_adapter #(
     assign bus_r_addr_ready = 1;
     always @(posedge clock) begin
         if(reset) begin
-            wb_we <= 0;
             wb_cyc <= 0;
-            wb_stb <= 0;
         end else if(bus_r_addr_ready && bus_r_addr_valid) begin
             wb_we <= 0;
             wb_cyc <= 1;
-            wb_stb <= 1;
         end else if(bus_w_data_addr_ready && bus_w_data_addr_valid) begin
             wb_we <= 1;
             wb_cyc <= 1;
-            wb_stb <= 1;
         end else if(wb_ack) begin
             wb_cyc <= 0;
+        end
+    end
+    always @(posedge clock) begin
+        if(reset) begin
+            wb_stb <= 0;
+        end else if(bus_r_addr_ready && bus_r_addr_valid) begin
+            wb_stb <= 1;
+        end else if(bus_w_data_addr_ready && bus_w_data_addr_valid) begin
+            wb_stb <= 1;
+        end else if(wb_stb) begin
             wb_stb <= 0;
         end
     end

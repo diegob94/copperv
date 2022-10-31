@@ -1,0 +1,3 @@
+[submodule "rtl/external_ip/wb2axip"]
+	path = rtl/external_ip/wb2axip
+	url = https://github.com/ZipCPU/wb2axip

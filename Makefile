@@ -17,7 +17,10 @@ TOP_RTL = 	rtl/top.v \
 			rtl/memory/sram_32_sp.v \
 			rtl/wishbone/wb_adapter.v \
 			rtl/wishbone/wb_copperv.v \
-			rtl/wishbone/wb_sram.v
+			rtl/wishbone/wb_sram.v \
+			rtl/external_ip/wb2axip/rtl/wbxbar.v \
+			rtl/external_ip/wb2axip/rtl/skidbuffer.v \
+			rtl/external_ip/wb2axip/rtl/addrdecode.v
 
 space := $(subst ,, )
 comma := $(subst ,,,)
@@ -44,17 +47,15 @@ clean:
 .PHONY: setup
 setup: .venv
 	mkdir -p $(LOGS_DIR)
-
-work/external_ip/wb2axip: | setup
-	git clone https://github.com/ZipCPU/wb2axip $@
-	git -C $@ checkout -b freeze 91d1aa7
+	git submodule init
+	git submodule update
 
 .venv:
-	pip install --user pipenv
-	pipenv install
+	$(PYTHON) -m venv .venv
+	source .venv/bin/activate; pip install -r requirements.txt
 
-work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') work/external_ip/wb2axip | setup
-	pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
+work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') rtl/external_ip/wb2axip | setup
+	source .venv/bin/activate; pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
 
 work/top.json: $(RTL_SOURCES) scripts/fpga.ys | setup
 	yosys -s scripts/fpga.ys |& tee $(LOGS_DIR)/yosys_fpga.log
