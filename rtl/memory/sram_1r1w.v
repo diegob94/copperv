@@ -14,7 +14,7 @@ module sram_1r1w #(
     parameter length = 1 << addr_width;
 
     `ifdef FORMAL
-        `include "formal/sram_32_sp.v"
+        `include "formal/sram_1r1w.v"
     `endif
 
     reg [data_width-1:0] mem [length-1:0];

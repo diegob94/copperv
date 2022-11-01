@@ -1,20 +1,23 @@
 
-formal_wb_s #(
-    .adr_width(addr_width),
-    .dat_width(data_width),
-    .sel_width(strobe_width)
-) u_formal_wb_s (
-    .clock(clock),
-    .reset(reset),
-    .wb_adr(wb_adr),
-    .wb_datrd(wb_datrd),
-    .wb_datwr(wb_datwr),
-    .wb_sel(wb_sel),
-    .wb_we(wb_we),
-    .wb_stb(wb_stb),
-    .wb_cyc(wb_cyc),
-    .wb_ack(wb_ack)
+fwb_slave #(
+    .AW(addr_width),
+    .DW(data_width),
+) u_fwb_s (
+    .i_clk(clock),
+    .i_reset(reset),
+    .i_wb_cyc(wb_cyc),
+    .i_wb_stb(wb_stb),
+    .i_wb_we(wb_we),
+    .i_wb_addr(wb_adr),
+    .i_wb_data(wb_datwr),
+    .i_wb_sel(wb_sel),
+    .i_wb_ack(wb_ack),
+    .i_wb_stall(0),
+    .i_wb_idata(wb_datrd),
+    .i_wb_err(0)
 );
+
+initial wb_ack = 0;
 
 reg f_past_valid = 0;
 initial begin 

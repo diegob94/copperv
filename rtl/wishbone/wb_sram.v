@@ -37,7 +37,7 @@ module wb_sram #(
         else
             wb_ack <= 0;
 
-    sram_32_sp sram(
+    sram_1r1w sram(
         .clock(clock),
         .wen(wb_we),
         .en(en_sram),

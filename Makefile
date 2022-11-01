@@ -18,9 +18,9 @@ TOP_RTL = 	rtl/top.v \
 			rtl/wishbone/wb_adapter.v \
 			rtl/wishbone/wb_copperv.v \
 			rtl/wishbone/wb_sram.v \
-			rtl/external_ip/wb2axip/rtl/wbxbar.v \
-			rtl/external_ip/wb2axip/rtl/skidbuffer.v \
-			rtl/external_ip/wb2axip/rtl/addrdecode.v
+			external_ip/wb2axip/rtl/wbxbar.v \
+			external_ip/wb2axip/rtl/skidbuffer.v \
+			external_ip/wb2axip/rtl/addrdecode.v
 
 space := $(subst ,, )
 comma := $(subst ,,,)
