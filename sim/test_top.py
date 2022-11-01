@@ -24,7 +24,7 @@ rtl_includes = sources['COPPERV_INCLUDES']
 
 common_run_opts = dict(
     toplevel = "top",
-    verilog_sources=top_rtl+copperv_rtl,
+    verilog_sources=top_rtl,
     includes=rtl_includes,
     module = "cocotb_tests",
     waves = True,
@@ -33,7 +33,7 @@ common_run_opts = dict(
 def test_top(request):
     run(**common_run_opts,
         sim_build = sim_dir/request.node.name,
-        testcase = "top_wb2uart_test",
+        testcase = "top_test",
     )
 
 @pytest.mark.skip(reason="Too much runtime")

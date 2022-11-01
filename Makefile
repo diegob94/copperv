@@ -12,7 +12,8 @@ COPPERV_RTL = 	rtl/copperv/copperv.v \
 
 COPPERV_INCLUDES = rtl/include
 
-TOP_RTL = 	rtl/top.v \
+TOP_RTL = 	$(COPPERV_RTL) \
+			rtl/top.v \
 			rtl/uart/wb2uart.v \
 			rtl/memory/sram_1r1w.v \
 			rtl/wishbone/wb_adapter.v \

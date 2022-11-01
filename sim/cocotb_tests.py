@@ -12,7 +12,7 @@ import cocotb_utils as utils
 from bus import BusReadTransaction, CoppervBusRDriver, CoppervBusWDriver, BusWriteTransaction
 
 from testbench import Testbench
-from riscv_utils import compile_instructions, parse_data_memory, compile_riscv_test, process_elf
+from riscv_utils import compile_instructions, parse_data_memory, compile_riscv_test, process_elf, read_elf, elf_to_memory
 
 from cocotbext.uart import UartSource, UartSink
 from cocotbext.wishbone.monitor import WishboneSlave
@@ -276,28 +276,46 @@ class TopTestbench:
         await RisingEdge(self.clock)
         self._reset.value = 0
 
-@cocotb.test(timeout_time=4,timeout_unit="ms")
-async def top_wb2uart_test(dut):
-    end_test = Event()
-    test_name = 'wb2uart_test'
-    utils.run('make',cwd=sim_dir/f'tests/{test_name}')
-    imem,dmem = process_elf(sim_dir/f'tests/{test_name}/{test_name}.elf')
-    memory = {**imem,**dmem}
-    def resp_callback(op,address,data,sel):
+class VirtualMemory:
+    def __init__(self,elf_path,end_test_event):
+        self.end_test = end_test_event
+        self.BOOTLOADER_SIZE = 0x1000
+        imem,dmem = process_elf(elf_path)
+        boot_elf = read_elf(elf_path,sections=['.boot'])
+        self.boot_memory = elf_to_memory(boot_elf)
+        self.app_memory = {**imem,**dmem}
+        self.first_word = True
+        self.bootloader_offset = self.BOOTLOADER_SIZE
+    def __call__(self,op,address,data,sel):
         if op == 0:
-            return utils.from_array(memory,address)
+            if address == self.BOOTLOADER_SIZE - 4:
+                if self.first_word:
+                    self.first_word = False
+                    return len(self.app_memory)
+                word = utils.from_array(self.app_memory,self.bootloader_offset)
+                self.bootloader_offset += 4
+                return word
+            return utils.from_array(self.boot_memory,address)
         elif op == 1:
             if address == T_ADDR:
                 assert data == T_PASS, "Received test fail from bus"
-                end_test.set()
+                self.end_test.set()
                 return 1
             else:
                 mask = f"{sel:04b}"
                 for i in range(4):
                     if int(mask[3-i]):
-                        memory[address+i] = utils.to_bytes(data)[i]
+                        self.boot_memory[address+i] = utils.to_bytes(data)[i]
                 return 1
-    tb = TopTestbench(dut,resp_callback)
+
+@cocotb.test(timeout_time=500,timeout_unit="ms")
+async def top_test(dut):
+    end_test = Event()
+    test_name = 'bootloader_test'
+    utils.run('make',cwd=sim_dir/f'tests/{test_name}')
+    elf_path = sim_dir/f'tests/{test_name}/{test_name}.elf'
+    memory_callback = VirtualMemory(elf_path,end_test)
+    tb = TopTestbench(dut,memory_callback)
     await tb.reset()
     await end_test.wait()
 
