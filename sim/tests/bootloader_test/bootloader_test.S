@@ -1,6 +1,7 @@
+#include "riscv_test.h"
+
 .global _init
 _init:
-lui  a5,0x80000
-lui  a4,0x1000
-addi a4,a4,1 # 1000001
-sw   a4,0(a5) # 80000000
+la  a5,T_ADDR
+li  a4,T_PASS
+sw   a4,0(a5)

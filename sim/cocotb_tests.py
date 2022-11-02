@@ -25,7 +25,8 @@ sim_dir = root_dir/'sim'
 toml_path = sim_dir/"tests/unit_tests.toml"
 unit_tests = toml.loads(toml_path.read_text())
 
-T_ADDR = 0x80000000
+APP_START_ADDR = 0x1000
+T_ADDR = APP_START_ADDR-8
 O_ADDR = 0x80000004
 TC_ADDR = 0x80000008
 T_PASS = 0x01000001
@@ -308,7 +309,7 @@ class VirtualMemory:
                         self.boot_memory[address+i] = utils.to_bytes(data)[i]
                 return 1
 
-@cocotb.test(timeout_time=500,timeout_unit="ms")
+@cocotb.test(timeout_time=100,timeout_unit="ms")
 async def top_test(dut):
     end_test = Event()
     test_name = 'bootloader_test'

@@ -1,4 +1,4 @@
-#define BOOTLOADER_MAGIC_ADDR (0x1000-4)
+#include "riscv_test.h"
 
 .section .boot, "ax"
 la t5, _start // mem (application) region start address

@@ -30,6 +30,15 @@ wire                 wb_wb2uart_ack;
 wire                 wb_wb2uart_cyc;
 wire [sel_width-1:0] wb_wb2uart_sel;
 
+wire [bus_width-1:0] wb_sram_adr;
+wire [bus_width-1:0] wb_sram_datwr;
+wire [bus_width-1:0] wb_sram_datrd;
+wire                 wb_sram_we;
+wire                 wb_sram_stb;
+wire                 wb_sram_ack;
+wire                 wb_sram_cyc;
+wire [sel_width-1:0] wb_sram_sel;
+
 wb_copperv #(
     .addr_width(bus_width),
     .data_width(bus_width)
@@ -65,13 +74,35 @@ wb2uart #(
     .uart_rx(uart_rx)
 );
 
+wb_sram #(
+    .addr_width(bus_width),
+    .data_width(bus_width)
+) sram (
+    .clock(clock),
+    .reset(reset),
+    .wb_adr(wb_sram_adr),
+    .wb_datwr(wb_sram_datwr),
+    .wb_datrd(wb_sram_datrd),
+    .wb_we(wb_sram_we),
+    .wb_stb(wb_sram_stb),
+    .wb_ack(wb_sram_ack),
+    .wb_cyc(wb_sram_cyc),
+    .wb_sel(wb_sram_sel)
+);
+
 wbxbar #(
     .NM(1),
-    .NS(1),
+    .NS(2),
     .AW(bus_width),
     .DW(bus_width),
-    .SLAVE_ADDR({{32'd0}}),
-    .SLAVE_MASK(0)
+    .SLAVE_ADDR({
+        32'h0,
+        32'h1000
+    }),
+    .SLAVE_MASK({
+        32'hFFFFF000,
+        32'hFFFFF000
+    })
 ) xbar (
     .i_clk(clock),
     .i_reset(reset),
@@ -83,16 +114,43 @@ wbxbar #(
     .i_msel({wb_cpu_sel}),
     .o_mack({wb_cpu_ack}),
     .o_mdata({wb_cpu_datrd}),
-    .o_scyc({wb_wb2uart_cyc}),
-    .o_sstb({wb_wb2uart_stb}),
-    .o_swe({wb_wb2uart_we}),
-    .o_saddr({wb_wb2uart_adr}),
-    .o_sdata({wb_wb2uart_datwr}),
-    .o_ssel({wb_wb2uart_sel}),
-    .i_sstall({sel_width{1'b0}}),
-    .i_sack({wb_wb2uart_ack}),
-    .i_sdata({wb_wb2uart_datrd}),
-    .i_serr({1'b0})
+    .o_scyc({
+        wb_wb2uart_cyc,
+        wb_sram_cyc
+    }),
+    .o_sstb({
+        wb_wb2uart_stb,
+        wb_sram_stb
+    }),
+    .o_swe({
+        wb_wb2uart_we,
+        wb_sram_we
+    }),
+    .o_saddr({
+        wb_wb2uart_adr,
+        wb_sram_adr
+    }),
+    .o_sdata({
+        wb_wb2uart_datwr,
+        wb_sram_datwr
+    }),
+    .o_ssel({
+        wb_wb2uart_sel,
+        wb_sram_sel
+    }),
+    .i_sstall({
+        {sel_width{1'b0}},
+        {sel_width{1'b0}}
+    }),
+    .i_sack({
+        wb_wb2uart_ack,
+        wb_sram_ack
+    }),
+    .i_sdata({
+        wb_wb2uart_datrd,
+        wb_sram_datrd
+    }),
+    .i_serr({2{1'b0}})
 );
 
 endmodule
