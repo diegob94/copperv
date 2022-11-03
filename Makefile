@@ -39,7 +39,7 @@ clean:
 	rm -rf work/sim
 
 .PHONY: setup
-setup: .venv sim/verilog_testbench/include/magic_constants_h.v sim/magic_constants.toml sim/tests/common/magic_constants.h rtl/files.toml
+setup: .venv sim/verilog_testbench/include/magic_constants_h.v sim/magic_constants.toml sim/tests/common/magic_constants.h rtl/files.toml scripts/rtl_sources.tcl
 	mkdir -p $(LOGS_DIR)
 	git submodule update --init
 
@@ -51,8 +51,8 @@ setup: .venv sim/verilog_testbench/include/magic_constants_h.v sim/magic_constan
 work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') | setup
 	$(WITH_VENV) pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
 
-work/top.json: $(RTL_SOURCES) scripts/fpga.ys | setup
-	yosys -s scripts/fpga.ys |& tee $(LOGS_DIR)/yosys_fpga.log
+work/top.json: $(RTL_SOURCES) scripts/fpga.tcl | setup
+	yosys -c scripts/fpga.tcl |& tee $(LOGS_DIR)/yosys_fpga.log
 
 work/top.config: work/top.json scripts/ulx3s_v20.lpf | setup
 	nextpnr-ecp5 --package CABGA381 --85k --json work/top.json \
@@ -69,6 +69,7 @@ program: work/ulx3s.bit | setup
 space := $(subst ,, )
 comma := $(subst ,,,)
 list2toml = $(addprefix $(1)=[\n,$(addsuffix \n]\n,$(subst $(space),$(comma)\n,$(patsubst %,"%",$($(1))))))
+list2tcl = $(addprefix set $(1) {\n,$(addsuffix \n}\n,$(subst $(space),\n,$($(1)))))
 var2toml = "$(shell printf '$(1) = 0x%X' $$(($($(1)))))\n"
 var2cmacro = "$(shell printf '\#define $(1) 0x%X' $$(($($(1)))))\n"
 var2vmacro = "$(shell printf "\\\`define $(1) 32'h%X" $$(($($(1)))))\n"
@@ -106,11 +107,19 @@ sim/verilog_testbench/include/magic_constants_h.v:
 	@printf $(call var2vmacro,T_PASS) >> $@
 	@printf $(call var2vmacro,T_FAIL) >> $@
 
+.PHONY: rtl/files.toml
 rtl/files.toml: $(RTL_SOURCES)
 	$(info Generating $@)
 	@printf '$(call list2toml,COPPERV_RTL)' > $@
 	@printf '$(call list2toml,TOP_RTL)' >> $@
 	@printf '$(call list2toml,COPPERV_INCLUDES)' >> $@
+
+.PHONY: scripts/rtl_sources.tcl
+scripts/rtl_sources.tcl:
+	$(info Generating $@)
+	@printf '$(call list2tcl,COPPERV_RTL)' > $@
+	@printf '$(call list2tcl,TOP_RTL)' >> $@
+	@printf '$(call list2tcl,COPPERV_INCLUDES)' >> $@
 
 getvar-%:
 	$(info $($*))
