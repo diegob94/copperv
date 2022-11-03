@@ -1,22 +1,22 @@
 import sys
-sys.path.append("sim")
+from pathlib import Path
+sim_dir = (Path(__file__).parent.parent/'sim').resolve()
+sys.path.append(str(sim_dir))
 import serial
 import cocotb_utils as utils
-from riscv_utils import process_elf
+from cocotb_tests import VirtualMemory
 
-T_ADDR = 0x80000000
-O_ADDR = 0x80000004
-TC_ADDR = 0x80000008
-T_PASS = 0x01000001
-T_FAIL = 0x02000001
+def end_test():
+    global test_passed
+    test_passed = True
 
 test_passed = False
-test = "wb2uart_test"
-utils.run('make',cwd=f'sim/tests/{test}')
-imem,dmem = process_elf(f'sim/tests/{test}/{test}.elf')
-memory = {**imem,**dmem}
+test_name = 'bootloader_test'
+utils.run('make',cwd=sim_dir/f'tests/{test_name}')
+elf_path = sim_dir/f'tests/{test_name}/{test_name}.elf'
+memory_callback = VirtualMemory(elf_path,end_test)
 
-print("Virtual memory size [bytes]:",len(memory))
+print(memory_callback)
 print("Press button B1 to reset")
 
 def receive(ser,count=4):
@@ -32,22 +32,6 @@ def send(ser,data,count=4):
     ser.flush()
     print(count)
 
-def resp_callback(op,address,data,sel):
-    global test_passed
-    if op == 0:
-        return utils.from_array(memory,address)
-    elif op == 1:
-        if address == T_ADDR:
-            assert data == T_PASS, "Received test fail from bus"
-            test_passed = True
-            return 1
-        else:
-            mask = f"{sel:04b}"
-            for i in range(4):
-                if int(mask[3-i]):
-                    memory[address+i] = utils.to_bytes(data)[i]
-            return 1
-
 with serial.Serial('/dev/ttyUSB0', 115200) as ser:
     while True:
         print("Waiting op")
@@ -58,7 +42,7 @@ with serial.Serial('/dev/ttyUSB0', 115200) as ser:
         if op == 1:
             data = receive(ser)
             sel = receive(ser,1)
-        resp = resp_callback(op,address,data,sel)
+        resp = memory_callback(op,address,data,sel)
         info = f"transaction: address = 0x{address:X}"
         if op == 1:
             info = "Write " + info + f" data = 0x{data:X} sel = 0x{sel:X}"

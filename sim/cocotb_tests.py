@@ -272,8 +272,8 @@ class TopTestbench:
         self._reset.value = 0
 
 class VirtualMemory:
-    def __init__(self,elf_path,end_test_event):
-        self.end_test = end_test_event
+    def __init__(self,elf_path,end_test_callback):
+        self.end_test = end_test_callback
         self.BOOTLOADER_SIZE = 0x1000
         imem,dmem = process_elf(elf_path)
         boot_elf = read_elf(elf_path,sections=['.boot'])
@@ -281,6 +281,8 @@ class VirtualMemory:
         self.app_memory = {**imem,**dmem}
         self.first_word = True
         self.bootloader_offset = self.BOOTLOADER_SIZE
+    def __str__(self):
+        return f"VirtualMemory: boot size = {len(self.boot_memory)} / app size = {len(self.app_memory)}"
     def __call__(self,op,address,data,sel):
         if op == 0:
             if address == self.BOOTLOADER_SIZE - 4:
@@ -294,7 +296,7 @@ class VirtualMemory:
         elif op == 1:
             if address == T_ADDR:
                 assert data == T_PASS, "Received test fail from bus"
-                self.end_test.set()
+                self.end_test()
                 return 1
             else:
                 mask = f"{sel:04b}"
@@ -309,7 +311,7 @@ async def top_test(dut):
     test_name = 'bootloader_test'
     utils.run('make',cwd=sim_dir/f'tests/{test_name}')
     elf_path = sim_dir/f'tests/{test_name}/{test_name}.elf'
-    memory_callback = VirtualMemory(elf_path,end_test)
+    memory_callback = VirtualMemory(elf_path,lambda end_test=end_test: end_test.set())
     tb = TopTestbench(dut,memory_callback)
     await tb.reset()
     await end_test.wait()
