@@ -9,7 +9,7 @@ from cocotb.triggers import Join, Event, RisingEdge, Edge
 from cocotb.log import SimLog
 import toml
 import cocotb_utils as utils
-from cocotb_utils import T_ADDR, T_PASS, T_FAIL
+from cocotb_utils import APP_START_ADDR, T_ADDR, T_PASS, T_FAIL
 from bus import BusReadTransaction, CoppervBusRDriver, CoppervBusWDriver, BusWriteTransaction
 
 from testbench import Testbench
@@ -274,7 +274,7 @@ class TopTestbench:
 class VirtualMemory:
     def __init__(self,elf_path,end_test_callback):
         self.end_test = end_test_callback
-        self.BOOTLOADER_SIZE = 0x1000
+        self.BOOTLOADER_SIZE = APP_START_ADDR
         imem,dmem = process_elf(elf_path)
         boot_elf = read_elf(elf_path,sections=['.boot'])
         self.boot_memory = elf_to_memory(boot_elf)
