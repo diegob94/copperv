@@ -49,10 +49,15 @@ def test_uart_tx_prove(sby_run):
         files = sram_files,
     )
 
-wb_sram_script = ["read_verilog -formal wb_sram.v","read_verilog -formal sram_32_sp.v","prep -top wb_sram"]
+wb_sram_script = [
+    "read_verilog -formal wb_sram.v",
+    "read_verilog -formal sram_1r1w.v",
+    "read_verilog -formal fwb_slave.v",
+    "prep -top wb_sram"
+]
 wb_sram_files = sram_files + [
     root_dir/"rtl/wishbone/wb_sram.v",
-    ["formal/wb.v", root_dir/"formal/wb.v"],
+    root_dir/"external_ip/wb2axip/bench/formal/fwb_slave.v",
     ["formal/wb_sram.v", root_dir/"formal/wb_sram.v"],
 ]
 def test_wb_sram_bmc(sby_run):

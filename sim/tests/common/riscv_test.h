@@ -1,6 +1,7 @@
 #ifndef RISCV_TEST_H
 #define RISCV_TEST_H
 
+#include "magic_constants.h"
 #include "encoding.h"
 
 #define RVTEST_RV32U
@@ -12,14 +13,6 @@
 #define RVTEST_CODE_BEGIN \
   .global TEST_NAME; \
 TEST_NAME:
-
-#define APP_START_ADDR 0x1000
-#define BOOTLOADER_MAGIC_ADDR (APP_START_ADDR-4)
-#define T_ADDR (APP_START_ADDR-8)
-#define O_ADDR (APP_START_ADDR-12)
-#define TC_ADDR (APP_START_ADDR-16)
-#define T_PASS 0x01000001
-#define T_FAIL 0x02000001
 
 #define RVTEST_PASS \
     loop_pass: \

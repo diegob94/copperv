@@ -9,6 +9,7 @@ from cocotb.triggers import Join, Event, RisingEdge, Edge
 from cocotb.log import SimLog
 import toml
 import cocotb_utils as utils
+from cocotb_utils import T_ADDR, T_PASS, T_FAIL
 from bus import BusReadTransaction, CoppervBusRDriver, CoppervBusWDriver, BusWriteTransaction
 
 from testbench import Testbench
@@ -24,13 +25,6 @@ root_dir = Path(__file__).resolve().parent.parent
 sim_dir = root_dir/'sim'
 toml_path = sim_dir/"tests/unit_tests.toml"
 unit_tests = toml.loads(toml_path.read_text())
-
-APP_START_ADDR = 0x1000
-T_ADDR = APP_START_ADDR-8
-O_ADDR = 0x80000004
-TC_ADDR = 0x80000008
-T_PASS = 0x01000001
-T_FAIL = 0x02000001
 
 @dataclasses.dataclass
 class TestParameters:

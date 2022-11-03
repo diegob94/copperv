@@ -16,4 +16,7 @@ __pycache__/
 *.debug
 .vim/
 rtl/files.toml
+sim/magic_constants.toml
+sim/tests/common/magic_constants.h
+sim/verilog_testbench/include/magic_constants_h.v
 .venv

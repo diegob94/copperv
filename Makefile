@@ -1,8 +1,11 @@
+.PHONY: all
+all: work/sim/result.xml
 
 PYTHON ?= $(if $(shell which python),python,python3)
 SHELL = bash
 RTL_SOURCES = $(realpath $(COPPERV_RTL) $(TOP_RTL))
 LOGS_DIR = work/logs
+WITH_VENV = source .venv/bin/activate;
 
 COPPERV_RTL = 	rtl/copperv/copperv.v \
 				rtl/copperv/control_unit.v \
@@ -23,40 +26,30 @@ TOP_RTL = 	$(COPPERV_RTL) \
 			external_ip/wb2axip/rtl/skidbuffer.v \
 			external_ip/wb2axip/rtl/addrdecode.v
 
-space := $(subst ,, )
-comma := $(subst ,,,)
-
-var2toml = $(addprefix $(1)=[\n,$(addsuffix \n]\n,$(subst $(space),$(comma)\n,$(patsubst %,"%",$($(1))))))
-
-rtl/files.toml:
-	$(info Generating $@)
-	@printf '$(call var2toml,COPPERV_RTL)' > $@
-	@printf '$(call var2toml,TOP_RTL)' >> $@
-	@printf '$(call var2toml,COPPERV_INCLUDES)' >> $@
-
-getvar-%:
-	$(info $($*))
-	@true
-
-.PHONY: all
-all: work/sim/result.xml
+APP_START_ADDR := 0x1000
+BOOTLOADER_MAGIC_ADDR := $(APP_START_ADDR)-4
+T_ADDR := $(APP_START_ADDR)-8
+O_ADDR := $(APP_START_ADDR)-12
+TC_ADDR := $(APP_START_ADDR)-16
+T_PASS := 0x01000001
+T_FAIL := 0x02000001
 
 .PHONY: clean
 clean:
 	rm -rf work/sim
 
 .PHONY: setup
-setup: .venv
+setup: .venv sim/verilog_testbench/include/magic_constants_h.v sim/magic_constants.toml sim/tests/common/magic_constants.h rtl/files.toml
 	mkdir -p $(LOGS_DIR)
 	git submodule update --init
 
 .venv:
 	$(PYTHON) -m venv .venv
-	source .venv/bin/activate; pip install wheel
-	source .venv/bin/activate; pip install -r requirements.txt
+	$(WITH_VENV) pip install wheel
+	$(WITH_VENV) pip install -r requirements.txt
 
 work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') | setup
-	source .venv/bin/activate; pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
+	$(WITH_VENV) pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
 
 work/top.json: $(RTL_SOURCES) scripts/fpga.ys | setup
 	yosys -s scripts/fpga.ys |& tee $(LOGS_DIR)/yosys_fpga.log
@@ -72,4 +65,54 @@ work/ulx3s.bit: work/top.config | setup
 .PHONY: program
 program: work/ulx3s.bit | setup
 	openFPGALoader -b ulx3s $<
+
+space := $(subst ,, )
+comma := $(subst ,,,)
+list2toml = $(addprefix $(1)=[\n,$(addsuffix \n]\n,$(subst $(space),$(comma)\n,$(patsubst %,"%",$($(1))))))
+var2toml = "$(shell printf '$(1) = 0x%X' $$(($($(1)))))\n"
+var2cmacro = "$(shell printf '\#define $(1) 0x%X' $$(($($(1)))))\n"
+var2vmacro = "$(shell printf "\\\`define $(1) 32'h%X" $$(($($(1)))))\n"
+
+.PHONY: sim/magic_constants.toml
+sim/magic_constants.toml:
+	$(info Generating $@)
+	@printf $(call var2toml,APP_START_ADDR) > $@
+	@printf $(call var2toml,BOOTLOADER_MAGIC_ADDR) >> $@
+	@printf $(call var2toml,T_ADDR) >> $@
+	@printf $(call var2toml,O_ADDR) >> $@
+	@printf $(call var2toml,TC_ADDR) >> $@
+	@printf $(call var2toml,T_PASS) >> $@
+	@printf $(call var2toml,T_FAIL) >> $@
+
+.PHONY: sim/tests/common/magic_constants.h
+sim/tests/common/magic_constants.h:
+	$(info Generating $@)
+	@printf $(call var2cmacro,APP_START_ADDR) > $@
+	@printf $(call var2cmacro,BOOTLOADER_MAGIC_ADDR) >> $@
+	@printf $(call var2cmacro,T_ADDR) >> $@
+	@printf $(call var2cmacro,O_ADDR) >> $@
+	@printf $(call var2cmacro,TC_ADDR) >> $@
+	@printf $(call var2cmacro,T_PASS) >> $@
+	@printf $(call var2cmacro,T_FAIL) >> $@
+
+.PHONY: sim/verilog_testbench/include/magic_constants_h.v
+sim/verilog_testbench/include/magic_constants_h.v:
+	$(info Generating $@)
+	@printf $(call var2vmacro,APP_START_ADDR) > $@
+	@printf $(call var2vmacro,BOOTLOADER_MAGIC_ADDR) >> $@
+	@printf $(call var2vmacro,T_ADDR) >> $@
+	@printf $(call var2vmacro,O_ADDR) >> $@
+	@printf $(call var2vmacro,TC_ADDR) >> $@
+	@printf $(call var2vmacro,T_PASS) >> $@
+	@printf $(call var2vmacro,T_FAIL) >> $@
+
+rtl/files.toml: $(RTL_SOURCES)
+	$(info Generating $@)
+	@printf '$(call list2toml,COPPERV_RTL)' > $@
+	@printf '$(call list2toml,TOP_RTL)' >> $@
+	@printf '$(call list2toml,COPPERV_INCLUDES)' >> $@
+
+getvar-%:
+	$(info $($*))
+	@true
 
