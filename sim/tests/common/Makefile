@@ -37,8 +37,8 @@ endif
 	$(CC) $(CFLAGS) -c $< -o $@
 	$(CC) $(CFLAGS) -E $< -o $(@:.o=.E)
 
-%.elf: %.o $(INIT_OBJ)
-	$(CC) $(LDFLAGS) -Wl,-T,$(LINKER_SCRIPT),-Bstatic -nostartfiles -ffreestanding $^ -o $@
+%.elf: %.o $(INIT_OBJ) $(LINKER_SCRIPT)
+	$(CC) $(LDFLAGS) -Wl,-T,$(LINKER_SCRIPT),-Bstatic -nostartfiles -ffreestanding $(filter %.o,$^) -o $@
 	$(SCRIPTS_DIR)/utils.py debug $@ || true
 
 %.hex: %.elf

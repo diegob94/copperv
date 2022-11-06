@@ -195,6 +195,7 @@ always @(*) begin
     endcase
 end
 always @(*) begin
+    // TODO: check alignment, ex: if funct == FUNCT_MEM_WORD && read_offset != 0 -> error
     read_data_t = read_data >> {read_offset, 3'b0};
     case(funct)
         `FUNCT_MEM_BYTE:   ext_read_data = `SIGNED(read_data_t,32,7,0);
