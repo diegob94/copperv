@@ -18,7 +18,6 @@ def timescale_fix(verilog):
 
 sources = toml.load(root_dir/'rtl/files.toml')
 sources = {k:[root_dir/f for f in v] for k,v in sources.items()}
-copperv_rtl = sources['COPPERV_RTL']
 top_rtl = sources['TOP_RTL']
 rtl_includes = sources['COPPERV_INCLUDES']
 
@@ -29,6 +28,20 @@ common_run_opts = dict(
     module = "cocotb_tests",
     waves = True,
 )
+
+def test_top_skip_bootloader(request):
+    test_name = 'hello_world'
+    test_dir = sim_dir/f'tests/{test_name}'
+    r = utils.run('make',cwd=test_dir)
+    print(r)
+    elf_path = test_dir/f'{test_name}.elf'
+    hex_path = test_dir/f'{test_name}.hex'
+    run(**common_run_opts,
+        sim_build = sim_dir/request.node.name,
+        testcase = "top_test",
+        plus_args = [f"+HEX_FILE={hex_path}"],
+        extra_env = {"ELF_PATH":elf_path}
+    )
 
 def test_top(request):
     run(**common_run_opts,

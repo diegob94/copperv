@@ -12,6 +12,26 @@ module sram_1r1w #(
     output [data_width-1:0]  dout
 );
     parameter length = 1 << addr_width;
+    parameter byte_length = length * 4;
+
+    reg [8-1:0] temp_mem [byte_length-1:0];
+
+    `ifndef SYNTHESIS
+        reg [1023:0] hex_file;
+        initial begin
+            if ($value$plusargs("HEX_FILE=%s", hex_file)) begin
+                $display("%t: %m byte_length: %0d", $time, byte_length);
+                $readmemh(hex_file, temp_mem, 0, byte_length - 1);
+                for(integer i = 0; i < length; i = i + 1)
+                    mem[i] = {
+                        temp_mem[i+3],
+                        temp_mem[i+2],
+                        temp_mem[i+1],
+                        temp_mem[i+0]
+                    };
+            end
+        end
+    `endif
 
     `ifdef FORMAL
         `include "formal/sram_1r1w.v"

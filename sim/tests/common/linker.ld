@@ -8,7 +8,7 @@ OUTPUT_FORMAT("elf32-littleriscv", "elf32-littleriscv",
 OUTPUT_ARCH(riscv)
 MEMORY {
     bootloader : ORIGIN = 0x00000000, LENGTH = 0x00001000
-	mem        : ORIGIN = 0x00001000, LENGTH = 0x00ffffff + 1 - 0x00001000
+	mem        : ORIGIN = 0x00001000, LENGTH = 0x00003FFF + 1 - 0x00001000
 }
 ENTRY(_start)
 SECTIONS

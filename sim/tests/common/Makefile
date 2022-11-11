@@ -8,16 +8,16 @@ CC = riscv64-unknown-elf-gcc
 OBJCOPY = riscv64-unknown-elf-objcopy
 override CFLAGS += -march=rv32i -mabi=ilp32 -I$(COMMON_DIR)
 LDFLAGS += -march=rv32i -mabi=ilp32
-BOOTLOADER =
-BOOTLOADER_OBJ = $(BOOTLOADER:.S=.o)
-INIT_OBJ = crt0.o syscalls.o $(BOOTLOADER_OBJ)
+INIT_OBJ = crt0.o syscalls.o
 ifdef NO_INIT
 INIT_OBJ = 
 endif
 ifdef NO_SYSCALLS
-INIT_OBJ = crt0.o $(BOOTLOADER_OBJ)
+INIT_OBJ = crt0.o
 endif
-ifeq ($(BOOTLOADER),)
+ifdef BOOTLOADER
+INIT_OBJ += bootloader.o
+else
 override CFLAGS += -DNO_BOOTLOADER
 endif
 

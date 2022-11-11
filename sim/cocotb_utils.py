@@ -47,6 +47,7 @@ root_dir = Path(__file__).resolve().parent.parent
 sim_dir = root_dir/'sim'
 magic_constants = toml.load(sim_dir/"magic_constants.toml")
 APP_START_ADDR = magic_constants["APP_START_ADDR"]
+BOOTLOADER_MAGIC_ADDR = magic_constants["BOOTLOADER_MAGIC_ADDR"]
 T_ADDR = magic_constants["T_ADDR"]
 O_ADDR = magic_constants["O_ADDR"]
 TC_ADDR = magic_constants["TC_ADDR"]

@@ -5,7 +5,7 @@ module wb_sram #(
     parameter addr_width = 32,
     parameter data_width = 32,
     parameter strobe_width = addr_width/8,
-    parameter length = 128
+    parameter sram_addr_width = 8
 )(
     input                     clock,
     input                     reset,
@@ -37,7 +37,7 @@ module wb_sram #(
         else
             wb_ack <= 0;
 
-    sram_1r1w sram(
+    sram_1r1w #(.addr_width(sram_addr_width)) sram(
         .clock(clock),
         .wen(wb_we),
         .en(en_sram),

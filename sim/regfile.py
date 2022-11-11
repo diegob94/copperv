@@ -57,7 +57,7 @@ class RegFileReadTransaction:
     def __str__(self):
         data1 = f'0x{self.data1:X}' if self.data1 is not None else None
         data2 = f'0x{self.data2:X}' if self.data2 is not None else None
-        return f'RegFileReadTransaction(reg1={self.reg1_name}, data1={data1}, reg2={self.reg2_name}, data1={data2})'
+        return f'RegFileReadTransaction(reg1={self.reg1_name}, data1={data1}, reg2={self.reg2_name}, data2={data2})'
 
 class RegFileWriteMonitor(BusMonitor):
     _signals = [
@@ -78,7 +78,7 @@ class RegFileWriteMonitor(BusMonitor):
                     reg = int(self.bus.rd_addr.value),
                     data = int(self.bus.rd_data.value),
                 )
-                self.log.debug("Regfile write: %s", transaction)
+                self.log.debug("Recv: %s", transaction)
                 self._recv(transaction)
 
 class RegFileReadMonitor(BusMonitor):
@@ -121,6 +121,6 @@ class RegFileReadMonitor(BusMonitor):
                         reg1 = int(self.bus.rs2_addr.value),
                         data1 = int(self.bus.rs2_data.value),
                     )
-                self.log.debug('Regfile read: %s',transaction)
+                self.log.debug('Recv: %s',transaction)
                 self._recv(transaction)
 

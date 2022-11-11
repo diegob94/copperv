@@ -4,15 +4,19 @@ sim_dir = (Path(__file__).parent.parent/'sim').resolve()
 sys.path.append(str(sim_dir))
 import serial
 import cocotb_utils as utils
+from cocotb_utils import BOOTLOADER_MAGIC_ADDR
 from cocotb_tests import VirtualMemory
+
+test_name = 'hello_world'
+#test_name = 'bootloader_test'
 
 def end_test():
     global test_passed
     test_passed = True
 
 test_passed = False
-test_name = 'bootloader_test'
-utils.run('make',cwd=sim_dir/f'tests/{test_name}')
+r = utils.run('make BOOTLOADER=1',cwd=sim_dir/f'tests/{test_name}')
+print(r)
 elf_path = sim_dir/f'tests/{test_name}/{test_name}.elf'
 memory_callback = VirtualMemory(elf_path,end_test)
 
@@ -21,20 +25,22 @@ print("Press button B1 to reset")
 
 def receive(ser,count=4):
     data = ser.read(count)
-    print("Read bytes:",data)
+    #print("Read bytes:",data)
     data = int.from_bytes(data, byteorder='little', signed=False)
     return data
 
 def send(ser,data,count=4):
     data = data.to_bytes(length=count,byteorder="little")
-    print("Send bytes:",data,"",end="")
+    #print("Send bytes:",data,"",end="")
     count = ser.write(data)
     ser.flush()
-    print(count)
+    #print(count)
+
+programmer_counter = -1
 
 with serial.Serial('/dev/ttyUSB0', 115200) as ser:
     while True:
-        print("Waiting op")
+        #print("Waiting op")
         op = receive(ser,1)
         address = receive(ser)
         data = None
@@ -50,6 +56,9 @@ with serial.Serial('/dev/ttyUSB0', 115200) as ser:
             info = "Read " + info
         info = info + f" resp = 0x{resp:X}"
         print(info)
+        if op == 0 and address == BOOTLOADER_MAGIC_ADDR:
+            programmer_counter += 1
+            print(f"programmer_counter = {programmer_counter*4}")
         if test_passed:
             print("Test PASSED")
             sys.exit(0)

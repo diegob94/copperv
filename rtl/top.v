@@ -76,7 +76,8 @@ wb2uart #(
 
 wb_sram #(
     .addr_width(bus_width),
-    .data_width(bus_width)
+    .data_width(bus_width),
+    .sram_addr_width(14)
 ) sram (
     .clock(clock),
     .reset(reset),
@@ -97,11 +98,11 @@ wbxbar #(
     .DW(bus_width),
     .SLAVE_ADDR({
         32'h0,
-        32'h1000
+        32'h80000000
     }),
     .SLAVE_MASK({
-        32'hFFFFF000,
-        32'hFFFFF000
+        32'h80000000,
+        32'h80000000
     })
 ) xbar (
     .i_clk(clock),
@@ -109,7 +110,7 @@ wbxbar #(
     .i_mcyc({wb_cpu_cyc}),
     .i_mstb({wb_cpu_stb}),
     .i_mwe({wb_cpu_we}),
-    .i_maddr({wb_cpu_adr}),
+    .i_maddr({{wb_cpu_adr>=32'h1000,wb_cpu_adr[bus_width-1-1:0]}}),
     .i_mdata({wb_cpu_datwr}),
     .i_msel({wb_cpu_sel}),
     .o_mack({wb_cpu_ack}),

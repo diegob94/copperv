@@ -9,11 +9,11 @@ from cocotb.triggers import Join, Event, RisingEdge, Edge
 from cocotb.log import SimLog
 import toml
 import cocotb_utils as utils
-from cocotb_utils import APP_START_ADDR, T_ADDR, T_PASS, T_FAIL
+from cocotb_utils import APP_START_ADDR, O_ADDR, T_ADDR, T_PASS, T_FAIL
 from bus import BusReadTransaction, CoppervBusRDriver, CoppervBusWDriver, BusWriteTransaction
 
 from testbench import Testbench
-from riscv_utils import compile_instructions, parse_data_memory, compile_riscv_test, process_elf, read_elf, elf_to_memory
+from riscv_utils import PcMonitor, StackMonitor, compile_instructions, parse_data_memory, compile_riscv_test, process_elf, read_elf, elf_to_memory
 
 from cocotbext.uart import UartSource, UartSink
 from cocotbext.wishbone.monitor import WishboneSlave
@@ -172,7 +172,7 @@ class Wb2uartMonitor:
         data = int.from_bytes(recv, byteorder='little', signed=False)
         return data
     def send(self,data):
-        self.source.write_nowait(data.to_bytes(4,byteorder='little'))
+        self.source.write_nowait(data)
     async def read(self):
         return await self.recvQ.get()
     async def run(self):
@@ -187,6 +187,7 @@ class Wb2uartMonitor:
             if self.resp_callback is not None:
                 resp = self.resp_callback(op,address,data,sel)
                 self.send(resp)
+                resp = int.from_bytes(resp,byteorder='little')
             info = f"transaction: address = 0x{address:X}"
             if op == 1:
                 info = "Write " + info + f" data = 0x{data:X} sel = 0x{sel:X}"
@@ -258,13 +259,16 @@ async def wb2uart_write_test(dut):
     assert wb_transaction.ack == ack, f"WB received wrong ack: 0x{wb_transaction.ack:X} != 0x{ack:X}"
 
 class TopTestbench:
-    def __init__(self,dut,resp_callback = None):
+    def __init__(self,dut,resp_callback = None, elf_path = None):
         self.clock = dut.clock
         self._reset = dut.reset
         period = 40
         period_unit = "ns"
         self.uart = Wb2uartMonitor(dut.uart_tx,dut.uart_rx,resp_callback=resp_callback)
         cocotb.start_soon(Clock(dut.clock,period,period_unit).start())
+        copperv_tb = Testbench(dut.cpu.core,"top_test",enable_self_checking=False,passive_mode=True)
+        pc_monitor = PcMonitor("PcMonitor", dut.cpu.core.pc)
+        stack_monitor = StackMonitor(copperv_tb.regfile_write_monitor, pc_monitor, elf_path = elf_path)
     async def reset(self):
         await RisingEdge(self.clock)
         self._reset.value = 1
@@ -273,6 +277,7 @@ class TopTestbench:
 
 class VirtualMemory:
     def __init__(self,elf_path,end_test_callback):
+        self.log = SimLog(f"cocotb.{type(self).__qualname__}")
         self.end_test = end_test_callback
         self.BOOTLOADER_SIZE = APP_START_ADDR
         imem,dmem = process_elf(elf_path)
@@ -281,39 +286,46 @@ class VirtualMemory:
         self.app_memory = {**imem,**dmem}
         self.first_word = True
         self.bootloader_offset = self.BOOTLOADER_SIZE
+        self.uart_queue = Queue()
     def __str__(self):
         return f"VirtualMemory: boot size = {len(self.boot_memory)} / app size = {len(self.app_memory)}"
     def __call__(self,op,address,data,sel):
-        if op == 0:
+        if op == 0: # read
             if address == self.BOOTLOADER_SIZE - 4:
                 if self.first_word:
                     self.first_word = False
-                    return len(self.app_memory)
+                    return len(self.app_memory).to_bytes(4,byteorder='little')
                 word = utils.from_array(self.app_memory,self.bootloader_offset)
                 self.bootloader_offset += 4
-                return word
-            return utils.from_array(self.boot_memory,address)
-        elif op == 1:
+                return word.to_bytes(4,byteorder='little')
+            return utils.from_array(self.boot_memory,address).to_bytes(4,byteorder='little')
+        elif op == 1: # write
             if address == T_ADDR:
                 assert data == T_PASS, "Received test fail from bus"
                 self.end_test()
-                return 1
+            elif address == O_ADDR:
+                self.uart_queue.put_nowait(data & 0xFF)
+                print(f"uart: {repr(chr(data))} {data}")
             else:
                 mask = f"{sel:04b}"
                 for i in range(4):
                     if int(mask[3-i]):
                         self.boot_memory[address+i] = utils.to_bytes(data)[i]
-                return 1
+            return (1).to_bytes(1,byteorder='little')
 
 @cocotb.test(timeout_time=100,timeout_unit="ms")
 async def top_test(dut):
+    SimLog("cocotb").setLevel(logging.DEBUG)
+    elf_path = os.environ['ELF_PATH']
     end_test = Event()
-    test_name = 'bootloader_test'
-    utils.run('make',cwd=sim_dir/f'tests/{test_name}')
-    elf_path = sim_dir/f'tests/{test_name}/{test_name}.elf'
     memory_callback = VirtualMemory(elf_path,lambda end_test=end_test: end_test.set())
-    tb = TopTestbench(dut,memory_callback)
+    tb = TopTestbench(dut,memory_callback,elf_path=elf_path)
     await tb.reset()
     await end_test.wait()
+    buffer = ""
+    while not memory_callback.uart_queue.empty():
+        buffer += chr(memory_callback.uart_queue.get_nowait())
+    if "hello_world" in elf_path:
+        assert buffer == "Hello world 1\nHello world 2\n"
 
 

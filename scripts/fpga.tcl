@@ -7,7 +7,7 @@ foreach RTL_FILE $TOP_RTL {
     yosys read_verilog -I$COPPERV_INCLUDES $RTL_FILE
 }
 
-yosys synth_ecp5 -noccu2 -nomux -nodram
+yosys synth_ecp5 -noccu2
 
 yosys write_verilog -noattr work/top.yosys.v 
 yosys write_json work/top.json
