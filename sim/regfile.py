@@ -25,6 +25,8 @@ class RegFileWriteTransaction:
     def __str__(self):
         data = f'0x{self.data:X}' if self.data is not None else None
         return f'RegFileWriteTransaction(reg={self.reg_name}, data={data})'
+    def __repr__(self):
+        return str(self)
 
 @dataclasses.dataclass
 class RegFileReadTransaction:

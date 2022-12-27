@@ -26,6 +26,7 @@ module copperv (
     output reg [`BUS_WIDTH-1:0] dw_addr,
     output reg [(`BUS_WIDTH/8)-1:0] dw_strobe
 );
+parameter pc_init = 0;
 // idecoder begin
 wire [`IMM_WIDTH-1:0] imm;
 wire [`FUNCT_WIDTH-1:0] funct;
@@ -81,7 +82,7 @@ reg [(`BUS_WIDTH/8)-1:0] write_strobe;
 // datapath end
 always @(posedge clk) begin
     if (!rst) begin
-        pc <= `PC_INIT;
+        pc <= pc_init;
     end else if(pc_en) begin
         pc <= pc_next;
     end

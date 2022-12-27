@@ -18,7 +18,7 @@ setup: .venv sim/verilog_testbench/include/magic_constants_h.v sim/magic_constan
 	$(WITH_VENV) pip install -r requirements.txt
 
 work/sim/result.xml: $(RTL_SOURCES) $(shell find ./sim -name '*.py') | setup
-	$(WITH_VENV) pytest -v -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS)
+	$(WITH_VENV) pytest -n $(shell nproc) --junitxml="$@" $(PYTEST_OPTS) --durations=0
 
 work/top.json: $(RTL_SOURCES) scripts/fpga.tcl | setup
 	yosys -c scripts/fpga.tcl |& tee work/logs/yosys_fpga.log

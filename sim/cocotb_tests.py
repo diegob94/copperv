@@ -226,9 +226,9 @@ class Wb2uartTestbench:
 async def wb2uart_read_test(dut):
     """ Wishbone to UART adapter read test """
     op = 0
-    data = 101
-    addr = 123
-    resp_callback = lambda op,addr,data,sel,_data=data: _data
+    data = int(os.environ['TEST_DATA'])
+    addr = int(os.environ['TEST_ADDR'])
+    resp_callback = lambda op,addr,data,sel,_data=data: _data.to_bytes(4, byteorder='little')
     tb = Wb2uartTestbench(dut,resp_callback)
     await tb.reset()
     tb.send_wb(WBOp(adr=addr))
@@ -246,7 +246,7 @@ async def wb2uart_write_test(dut):
     addr = 123
     sel = 0b0100
     ack = 1
-    resp_callback = lambda op,addr,data,sel,_ack=ack: _ack
+    resp_callback = lambda op,addr,data,sel,_ack=ack: _ack.to_bytes(1, byteorder='little')
     tb = Wb2uartTestbench(dut,resp_callback)
     await tb.reset()
     tb.send_wb(WBOp(adr=addr,dat=data,sel=sel))
@@ -276,17 +276,15 @@ class TopTestbench:
         self._reset.value = 0
 
 class VirtualMemory:
-    def __init__(self,elf_path,end_test_callback):
+    def __init__(self,boot_memory,app_memory,end_test_callback):
         self.log = SimLog(f"cocotb.{type(self).__qualname__}")
         self.end_test = end_test_callback
         self.BOOTLOADER_SIZE = APP_START_ADDR
-        imem,dmem = process_elf(elf_path)
-        boot_elf = read_elf(elf_path,sections=['.boot'])
-        self.boot_memory = elf_to_memory(boot_elf)
-        self.app_memory = {**imem,**dmem}
         self.first_word = True
         self.bootloader_offset = self.BOOTLOADER_SIZE
         self.uart_queue = Queue()
+        self.boot_memory = boot_memory
+        self.app_memory = app_memory
     def __str__(self):
         return f"VirtualMemory: boot size = {len(self.boot_memory)} / app size = {len(self.app_memory)}"
     def __call__(self,op,address,data,sel):
@@ -317,8 +315,12 @@ class VirtualMemory:
 async def top_test(dut):
     SimLog("cocotb").setLevel(logging.DEBUG)
     elf_path = os.environ['ELF_PATH']
+    imem,dmem = process_elf(elf_path)
+    boot_elf = read_elf(elf_path,sections=['.boot'])
+    boot_memory = elf_to_memory(boot_elf)
+    app_memory = {**imem,**dmem}
     end_test = Event()
-    memory_callback = VirtualMemory(elf_path,lambda end_test=end_test: end_test.set())
+    memory_callback = VirtualMemory(boot_memory,app_memory,lambda end_test=end_test: end_test.set())
     tb = TopTestbench(dut,memory_callback,elf_path=elf_path)
     await tb.reset()
     await end_test.wait()
@@ -328,4 +330,24 @@ async def top_test(dut):
     if "hello_world" in elf_path:
         assert buffer == "Hello world 1\nHello world 2\n"
 
+@cocotb.test(timeout_time=100,timeout_unit="ms")
+async def top_test_bootloader_return_zero(dut):
+    SimLog("cocotb").setLevel(logging.DEBUG)
+    elf_path = os.environ['ELF_PATH']
+    imem,dmem = process_elf(elf_path)
+    boot_elf = read_elf(elf_path,sections=['.boot'])
+    boot_memory = elf_to_memory(boot_elf)
+    i_end_addr = max(list(imem.keys()))
+    dmem = {
+        i_end_addr+1:0x00,
+        i_end_addr+2:0x00,
+        i_end_addr+3:0x00,
+        i_end_addr+4:0x00,
+    }
+    app_memory = {**imem,**dmem}
+    end_test = Event()
+    memory_callback = VirtualMemory(boot_memory,app_memory,lambda end_test=end_test: end_test.set())
+    tb = TopTestbench(dut,memory_callback,elf_path=elf_path)
+    await tb.reset()
+    await end_test.wait()
 

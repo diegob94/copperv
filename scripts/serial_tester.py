@@ -6,6 +6,7 @@ import serial
 import cocotb_utils as utils
 from cocotb_utils import BOOTLOADER_MAGIC_ADDR
 from cocotb_tests import VirtualMemory
+from riscv_utils import PcMonitor, StackMonitor, compile_instructions, parse_data_memory, compile_riscv_test, process_elf, read_elf, elf_to_memory
 
 test_name = 'hello_world'
 #test_name = 'bootloader_test'
@@ -15,10 +16,14 @@ def end_test():
     test_passed = True
 
 test_passed = False
-r = utils.run('make BOOTLOADER=1',cwd=sim_dir/f'tests/{test_name}')
+r = utils.run('make clean && make BOOTLOADER=1',cwd=sim_dir/f'tests/{test_name}')
 print(r)
 elf_path = sim_dir/f'tests/{test_name}/{test_name}.elf'
-memory_callback = VirtualMemory(elf_path,end_test)
+imem,dmem = process_elf(elf_path)
+boot_elf = read_elf(elf_path,sections=['.boot'])
+boot_memory = elf_to_memory(boot_elf)
+app_memory = {**imem,**dmem}
+memory_callback = VirtualMemory(boot_memory,app_memory,end_test)
 
 print(memory_callback)
 print("Press button B1 to reset")
@@ -49,6 +54,7 @@ with serial.Serial('/dev/ttyUSB0', 115200) as ser:
             data = receive(ser)
             sel = receive(ser,1)
         resp = memory_callback(op,address,data,sel)
+        resp = int.from_bytes(resp,byteorder='little')
         info = f"transaction: address = 0x{address:X}"
         if op == 1:
             info = "Write " + info + f" data = 0x{data:X} sel = 0x{sel:X}"

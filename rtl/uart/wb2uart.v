@@ -52,7 +52,7 @@ module wb2uart #(
     wire send_done;
     reg [$clog2(write_send_bytes)-1:0] send_bytes;
     reg [$clog2(read_receive_bytes)-1:0] receive_bytes;
-    assign wb_ack = (receive_done ? (rx_buffer != 0) : 0) && wb_cyc;
+    assign wb_ack = receive_done && wb_cyc;
     assign wb_datrd = receive_done ? rx_buffer : 0;
     always @(posedge clock)
         if(wb_stb && wb_cyc) begin

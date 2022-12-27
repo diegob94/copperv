@@ -18,6 +18,8 @@ module wb_copperv #(
     output                    wb_cyc,
     output [strobe_width-1:0] wb_sel
 );
+    
+    parameter pc_init = 0;
 
     wire ir_data_valid;
     wire ir_addr_ready;
@@ -99,7 +101,7 @@ module wb_copperv #(
         end
     end
 
-    copperv core(
+    copperv #(.pc_init(pc_init)) core (
         .clk(clock),
         .rst(!reset),
         .ir_data_valid(ir_data_valid),

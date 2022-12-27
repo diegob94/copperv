@@ -39,17 +39,38 @@ def test_top_skip_bootloader(request):
     run(**common_run_opts,
         sim_build = sim_dir/request.node.name,
         testcase = "top_test",
+        extra_env = {"ELF_PATH":elf_path},
         plus_args = [f"+HEX_FILE={hex_path}"],
-        extra_env = {"ELF_PATH":elf_path}
+        parameters = dict(pc_init=0x1000),
     )
 
+@pytest.mark.skip(reason="Runtime, need to test bootloader...")
 def test_top(request):
+    test_name = 'bootloader_test'
+    test_dir = sim_dir/f'tests/{test_name}'
+    r = utils.run('make',cwd=test_dir)
+    print(r)
+    elf_path = test_dir/f'{test_name}.elf'
     run(**common_run_opts,
         sim_build = sim_dir/request.node.name,
         testcase = "top_test",
+        extra_env = {"ELF_PATH":elf_path},
     )
 
-@pytest.mark.skip(reason="Too much runtime")
+@pytest.mark.skip(reason="Runtime and should be covered by wb2uart read test")
+def test_top_bootloader_return_zero(request):
+    test_name = 'bootloader_test'
+    test_dir = sim_dir/f'tests/{test_name}'
+    r = utils.run('make',cwd=test_dir)
+    print(r)
+    elf_path = test_dir/f'{test_name}.elf'
+    run(**common_run_opts,
+        sim_build = sim_dir/request.node.name,
+        testcase = "top_test_bootloader_return_zero",
+        extra_env = {"ELF_PATH":elf_path},
+    )
+
+@pytest.mark.skip(reason="Runtime, is this test really useful?")
 def test_top_fpga_fe(request):
     common_run_opts["verilog_sources"] = [timescale_fix(root_dir/"work/top.yosys.v"), utils.run("yosys-config --datdir/ecp5/cells_sim.v")]
     common_run_opts["includes"] = [utils.run("yosys-config --datdir/ecp5")]

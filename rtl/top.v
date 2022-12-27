@@ -11,6 +11,7 @@ module top (
 parameter bus_width = `BUS_WIDTH;
 parameter sel_width = bus_width/8;
 parameter clk_per_bit = 217; //115200 @25MHz
+parameter pc_init = 0;
 
 wire [bus_width-1:0] wb_cpu_adr;
 wire [bus_width-1:0] wb_cpu_datwr;
@@ -41,7 +42,8 @@ wire [sel_width-1:0] wb_sram_sel;
 
 wb_copperv #(
     .addr_width(bus_width),
-    .data_width(bus_width)
+    .data_width(bus_width),
+    .pc_init(pc_init)
 ) cpu (
     .clock(clock),
     .reset(reset),
