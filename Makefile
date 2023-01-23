@@ -10,10 +10,11 @@ include scripts/variables.mk
 .PHONY: setup
 setup: .venv sim/verilog_testbench/include/magic_constants_h.v sim/magic_constants.toml sim/tests/common/magic_constants.h rtl/files.toml scripts/rtl_sources.tcl
 	mkdir -p work/logs
-	git submodule update --init
+	test -d .git && git submodule update --init || true
 
 .venv:
 	$(PYTHON) -m venv .venv
+	$(WITH_VENV) pip install --upgrade pip
 	$(WITH_VENV) pip install wheel
 	$(WITH_VENV) pip install -r requirements.txt
 

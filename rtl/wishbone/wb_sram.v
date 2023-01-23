@@ -14,7 +14,7 @@ module wb_sram #(
     output [data_width-1:0]   wb_datrd,
     input                     wb_we,
     input                     wb_stb,
-    output                    wb_ack,
+    output reg                wb_ack,
     input                     wb_cyc,
     input  [strobe_width-1:0] wb_sel
 );
@@ -23,8 +23,6 @@ module wb_sram #(
         `include "formal/wb_sram.v"
     `endif
 
-    wire [data_width-1:0] wb_datrd;
-    reg wb_ack;
     wire en_sram;
 
     assign en_sram = (wb_stb && wb_cyc) && !wb_ack;

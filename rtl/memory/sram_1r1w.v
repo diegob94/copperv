@@ -3,13 +3,13 @@ module sram_1r1w #(
     parameter addr_width = 8, // dynamic
     parameter mask_width = data_width/8 // fixed
 ) (
-    input                    clock,
-    input                    wen,
-    input                    en,
-    input  [mask_width-1:0]  wmask,
-    input  [addr_width-1:0]  addr,
-    input  [data_width-1:0]  din,
-    output [data_width-1:0]  dout
+    input                       clock,
+    input                       wen,
+    input                       en,
+    input      [mask_width-1:0] wmask,
+    input      [addr_width-1:0] addr,
+    input      [data_width-1:0] din,
+    output reg [data_width-1:0] dout
 );
     parameter length = 1 << addr_width;
     parameter byte_length = length * 4;
@@ -38,7 +38,6 @@ module sram_1r1w #(
     `endif
 
     reg [data_width-1:0] mem [length-1:0];
-    reg [data_width-1:0] dout;
 
     always @(posedge clock)
         if(en && wen) begin

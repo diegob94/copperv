@@ -5,22 +5,21 @@ module wb_copperv #(
     parameter addr_width = 4,
     parameter data_width = 8,
     parameter strobe_width = addr_width/8,
-    parameter resp_width = 1
+    parameter resp_width = 1,
+    parameter pc_init = 0
 ) (
-    input                     clock,
-    input                     reset,
-    output [addr_width-1:0]   wb_adr,
-    output [data_width-1:0]   wb_datwr,
-    input  [data_width-1:0]   wb_datrd,
-    output                    wb_we,
-    output                    wb_stb,
-    input                     wb_ack,
-    output                    wb_cyc,
-    output [strobe_width-1:0] wb_sel
+    input                         clock,
+    input                         reset,
+    output reg [addr_width-1:0]   wb_adr,
+    output reg [data_width-1:0]   wb_datwr,
+    input  [data_width-1:0]       wb_datrd,
+    output reg                    wb_we,
+    output reg                    wb_stb,
+    input                         wb_ack,
+    output reg                    wb_cyc,
+    output reg [strobe_width-1:0] wb_sel
 );
     
-    parameter pc_init = 0;
-
     wire ir_data_valid;
     wire ir_addr_ready;
     wire [data_width-1:0] ir_data;
@@ -41,13 +40,6 @@ module wb_copperv #(
     wire [data_width-1:0] dw_data;
     wire [addr_width-1:0] dw_addr;
     wire [strobe_width-1:0] dw_strobe;
-
-    reg [addr_width-1:0]   wb_adr;
-    reg [data_width-1:0]   wb_datwr;
-    reg                    wb_we;
-    reg                    wb_stb;
-    reg                    wb_cyc;
-    reg [strobe_width-1:0] wb_sel;
 
     wire [addr_width-1:0]   d_wb_adr;
     wire [data_width-1:0]   d_wb_datwr;
