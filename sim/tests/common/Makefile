@@ -44,6 +44,9 @@ endif
 %.hex: %.elf
 	$(OBJCOPY) -O verilog $< $@
 
+%.bin: %.elf
+	$(OBJCOPY) -O binary $< $@
+
 .PHONY: clean
 clean:
 	rm -fv *.o *.elf *.debug *.E *.hex
