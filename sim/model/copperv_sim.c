@@ -5,10 +5,14 @@
 
 #define SIM_OK 0
 #define IDECODE_ERROR 1
+#define EXECUTE_ERROR 2
 
+#define RETURN_IF_ERROR(x) if (x != SIM_OK) return x;
 #define REPLICATE_BIT(x, n) (x ? 0 : ((1 << 12) - 1))
-#define GET_BITS(x, i, j) (((x) >> (i)) & ((1 << j) - 1))
+#define GET_BITS(x, j, i) (((x) >> (i)) & ((1 << (j + 1)) - 1))
 #define GET_BIT(x, n) (((x) >> (n)) & 1)
+#define GENERATE_ENUM(ENUM) ENUM,
+#define GENERATE_STRING(STRING) #STRING,
 
 #define OPCODE_LOAD        ((0x00<<2) | 0b11)
 #define OPCODE_FENCE       ((0x03<<2) | 0b11)
@@ -21,42 +25,69 @@
 #define OPCODE_JALR        ((0x19<<2) | 0b11)
 #define OPCODE_JAL         ((0x1B<<2) | 0b11)
 
-#define INST_TYPE_IMM      0
-#define INST_TYPE_INT_IMM  1
-#define INST_TYPE_INT_REG  2
-#define INST_TYPE_BRANCH   3
-#define INST_TYPE_STORE    4
-#define INST_TYPE_JAL      5
-#define INST_TYPE_AUIPC    6
-#define INST_TYPE_JALR     7
-#define INST_TYPE_LOAD     8
-#define INST_TYPE_FENCE    9
+#define FOREACH_INST_TYPE(FUNC) \
+        FUNC(INST_TYPE_IMM) \
+        FUNC(INST_TYPE_INT_IMM) \
+        FUNC(INST_TYPE_INT_REG) \
+        FUNC(INST_TYPE_BRANCH) \
+        FUNC(INST_TYPE_STORE) \
+        FUNC(INST_TYPE_JAL) \
+        FUNC(INST_TYPE_AUIPC) \
+        FUNC(INST_TYPE_JALR) \
+        FUNC(INST_TYPE_LOAD) \
+        FUNC(INST_TYPE_FENCE) \
 
-#define FUNCT_ADD          0
-#define FUNCT_SUB          1
-#define FUNCT_AND          2
-#define FUNCT_EQ           3
-#define FUNCT_NEQ          4
-#define FUNCT_LT           5
-#define FUNCT_GTE          6
-#define FUNCT_LTU          7
-#define FUNCT_GTEU         8
-#define FUNCT_MEM_BYTE     9
-#define FUNCT_MEM_HWORD    10
-#define FUNCT_MEM_WORD     11
-#define FUNCT_MEM_BYTEU    12
-#define FUNCT_MEM_HWORDU   13
-#define FUNCT_JAL          14
-#define FUNCT_SLL          15
-#define FUNCT_SLT          16
-#define FUNCT_SLTU         17
-#define FUNCT_XOR          18
-#define FUNCT_SRL          19
-#define FUNCT_SRA          20
-#define FUNCT_OR           21
+typedef enum {
+    FOREACH_INST_TYPE(GENERATE_ENUM)
+} inst_type_e;
+
+static const char *inst_type_e_string[] = {
+    FOREACH_INST_TYPE(GENERATE_STRING)
+};
+
+#define FOREACH_FUNCT(FUNC) \
+        FUNC(FUNCT_ADD) \
+        FUNC(FUNCT_SUB) \
+        FUNC(FUNCT_AND) \
+        FUNC(FUNCT_EQ) \
+        FUNC(FUNCT_NEQ) \
+        FUNC(FUNCT_LT) \
+        FUNC(FUNCT_GTE) \
+        FUNC(FUNCT_LTU) \
+        FUNC(FUNCT_GTEU) \
+        FUNC(FUNCT_MEM_BYTE) \
+        FUNC(FUNCT_MEM_HWORD) \
+        FUNC(FUNCT_MEM_WORD) \
+        FUNC(FUNCT_MEM_BYTEU) \
+        FUNC(FUNCT_MEM_HWORDU) \
+        FUNC(FUNCT_JAL) \
+        FUNC(FUNCT_SLL) \
+        FUNC(FUNCT_SLT) \
+        FUNC(FUNCT_SLTU) \
+        FUNC(FUNCT_XOR) \
+        FUNC(FUNCT_SRL) \
+        FUNC(FUNCT_SRA) \
+        FUNC(FUNCT_OR) \
+
+typedef enum {
+    FOREACH_FUNCT(GENERATE_ENUM)
+} funct_e;
+
+static const char *funct_e_string[] = {
+    FOREACH_FUNCT(GENERATE_STRING)
+};
 
 #define FUNCT3_WIDTH       3
 #define FUNCT7_WIDTH       7
+
+const char * get_status_string(int status) {
+    switch (status) {
+        case SIM_OK: return "SIM_OK";
+        case IDECODE_ERROR: return "IDECODE_ERROR";
+        case EXECUTE_ERROR: return "EXECUTE_ERROR";
+    }
+    return "UNKNOWN_STATUS";
+}
 
 typedef uint32_t instruction_t;
 
@@ -69,14 +100,32 @@ typedef struct {
 typedef struct {
     instruction_t instruction;
     int imm; 
-    int inst_type; 
+    inst_type_e inst_type; 
     int rd; 
     int rs1; 
     int rs2; 
-    int funct;
+    funct_e funct;
     int funct3;
     int funct7;
 } instruction_s;
+
+void get_instruction_s_string(instruction_s decoded_instruction, char *buffer) {
+    const char *format = "instruction_s:\n"
+        "  instruction = 0x%08X\n"
+        "  imm = 0x%08X\n"
+        "  inst_type = %s\n"
+        "  rd = %d\n"
+        "  rs1 = %d\n"
+        "  rs2 = %d\n"
+        "  funct = %s";
+    sprintf(buffer, format, decoded_instruction.instruction, \
+            decoded_instruction.imm, \
+            inst_type_e_string[decoded_instruction.inst_type], \
+            decoded_instruction.rd, \
+            decoded_instruction.rs1, \
+            decoded_instruction.rs2, \
+            funct_e_string[decoded_instruction.funct]);
+}
 
 size_t get_memory_length(cpu_state_s *state){
     return sizeof(state->memory);
@@ -277,8 +326,9 @@ int decode_s_type(instruction_t instruction, instruction_s *decoded_instruction)
 }
 
 int decode(instruction_t instruction, instruction_s *decoded_instruction) {
+    printf("> decode\n");
     int opcode = GET_BITS(instruction,6,0);
-    decoded_instruction->instruction = 0;
+    decoded_instruction->instruction = instruction;
     decoded_instruction->imm = 0;
     decoded_instruction->inst_type = 0;
     decoded_instruction->rd = 0;
@@ -287,6 +337,7 @@ int decode(instruction_t instruction, instruction_s *decoded_instruction) {
     decoded_instruction->funct = 0;
     decoded_instruction->funct3 = 0;
     decoded_instruction->funct7 = 0;
+    printf("decode: opcode = 0x%X\n", opcode);
     switch (opcode) {
         case OPCODE_LUI:
             decoded_instruction->inst_type = INST_TYPE_IMM;
@@ -332,6 +383,9 @@ int decode(instruction_t instruction, instruction_s *decoded_instruction) {
         default:
             return IDECODE_ERROR;
     }
+    char buf[1024];
+    get_instruction_s_string(*decoded_instruction,buf);
+    printf("%s\n",buf);
     return SIM_OK;
 }
 
@@ -341,23 +395,35 @@ typedef struct {
 } mem_buffer_s;
 
 int fetch(uint32_t program_counter, const char *imemory, instruction_t *instruction) {
+    printf("> fetch\n");
     *instruction = (imemory[program_counter+3]<<24) \
         | (imemory[program_counter+2]<<16) \
         | (imemory[program_counter+1]<<8) \
         | imemory[program_counter];
-    printf("Fetch: program_counter = %d -> 0x%08X\n",program_counter,*instruction);
+    printf("fetch: program_counter = %d -> 0x%08X\n",program_counter,*instruction);
     return SIM_OK;
+}
+
+int execute(instruction_s decoded_instruction, uint32_t *regfile, uint32_t program_counter, mem_buffer_s *read_buffer, mem_buffer_s *write_buffer) {
+    printf("> execute\n");
+    return EXECUTE_ERROR;
+}
+
+int commit(instruction_s decoded_instruction, unsigned char * memory, mem_buffer_s *read_buffer, mem_buffer_s *write_buffer) {
 }
 
 int sim_step(const char *imemory, cpu_state_s *state) {
     mem_buffer_s read_buffer;
     mem_buffer_s write_buffer;
     instruction_t instruction;
-    instruction_s decoded_instruction; 
+    instruction_s decoded_instruction;
+    int status = SIM_OK;
     // Processor stages:
     fetch(state->program_counter, imemory, &instruction);
-    decode(instruction, &decoded_instruction);
-    execute(decoded_instruction, state->regfile, state->program_counter, &read_buffer, &write_buffer);
+    status = decode(instruction, &decoded_instruction);
+    RETURN_IF_ERROR(status);
+    status = execute(decoded_instruction, state->regfile, state->program_counter, &read_buffer, &write_buffer);
+    RETURN_IF_ERROR(status);
     commit(decoded_instruction, state->memory, &read_buffer, &write_buffer);
     state->program_counter = state->program_counter + 4;
     return SIM_OK;
@@ -371,6 +437,7 @@ void sim_main(const char *buffer, size_t buffer_size) {
     while (status == SIM_OK) {
         status = sim_step(buffer,&state);
     }
+    printf("last status = %s\n", get_status_string(status));
 }
 
 FILE *ptr;
