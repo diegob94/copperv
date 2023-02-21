@@ -7,12 +7,13 @@
 #define IDECODE_ERROR 1
 #define EXECUTE_ERROR 2
 
-#define RETURN_IF_ERROR(x) if (x != SIM_OK) return x;
-#define REPLICATE_BIT(x, n) (x ? 0 : ((1 << 12) - 1))
-#define GET_BITS(x, j, i) (((x) >> (i)) & ((1 << (j + 1)) - 1))
+#define RETURN_IF_ERROR(x) if ((x) != SIM_OK) return (x);
+#define REPLICATE_BIT(x, n) ((x) ? ((1 << (n)) - 1) : 0)
+#define GET_BITS(x, j, i) (((x) >> (i)) & REPLICATE_BIT(1, ((j)-(i))+1))
 #define GET_BIT(x, n) (((x) >> (n)) & 1)
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
+#define PRINTVAR(x) printf("debug: "#x" = 0x%X\n",(x))
 
 #define OPCODE_LOAD        ((0x00<<2) | 0b11)
 #define OPCODE_FENCE       ((0x03<<2) | 0b11)
@@ -112,7 +113,7 @@ typedef struct {
 void get_instruction_s_string(instruction_s decoded_instruction, char *buffer) {
     const char *format = "instruction_s:\n"
         "  instruction = 0x%08X\n"
-        "  imm = 0x%08X\n"
+        "  imm = 0x%X\n"
         "  inst_type = %s\n"
         "  rd = %d\n"
         "  rs1 = %d\n"
@@ -394,7 +395,7 @@ typedef struct {
     int address;
 } mem_buffer_s;
 
-int fetch(uint32_t program_counter, const char *imemory, instruction_t *instruction) {
+int fetch(uint32_t program_counter, const unsigned char *imemory, instruction_t *instruction) {
     printf("> fetch\n");
     *instruction = (imemory[program_counter+3]<<24) \
         | (imemory[program_counter+2]<<16) \
@@ -404,9 +405,60 @@ int fetch(uint32_t program_counter, const char *imemory, instruction_t *instruct
     return SIM_OK;
 }
 
-int execute(instruction_s decoded_instruction, uint32_t *regfile, uint32_t program_counter, mem_buffer_s *read_buffer, mem_buffer_s *write_buffer) {
+void regfile_write(uint32_t *regfile, int rd, int value) {
+    printf("regfile_write: register = %d data = 0x%X\n",rd,value);
+    if (rd != 0) {
+        regfile[rd] = value;
+    }
+}
+
+int execute(instruction_s decoded_instruction, uint32_t *regfile, uint32_t *program_counter, mem_buffer_s *read_buffer, mem_buffer_s *write_buffer) {
     printf("> execute\n");
-    return EXECUTE_ERROR;
+    int alu_res;
+    switch (decoded_instruction.inst_type) {
+        case INST_TYPE_IMM:
+            *program_counter = *program_counter + 4;
+            return EXECUTE_ERROR;
+            break;
+        case INST_TYPE_INT_IMM:
+            *program_counter = *program_counter + 4;
+            return EXECUTE_ERROR;
+            break;
+        case INST_TYPE_INT_REG:
+            *program_counter = *program_counter + 4;
+            return EXECUTE_ERROR;
+            break;
+        case INST_TYPE_BRANCH:
+            *program_counter = *program_counter + 4;
+            return EXECUTE_ERROR;
+            break;
+        case INST_TYPE_STORE:
+            *program_counter = *program_counter + 4;
+            return EXECUTE_ERROR;
+            break;
+        case INST_TYPE_JAL:
+            alu_res = *program_counter + 4;
+            *program_counter = decoded_instruction.imm;
+            regfile_write(regfile,decoded_instruction.rd,alu_res);
+            break;
+        case INST_TYPE_AUIPC:
+            *program_counter = *program_counter + 4;
+            return EXECUTE_ERROR;
+            break;
+        case INST_TYPE_JALR:
+            *program_counter = *program_counter + 4;
+            return EXECUTE_ERROR;
+            break;
+        case INST_TYPE_LOAD:
+            *program_counter = *program_counter + 4;
+            return EXECUTE_ERROR;
+            break;
+        case INST_TYPE_FENCE:
+            *program_counter = *program_counter + 4;
+            return EXECUTE_ERROR;
+            break;
+    }
+    return SIM_OK;
 }
 
 int commit(instruction_s decoded_instruction, unsigned char * memory, mem_buffer_s *read_buffer, mem_buffer_s *write_buffer) {
@@ -422,14 +474,29 @@ int sim_step(const char *imemory, cpu_state_s *state) {
     fetch(state->program_counter, imemory, &instruction);
     status = decode(instruction, &decoded_instruction);
     RETURN_IF_ERROR(status);
-    status = execute(decoded_instruction, state->regfile, state->program_counter, &read_buffer, &write_buffer);
+    status = execute(decoded_instruction, state->regfile, &state->program_counter, &read_buffer, &write_buffer);
     RETURN_IF_ERROR(status);
     commit(decoded_instruction, state->memory, &read_buffer, &write_buffer);
-    state->program_counter = state->program_counter + 4;
     return SIM_OK;
 }
 
 void sim_main(const char *buffer, size_t buffer_size) {
+    // TODO: regression this:
+    // test1
+    //PRINTVAR(GET_BITS(12, 3, 2));
+    //PRINTVAR(GET_BITS(0x106F, 11, 7));
+    //debug: GET_BITS(12, 3, 2) = 0x3
+    //debug: GET_BITS(0x106F, 11, 7) = 0x0
+    //
+    // test2
+    //instruction_s:
+    //  instruction = 0x0000106F
+    //  imm = 0x1000
+    //  inst_type = INST_TYPE_JAL
+    //  rd = 0
+    //  rs1 = 0
+    //  rs2 = 0
+    //  funct = FUNCT_ADD
     instruction_t instruction;
     cpu_state_s state;
     reset_state(&state);
