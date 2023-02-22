@@ -8,7 +8,7 @@ EXEC = copperv_sim
 all: $(EXEC) $(TEST_BIN)
 	./$(EXEC) $(TEST_BIN)
 
-$(EXEC): copperv_sim.c
+$(EXEC): copperv_sim.c idecode.c
 
 $(TEST_BIN):
 	$(MAKE) -C $(TEST_DIR) $(notdir $(TEST_BIN))
