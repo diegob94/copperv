@@ -1,11 +1,6 @@
 
 #include <stdint.h>
 
-#define SIM_OK        0
-#define IDECODE_ERROR 1
-#define EXECUTE_ERROR 2
-#define ALU_ERROR     3
-
 #define RETURN_IF_ERROR(x) if ((x) != SIM_OK) return (x);
 #define REPLICATE_BIT(x, n) ((x) ? ((1 << (n)) - 1) : 0)
 #define GET_BITS(x, j, i) (((x) >> (i)) & REPLICATE_BIT(1, ((j)-(i))+1))
@@ -13,6 +8,22 @@
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
 #define PRINTVAR(x) printf("debug: "#x" = 0x%X\n",(x))
+
+#define FOREACH_SIM_STATUS(FUNC) \
+        FUNC(SIM_OK) \
+        FUNC(IDECODE_ERROR) \
+        FUNC(EXECUTE_ERROR) \
+        FUNC(ALU_ERROR) \
+        FUNC(COMMIT_ERROR) \
+        FUNC(MEMORY_ERROR) \
+
+typedef enum {
+    FOREACH_SIM_STATUS(GENERATE_ENUM)
+} sim_status_e;
+
+static const char *sim_status_e_string[] = {
+    FOREACH_SIM_STATUS(GENERATE_STRING)
+};
 
 #define OPCODE_LOAD        ((0x00<<2) | 0b11)
 #define OPCODE_FENCE       ((0x03<<2) | 0b11)
@@ -104,6 +115,8 @@ typedef struct {
 typedef struct {
     int data;
     int address;
+    int flag;
+    int bytes;
 } mem_buffer_s;
 
 void get_instruction_s_string(instruction_s, char *);

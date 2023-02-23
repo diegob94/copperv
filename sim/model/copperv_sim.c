@@ -5,16 +5,6 @@
 
 #include "copperv_sim.h"
 
-const char * get_status_string(int status) {
-    switch (status) {
-        case SIM_OK: return "SIM_OK";
-        case IDECODE_ERROR: return "IDECODE_ERROR";
-        case EXECUTE_ERROR: return "EXECUTE_ERROR";
-        case ALU_ERROR: return "ALU_ERROR";
-    }
-    return "UNKNOWN_STATUS";
-}
-
 size_t get_memory_length(cpu_state_s *state){
     return sizeof(state->memory);
 }
@@ -140,8 +130,24 @@ int execute(instruction_s decoded_instruction, uint32_t *regfile, uint32_t *prog
             return EXECUTE_ERROR;
             break;
         case INST_TYPE_STORE:
+            regfile_read(regfile,decoded_instruction.rs1,&rs1_res,decoded_instruction.rs2,&rs2_res);
             *program_counter = *program_counter + 4;
-            return EXECUTE_ERROR;
+            RETURN_IF_ERROR(alu(FUNCT_ADD,rs1_res,decoded_instruction.imm,&alu_res));
+            write_buffer->flag = 1;
+            write_buffer->address = alu_res;
+            switch (decoded_instruction.funct) {
+                case FUNCT_MEM_BYTE:
+                    write_buffer->data = GET_BITS(rs2_res, 7, 0);
+                    break;
+                case FUNCT_MEM_HWORD:
+                    write_buffer->data = GET_BITS(rs2_res, 15, 0);
+                    break;
+                case FUNCT_MEM_WORD:
+                    write_buffer->data = rs2_res;
+                    break;
+                default:
+                    return EXECUTE_ERROR;
+            }
             break;
         case INST_TYPE_JAL:
             RETURN_IF_ERROR(alu(decoded_instruction.funct,*program_counter,4,&alu_res));
@@ -169,22 +175,27 @@ int execute(instruction_s decoded_instruction, uint32_t *regfile, uint32_t *prog
     return SIM_OK;
 }
 
-int commit(instruction_s decoded_instruction, unsigned char * memory, mem_buffer_s *read_buffer, mem_buffer_s *write_buffer) {
+int write_memory(unsigned char * memory, uint32_t address, uint32_t data, size_t bytes) {
+    return MEMORY_ERROR;
 }
 
-int sim_step(const char *imemory, cpu_state_s *state) {
+int commit(instruction_s decoded_instruction, unsigned char * memory, mem_buffer_s *read_buffer, mem_buffer_s *write_buffer) {
+    if(write_buffer->flag){
+        RETURN_IF_ERROR(write_memory(memory,write_buffer->address,write_buffer->data,write_buffer->bytes));
+    }
+    return SIM_OK;
+}
+
+int sim_step(const unsigned char *imemory, cpu_state_s *state) {
     mem_buffer_s read_buffer;
     mem_buffer_s write_buffer;
     instruction_t instruction;
     instruction_s decoded_instruction;
-    int status = SIM_OK;
     // Processor stages:
-    fetch(state->program_counter, imemory, &instruction);
-    status = decode(instruction, &decoded_instruction);
-    RETURN_IF_ERROR(status);
-    status = execute(decoded_instruction, state->regfile, &state->program_counter, &read_buffer, &write_buffer);
-    RETURN_IF_ERROR(status);
-    commit(decoded_instruction, state->memory, &read_buffer, &write_buffer);
+    RETURN_IF_ERROR(fetch(state->program_counter, imemory, &instruction));
+    RETURN_IF_ERROR(decode(instruction, &decoded_instruction));
+    RETURN_IF_ERROR(execute(decoded_instruction, state->regfile, &state->program_counter, &read_buffer, &write_buffer));
+    RETURN_IF_ERROR(commit(decoded_instruction, state->memory, &read_buffer, &write_buffer));
     return SIM_OK;
 }
 
@@ -212,7 +223,7 @@ void sim_main(const char *buffer, size_t buffer_size) {
     while (status == SIM_OK) {
         status = sim_step(buffer,&state);
     }
-    printf("last status = %s\n", get_status_string(status));
+    printf("last status = %s\n", sim_status_e_string[status]);
 }
 
 FILE *ptr;
