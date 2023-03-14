@@ -1,7 +1,7 @@
 
 #include <stdint.h>
 
-#define RETURN_IF_ERROR(x) if ((x) != SIM_OK) return (x);
+#define RETURN_IF_ERROR(x) {int status = SIM_OK; if ((status = (x)) != SIM_OK) return status;}
 #define REPLICATE_BIT(x, n) ((x) ? ((1 << (n)) - 1) : 0)
 #define GET_BITS(x, j, i) (((x) >> (i)) & REPLICATE_BIT(1, ((j)-(i))+1))
 #define GET_BIT(x, n) (((x) >> (n)) & 1)
@@ -95,7 +95,7 @@ static const char *funct_e_string[] = {
 typedef uint32_t instruction_t;
 
 typedef struct {
-  uint8_t memory[4096];
+  uint8_t memory[16384];
   uint32_t regfile[32];
   uint32_t program_counter;
 } cpu_state_s;
@@ -116,8 +116,18 @@ typedef struct {
     int data;
     int address;
     int flag;
-    int bytes;
+    int mask;
 } mem_buffer_s;
+
+typedef struct {
+    uint32_t op1;
+    uint32_t op2;
+    uint32_t result;
+    funct_e funct;
+    uint8_t equal;
+    uint8_t less_than;
+    uint8_t less_than_unsigned;
+} alu_s;
 
 void get_instruction_s_string(instruction_s, char *);
 int decode(instruction_t, instruction_s *);

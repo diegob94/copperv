@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -25,7 +26,7 @@ int fetch(uint32_t program_counter, const unsigned char *imemory, instruction_t 
         | (imemory[program_counter+2]<<16) \
         | (imemory[program_counter+1]<<8) \
         | imemory[program_counter];
-    printf("fetch: program_counter = %d -> 0x%08X\n",program_counter,*instruction);
+    printf("fetch: program_counter = 0x%08X -> 0x%08X\n",program_counter,*instruction);
     return SIM_OK;
 }
 
@@ -57,55 +58,76 @@ void regfile_read(uint32_t *regfile, int rs1, uint32_t *value1, int rs2, uint32_
     printf("%s%s\n",buf1,buf2);
 }
 
-int alu(funct_e funct, uint32_t op1, uint32_t op2, uint32_t *res) {
+void get_alu_s_string(alu_s res, char *buffer) {
+    const char *format = "alu_s:\n"
+        "  op1 = 0x%08X\n"
+        "  op2 = 0x%08X\n"
+        "  result = 0x%08X\n"
+        "  funct = %s\n"
+        "  equal = %d\n"
+        "  less_than = %d\n"
+        "  less_than_unsigned = %d\n";
+    sprintf(buffer, format, res.op1, \
+            res.op2, \
+            res.result, \
+            funct_e_string[res.funct], \
+            res.equal, \
+            res.less_than, \
+            res.less_than_unsigned);
+}
+
+int alu(funct_e funct, uint32_t op1, uint32_t op2, alu_s *res) {
     uint32_t shift = GET_BITS(op2,5,0);
     int32_t s_op1 = (int32_t)op1;
     int32_t s_op2 = (int32_t)op2;
     switch (funct) {
         case FUNCT_ADD:
-            *res = op1 + op2;
+            res->result = op1 + op2;
             break;
         case FUNCT_SUB:
-            *res = op1 - op2;
+            res->result = op1 - op2;
             break;
         case FUNCT_AND:
-            *res = op1 & op2;
+            res->result = op1 & op2;
             break;
         case FUNCT_OR:
-            *res = op1 | op2;
+            res->result = op1 | op2;
             break;
         case FUNCT_XOR:
-            *res = op1 ^ op2;
+            res->result = op1 ^ op2;
             break;
         case FUNCT_SLL:
-            *res = op1 << shift;
+            res->result = op1 << shift;
             break;
         case FUNCT_SRA:
-            *res = s_op1 >> shift;
+            res->result = s_op1 >> shift;
             break;
         case FUNCT_SRL:
-            *res = op1 >> shift;
+            res->result = op1 >> shift;
             break;
         case FUNCT_SLT:
-            *res = s_op1 < s_op2;
+            res->result = s_op1 < s_op2;
             break;
         case FUNCT_SLTU:
-            *res = op1 < op2;
+            res->result = op1 < op2;
             break;
-        default: return ALU_ERROR;
+        default: return SIM_OK;
     }
-    printf("alu: funct = %s op1 = 0x%X op2 = 0x%X res = 0x%X\n",funct_e_string[funct],op1,op2,*res);
+    res->op1 = op1;
+    res->op2 = op2;
+    res->funct = funct;
+    res->equal = op1 == op2;
+    res->less_than = s_op1 < s_op2;
+    res->less_than_unsigned = op1 < op2;
+    char buf[1024];
+    get_alu_s_string(*res,buf);
+    printf("%s",buf);
     return SIM_OK;
-//always @(*) begin
-//    alu_comp[`ALU_COMP_EQ]  = alu_din1 == alu_din2;
-//    alu_comp[`ALU_COMP_LT]  = $signed(alu_din1) < $signed(alu_din2);
-//    alu_comp[`ALU_COMP_LTU] = alu_din1 < alu_din2;
-//end
 }
 
 int execute(instruction_s decoded_instruction, uint32_t *regfile, uint32_t *program_counter, mem_buffer_s *read_buffer, mem_buffer_s *write_buffer) {
     printf("> execute\n");
-    uint32_t alu_res = 0;
+    alu_s alu_res;
     uint32_t rs1_res = 0;
     uint32_t rs2_res = 0;
     switch (decoded_instruction.inst_type) {
@@ -117,33 +139,64 @@ int execute(instruction_s decoded_instruction, uint32_t *regfile, uint32_t *prog
             regfile_read(regfile,decoded_instruction.rs1,&rs1_res,0,NULL);
             RETURN_IF_ERROR(alu(decoded_instruction.funct,rs1_res,decoded_instruction.imm,&alu_res));
             *program_counter = *program_counter + 4;
-            regfile_write(regfile,decoded_instruction.rd,alu_res);
+            regfile_write(regfile,decoded_instruction.rd,alu_res.result);
             break;
         case INST_TYPE_INT_REG:
             regfile_read(regfile,decoded_instruction.rs1,&rs1_res,decoded_instruction.rs2,&rs2_res);
             RETURN_IF_ERROR(alu(decoded_instruction.funct,rs1_res,rs2_res,&alu_res));
             *program_counter = *program_counter + 4;
-            regfile_write(regfile,decoded_instruction.rd,alu_res);
+            regfile_write(regfile,decoded_instruction.rd,alu_res.result);
             break;
         case INST_TYPE_BRANCH:
+            RETURN_IF_ERROR(alu(decoded_instruction.funct,rs1_res,rs2_res,&alu_res));
+            int take_branch;
+            switch (decoded_instruction.funct) {
+                FUNCT_EQ:
+                    take_branch = alu_res.equal;
+                    break;
+                FUNCT_NEQ:
+                    take_branch = !alu_res.equal;
+                    break;
+                FUNCT_LT:
+                    take_branch = alu_res.less_than;
+                    break;
+                FUNCT_GTE:
+                    take_branch = !alu_res.less_than;
+                    break;
+                FUNCT_LTU:
+                    take_branch = alu_res.less_than_unsigned;
+                    break;
+                FUNCT_GTEU:
+                    take_branch = !alu_res.less_than_unsigned;
+                    break;
+                default:
+                    take_branch = 0;
+                    break;
+            }
             *program_counter = *program_counter + 4;
-            return EXECUTE_ERROR;
+            printf("take_branch = %d\n",take_branch);
+            if (take_branch) {
+                *program_counter = *program_counter + decoded_instruction.imm;
+            }
             break;
         case INST_TYPE_STORE:
             regfile_read(regfile,decoded_instruction.rs1,&rs1_res,decoded_instruction.rs2,&rs2_res);
             *program_counter = *program_counter + 4;
             RETURN_IF_ERROR(alu(FUNCT_ADD,rs1_res,decoded_instruction.imm,&alu_res));
             write_buffer->flag = 1;
-            write_buffer->address = alu_res;
+            write_buffer->address = alu_res.result;
             switch (decoded_instruction.funct) {
                 case FUNCT_MEM_BYTE:
                     write_buffer->data = GET_BITS(rs2_res, 7, 0);
+                    write_buffer->mask = 0xFF;
                     break;
                 case FUNCT_MEM_HWORD:
                     write_buffer->data = GET_BITS(rs2_res, 15, 0);
+                    write_buffer->mask = 0xFFFF;
                     break;
                 case FUNCT_MEM_WORD:
                     write_buffer->data = rs2_res;
+                    write_buffer->mask = 0xFFFFFFFF;
                     break;
                 default:
                     return EXECUTE_ERROR;
@@ -151,13 +204,13 @@ int execute(instruction_s decoded_instruction, uint32_t *regfile, uint32_t *prog
             break;
         case INST_TYPE_JAL:
             RETURN_IF_ERROR(alu(decoded_instruction.funct,*program_counter,4,&alu_res));
-            *program_counter = decoded_instruction.imm;
-            regfile_write(regfile,decoded_instruction.rd,alu_res);
+            *program_counter = *program_counter + decoded_instruction.imm;
+            regfile_write(regfile,decoded_instruction.rd,alu_res.result);
             break;
         case INST_TYPE_AUIPC:
             RETURN_IF_ERROR(alu(decoded_instruction.funct,*program_counter,decoded_instruction.imm,&alu_res));
             *program_counter = *program_counter + 4;
-            regfile_write(regfile,decoded_instruction.rd,alu_res);
+            regfile_write(regfile,decoded_instruction.rd,alu_res.result);
             break;
         case INST_TYPE_JALR:
             *program_counter = *program_counter + 4;
@@ -175,13 +228,28 @@ int execute(instruction_s decoded_instruction, uint32_t *regfile, uint32_t *prog
     return SIM_OK;
 }
 
-int write_memory(unsigned char * memory, uint32_t address, uint32_t data, size_t bytes) {
-    return MEMORY_ERROR;
+int write_memory(unsigned char * memory, uint32_t address, uint32_t data, uint32_t mask) {
+    printf("write_memory: address = 0x%08X data = 0x%08X mask = 0x%08X\n",address,data,mask);
+    if (mask == 0)
+        return MEMORY_ERROR;
+    if (mask & (0xFF << 0)) {
+        memory[address + 0] = GET_BITS(data,7,0);
+    }
+    if (mask & (0xFF << 8)) {
+        memory[address + 1] = GET_BITS(data,15,8);
+    }
+    if (mask & (0xFF << 16)) {
+        memory[address + 2] = GET_BITS(data,23,16);
+    }
+    if (mask & (0xFF << 24)) {
+        memory[address + 3] = GET_BITS(data,31,24);
+    }
+    return SIM_OK;
 }
 
 int commit(instruction_s decoded_instruction, unsigned char * memory, mem_buffer_s *read_buffer, mem_buffer_s *write_buffer) {
     if(write_buffer->flag){
-        RETURN_IF_ERROR(write_memory(memory,write_buffer->address,write_buffer->data,write_buffer->bytes));
+        RETURN_IF_ERROR(write_memory(memory,write_buffer->address,write_buffer->data,write_buffer->mask));
     }
     return SIM_OK;
 }
@@ -189,6 +257,8 @@ int commit(instruction_s decoded_instruction, unsigned char * memory, mem_buffer
 int sim_step(const unsigned char *imemory, cpu_state_s *state) {
     mem_buffer_s read_buffer;
     mem_buffer_s write_buffer;
+    read_buffer.flag = 0;
+    write_buffer.flag = 0;
     instruction_t instruction;
     instruction_s decoded_instruction;
     // Processor stages:
