@@ -132,8 +132,8 @@ int execute(instruction_s decoded_instruction, uint32_t *regfile, uint32_t *prog
     uint32_t rs2_res = 0;
     switch (decoded_instruction.inst_type) {
         case INST_TYPE_IMM:
+            regfile_write(regfile,decoded_instruction.rd,decoded_instruction.imm);
             *program_counter = *program_counter + 4;
-            return EXECUTE_ERROR;
             break;
         case INST_TYPE_INT_IMM:
             regfile_read(regfile,decoded_instruction.rs1,&rs1_res,0,NULL);
@@ -213,12 +213,17 @@ int execute(instruction_s decoded_instruction, uint32_t *regfile, uint32_t *prog
             regfile_write(regfile,decoded_instruction.rd,alu_res.result);
             break;
         case INST_TYPE_JALR:
-            *program_counter = *program_counter + 4;
-            return EXECUTE_ERROR;
+            regfile_read(regfile,decoded_instruction.rs1,&rs1_res,decoded_instruction.rs2,&rs2_res);
+            RETURN_IF_ERROR(alu(FUNCT_ADD,*program_counter,4,&alu_res));
+            regfile_write(regfile,decoded_instruction.rd,alu_res.result);
+            *program_counter = rs1_res + decoded_instruction.imm;
             break;
         case INST_TYPE_LOAD:
+            regfile_read(regfile,decoded_instruction.rs1,&rs1_res,decoded_instruction.rs2,&rs2_res);
             *program_counter = *program_counter + 4;
-            return EXECUTE_ERROR;
+            RETURN_IF_ERROR(alu(FUNCT_ADD,rs1_res,decoded_instruction.imm,&alu_res));
+            read_buffer->flag = 1;
+            read_buffer->address = alu_res.result;
             break;
         case INST_TYPE_FENCE:
             *program_counter = *program_counter + 4;
@@ -247,9 +252,41 @@ int write_memory(unsigned char * memory, uint32_t address, uint32_t data, uint32
     return SIM_OK;
 }
 
-int commit(instruction_s decoded_instruction, unsigned char * memory, mem_buffer_s *read_buffer, mem_buffer_s *write_buffer) {
-    if(write_buffer->flag){
+int read_memory(unsigned char * memory, uint32_t address, uint32_t *data) {
+    printf("read_memory: address = 0x%08X\n",address);
+    *data = (memory[address + 3] << 24) \
+          | (memory[address + 2] << 16) \
+          | (memory[address + 1] << 8) \
+          | (memory[address + 0] << 0);
+    printf("read_memory: address = 0x%08X data = 0x%08X\n",address,*data);
+    return SIM_OK;
+}
+
+int commit(instruction_s decoded_instruction, unsigned char * memory, uint32_t *regfile, mem_buffer_s *read_buffer, mem_buffer_s *write_buffer) {
+    if (write_buffer->flag) {
         RETURN_IF_ERROR(write_memory(memory,write_buffer->address,write_buffer->data,write_buffer->mask));
+    }
+    if (read_buffer->flag) {
+        RETURN_IF_ERROR(read_memory(memory,read_buffer->address,&read_buffer->data));
+        switch (decoded_instruction.funct) {
+            case FUNCT_MEM_BYTE:
+                read_buffer->data = (int8_t)(read_buffer->data & 0xFF);
+                break;
+            case FUNCT_MEM_HWORD:
+                read_buffer->data = (int8_t)(read_buffer->data & 0xFFFF);
+                break;
+            case FUNCT_MEM_WORD:
+                break;
+            case FUNCT_MEM_BYTEU:
+                read_buffer->data = read_buffer->data & 0xFF;
+                break;
+            case FUNCT_MEM_HWORDU:
+                read_buffer->data = read_buffer->data & 0xFF;
+                break;
+            default:
+                return EXECUTE_ERROR;
+        }
+        regfile_write(regfile, decoded_instruction.rd, read_buffer->data);
     }
     return SIM_OK;
 }
@@ -265,7 +302,7 @@ int sim_step(const unsigned char *imemory, cpu_state_s *state) {
     RETURN_IF_ERROR(fetch(state->program_counter, imemory, &instruction));
     RETURN_IF_ERROR(decode(instruction, &decoded_instruction));
     RETURN_IF_ERROR(execute(decoded_instruction, state->regfile, &state->program_counter, &read_buffer, &write_buffer));
-    RETURN_IF_ERROR(commit(decoded_instruction, state->memory, &read_buffer, &write_buffer));
+    RETURN_IF_ERROR(commit(decoded_instruction, state->memory, state->regfile, &read_buffer, &write_buffer));
     return SIM_OK;
 }
 
