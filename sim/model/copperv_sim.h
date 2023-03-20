@@ -91,11 +91,12 @@ static const char *funct_e_string[] = {
 
 #define FUNCT3_WIDTH       3
 #define FUNCT7_WIDTH       7
+#define INITIAL_PROGRAM_COUNTER 0x1000
 
 typedef uint32_t instruction_t;
 
 typedef struct {
-  uint8_t memory[16384];
+  uint8_t memory[0x400000];
   uint32_t regfile[32];
   uint32_t program_counter;
 } cpu_state_s;

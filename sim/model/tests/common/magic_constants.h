@@ -1,0 +1,7 @@
+#define APP_START_ADDR 0x1000
+#define BOOTLOADER_MAGIC_ADDR 0xFFC
+#define T_ADDR 0xFF8
+#define O_ADDR 0xFF4
+#define TC_ADDR 0xFF0
+#define T_PASS 0x1000001
+#define T_FAIL 0x2000001

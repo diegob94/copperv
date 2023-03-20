@@ -17,16 +17,17 @@ size_t get_regfile_length(cpu_state_s *state){
 void reset_state(cpu_state_s *state) {
     memset(state->memory, 0, sizeof(state->memory));
     memset(state->regfile, 0, sizeof(state->regfile));
-    state->program_counter = 0;
+    state->program_counter = INITIAL_PROGRAM_COUNTER;
 }
 
 int fetch(uint32_t program_counter, const unsigned char *imemory, instruction_t *instruction) {
     printf("> fetch\n");
+    printf("fetch: program_counter = 0x%08X",program_counter);
     *instruction = (imemory[program_counter+3]<<24) \
         | (imemory[program_counter+2]<<16) \
         | (imemory[program_counter+1]<<8) \
         | imemory[program_counter];
-    printf("fetch: program_counter = 0x%08X -> 0x%08X\n",program_counter,*instruction);
+    printf(" -> 0x%08X\n",*instruction);
     return SIM_OK;
 }
 
@@ -253,12 +254,12 @@ int write_memory(unsigned char * memory, uint32_t address, uint32_t data, uint32
 }
 
 int read_memory(unsigned char * memory, uint32_t address, uint32_t *data) {
-    printf("read_memory: address = 0x%08X\n",address);
+    printf("read_memory: address = 0x%08X",address);
     *data = (memory[address + 3] << 24) \
           | (memory[address + 2] << 16) \
           | (memory[address + 1] << 8) \
           | (memory[address + 0] << 0);
-    printf("read_memory: address = 0x%08X data = 0x%08X\n",address,*data);
+    printf(" data = 0x%08X\n",*data);
     return SIM_OK;
 }
 
@@ -352,12 +353,12 @@ int main (int argc, char *argv[]) {
     fseek(ptr , 0 , SEEK_END);
     lSize = ftell(ptr);
     rewind(ptr);
-    buffer = (char*) malloc (sizeof(char)*lSize);
+    buffer = (char*) malloc (lSize + INITIAL_PROGRAM_COUNTER);
     if (buffer == NULL) {
         printf("Memory error\n");
         exit(1);
     }
-    result = fread(buffer,4,lSize/4,ptr);
+    result = fread(buffer+INITIAL_PROGRAM_COUNTER,4,lSize/4,ptr);
     if(result != lSize/4) {
         printf("File reading error (result = %ld, lSize = %ld)\n",result,lSize);
         exit(1);
