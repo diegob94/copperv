@@ -12,7 +12,7 @@ endif
 
 .PHONY: all
 all: $(EXEC) $(TEST_BIN)
-	stdbuf -i0 -o0 -e0 ./$(EXEC) $(TEST_BIN) | tee sim.log
+	stdbuf -i0 -o0 -e0 ./$(EXEC) $(TEST_BIN) 2>&1 | tee sim.log
 
 $(EXEC): copperv_sim.c idecode.c copperv_sim.h
 	$(CC) $(CFLAGS) copperv_sim.c idecode.c -o $@

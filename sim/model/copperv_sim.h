@@ -132,4 +132,4 @@ typedef struct {
 
 void get_instruction_s_string(instruction_s, char *);
 int decode(instruction_t, instruction_s *);
-
+int read_memory(uint8_t* , uint32_t , uint32_t*);

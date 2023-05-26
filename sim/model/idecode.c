@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "copperv_sim.h"
+#include <assert.h>
 
 void decode_u_type(instruction_t instruction, instruction_s *decoded_instruction) {
     decoded_instruction->imm = GET_BITS(instruction,31,12) << 12;
@@ -23,6 +24,7 @@ void decode_i_type(instruction_t instruction, instruction_s *decoded_instruction
     decoded_instruction->rd = GET_BITS(instruction, 11, 7);
     decoded_instruction->rs1 = GET_BITS(instruction, 19, 15);
     decoded_instruction->funct3 = GET_BITS(instruction, 14, 12);
+    decoded_instruction->funct = FUNCT_ADD;
 }
 
 int decode_i_type_int_imm(instruction_s *decoded_instruction) {
@@ -248,6 +250,7 @@ int decode(instruction_t instruction, instruction_s *decoded_instruction) {
     char buf[1024];
     get_instruction_s_string(*decoded_instruction,buf);
     printf("%s\n",buf);
+    assert(decoded_instruction->funct!=FUNCT_UNKNOWN);
     return SIM_OK;
 }
 

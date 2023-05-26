@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -6,28 +7,17 @@
 
 #include "copperv_sim.h"
 
-size_t get_memory_length(cpu_state_s *state){
-    return sizeof(state->memory);
-}
-
-size_t get_regfile_length(cpu_state_s *state){
-    return sizeof(state->regfile)/sizeof(state->regfile[0]);
-}
-
-void reset_state(cpu_state_s *state) {
+void reset_state(cpu_state_s *state, const uint8_t* program_data, size_t program_data_size) {
     memset(state->memory, 0, sizeof(state->memory));
+    memcpy(state->memory + INITIAL_PROGRAM_COUNTER, program_data, program_data_size);
     memset(state->regfile, 0, sizeof(state->regfile));
     state->program_counter = INITIAL_PROGRAM_COUNTER;
 }
 
-int fetch(uint32_t program_counter, const unsigned char *imemory, instruction_t *instruction) {
+int fetch(uint32_t program_counter, uint8_t* memory, instruction_t *instruction) {
     printf("> fetch\n");
-    printf("fetch: program_counter = 0x%08X",program_counter);
-    *instruction = (imemory[program_counter+3]<<24) \
-        | (imemory[program_counter+2]<<16) \
-        | (imemory[program_counter+1]<<8) \
-        | imemory[program_counter];
-    printf(" -> 0x%08X\n",*instruction);
+    printf("fetch: program_counter = 0x%08X\n",program_counter);
+    RETURN_IF_ERROR(read_memory(memory,program_counter,instruction));
     return SIM_OK;
 }
 
@@ -253,7 +243,7 @@ int write_memory(unsigned char * memory, uint32_t address, uint32_t data, uint32
     return SIM_OK;
 }
 
-int read_memory(unsigned char * memory, uint32_t address, uint32_t *data) {
+int read_memory(uint8_t* memory, uint32_t address, uint32_t *data) {
     printf("read_memory: address = 0x%08X",address);
     *data = (memory[address + 3] << 24) \
           | (memory[address + 2] << 16) \
@@ -292,7 +282,7 @@ int commit(instruction_s decoded_instruction, unsigned char * memory, uint32_t *
     return SIM_OK;
 }
 
-int sim_step(const unsigned char *imemory, cpu_state_s *state) {
+int sim_step(cpu_state_s *state) {
     mem_buffer_s read_buffer;
     mem_buffer_s write_buffer;
     read_buffer.flag = 0;
@@ -300,14 +290,14 @@ int sim_step(const unsigned char *imemory, cpu_state_s *state) {
     instruction_t instruction;
     instruction_s decoded_instruction;
     // Processor stages:
-    RETURN_IF_ERROR(fetch(state->program_counter, imemory, &instruction));
+    RETURN_IF_ERROR(fetch(state->program_counter, state->memory, &instruction));
     RETURN_IF_ERROR(decode(instruction, &decoded_instruction));
     RETURN_IF_ERROR(execute(decoded_instruction, state->regfile, &state->program_counter, &read_buffer, &write_buffer));
     RETURN_IF_ERROR(commit(decoded_instruction, state->memory, state->regfile, &read_buffer, &write_buffer));
     return SIM_OK;
 }
 
-void sim_main(const char *buffer, size_t buffer_size) {
+void sim_main(const uint8_t *buffer, size_t buffer_size) {
     // TODO: regression this:
     // test1
     //PRINTVAR(GET_BITS(12, 3, 2));
@@ -326,17 +316,18 @@ void sim_main(const char *buffer, size_t buffer_size) {
     //  funct = FUNCT_ADD
     instruction_t instruction;
     cpu_state_s state;
-    reset_state(&state);
+    reset_state(&state,buffer,buffer_size);
+    //printf("DEBUG: %X -> %X %X %X %X\n",0x1000,buffer[0x1000+3],buffer[0x1000+2],buffer[0x1000+1],buffer[0x1000]);
     int status = SIM_OK;
     while (status == SIM_OK) {
-        status = sim_step(buffer,&state);
+        status = sim_step(&state);
     }
     printf("last status = %s\n", sim_status_e_string[status]);
 }
 
 FILE *ptr;
 long lSize;
-char * buffer;
+uint8_t * buffer;
 size_t result;
 
 int main (int argc, char *argv[]) {
@@ -353,18 +344,19 @@ int main (int argc, char *argv[]) {
     fseek(ptr , 0 , SEEK_END);
     lSize = ftell(ptr);
     rewind(ptr);
-    buffer = (char*) malloc (lSize + INITIAL_PROGRAM_COUNTER);
+    buffer = (uint8_t*) malloc (lSize);
     if (buffer == NULL) {
         printf("Memory error\n");
         exit(1);
     }
-    result = fread(buffer+INITIAL_PROGRAM_COUNTER,4,lSize/4,ptr);
-    if(result != lSize/4) {
+    result = fread(buffer,1,lSize,ptr);
+    printf("File size (bytes): %ld\n",lSize);
+    if(result != lSize) {
         printf("File reading error (result = %ld, lSize = %ld)\n",result,lSize);
         exit(1);
     }
     fclose(ptr);
-    sim_main(buffer,lSize/4);
+    sim_main(buffer,lSize);
     free (buffer);    
     return 0;
 }
