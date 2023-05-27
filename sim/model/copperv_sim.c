@@ -283,6 +283,7 @@ int commit(instruction_s decoded_instruction, unsigned char * memory, uint32_t *
 }
 
 int sim_step(cpu_state_s *state) {
+    debug_data_s debug_data;
     mem_buffer_s read_buffer;
     mem_buffer_s write_buffer;
     read_buffer.flag = 0;
@@ -291,9 +292,14 @@ int sim_step(cpu_state_s *state) {
     instruction_s decoded_instruction;
     // Processor stages:
     RETURN_IF_ERROR(fetch(state->program_counter, state->memory, &instruction));
+    debug_data.program_counter = state->program_counter;
     RETURN_IF_ERROR(decode(instruction, &decoded_instruction));
+    debug_data.instruction = decoded_instruction;
     RETURN_IF_ERROR(execute(decoded_instruction, state->regfile, &state->program_counter, &read_buffer, &write_buffer));
+    debug_data.read_buffer = read_buffer;
+    debug_data.write_buffer = write_buffer;
     RETURN_IF_ERROR(commit(decoded_instruction, state->memory, state->regfile, &read_buffer, &write_buffer));
+    debug_data.regfile = state->regfile;
     return SIM_OK;
 }
 

@@ -130,6 +130,14 @@ typedef struct {
     uint8_t less_than_unsigned;
 } alu_s;
 
+typedef struct {
+  uint32_t *regfile;
+  uint32_t program_counter;
+  instruction_s instruction;
+  mem_buffer_s read_buffer;
+  mem_buffer_s write_buffer;
+} debug_data_s;
+
 void get_instruction_s_string(instruction_s, char *);
 int decode(instruction_t, instruction_s *);
 int read_memory(uint8_t* , uint32_t , uint32_t*);
