@@ -1,0 +1,9 @@
+{
+    "id":"riscv-gnu-toolchain",
+    "version":"1.0.0",
+    "name":"RISC-V GNU Compiler Toolchain",
+    "containerEnv":{
+	"RISCV":"/usr/local/riscv",
+        "PATH":"/usr/local/riscv/bin/:${PATH}",
+    },
+}
