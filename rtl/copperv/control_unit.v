@@ -1,13 +1,12 @@
 `timescale 1ns/1ps
-`include "copperv_h.v"
 
 module control_unit ( 
     input clk,
     input rst,
-    input [`INST_TYPE_WIDTH-1:0] inst_type,
+    input [inst_type_width-1:0] inst_type,
     input inst_valid,
-    input [`ALU_COMP_WIDTH-1:0] alu_comp,
-    input [`FUNCT_WIDTH-1:0] funct,
+    input [alu_comp_width-1:0] alu_comp,
+    input [funct_width-1:0] funct,
     input data_valid,
     output reg inst_fetch,
     output reg load_data,
@@ -15,20 +14,20 @@ module control_unit (
     output reg rd_en,
     output reg rs1_en,
     output reg rs2_en,
-    output reg [`RD_DIN_SEL_WIDTH-1:0] rd_din_sel,
-    output reg [`PC_NEXT_SEL_WIDTH-1:0] pc_next_sel,
-    output reg [`ALU_DIN1_SEL_WIDTH-1:0] alu_din1_sel,
-    output reg [`ALU_DIN2_SEL_WIDTH-1:0] alu_din2_sel,
-    output reg [`ALU_OP_WIDTH-1:0] alu_op
+    output reg [rd_din_sel_width-1:0] rd_din_sel,
+    output reg [pc_next_sel_width-1:0] pc_next_sel,
+    output reg [alu_din1_sel_width-1:0] alu_din1_sel,
+    output reg [alu_din2_sel_width-1:0] alu_din2_sel,
+    output reg [alu_op_width-1:0] alu_op
 );
-reg [`STATE_WIDTH-1:0] state;
-reg [`STATE_WIDTH-1:0] state_next;
+reg [state_width-1:0] state;
+reg [state_width-1:0] state_next;
 reg state_change;
 reg take_branch;
 wire state_change_next;
 always @(posedge clk) begin
     if(!rst)
-        state <= `STATE_RESET;
+        state <= state_reset;
     else
         state <= state_next;
 end
@@ -39,39 +38,39 @@ always @(posedge clk) begin
 end
 // Next state logic
 always @(*) begin
-    state_next = `STATE_RESET;
+    state_next = state_reset;
     case (state)
-        `STATE_RESET: begin
-            state_next = `STATE_FETCH;
+        state_reset: begin
+            state_next = state_fetch;
         end
-        `STATE_FETCH: begin
+        state_fetch: begin
             if (inst_valid)
                 case(inst_type)
-                    `INST_TYPE_JAL:   state_next = `STATE_EXEC;
-                    default:          state_next = `STATE_DECODE;
+                    inst_type_jal:   state_next = state_exec;
+                    default:          state_next = state_decode;
                 endcase
             else
-                state_next = `STATE_FETCH;
+                state_next = state_fetch;
         end
-        `STATE_DECODE: begin
+        state_decode: begin
             case (inst_type)
-                `INST_TYPE_IMM:   state_next = `STATE_FETCH;
-                `INST_TYPE_FENCE: state_next = `STATE_FETCH;
-                default:          state_next = `STATE_EXEC;
+                inst_type_imm:   state_next = state_fetch;
+                inst_type_fence: state_next = state_fetch;
+                default:          state_next = state_exec;
             endcase
         end
-        `STATE_EXEC: begin
+        state_exec: begin
             case (inst_type)
-                `INST_TYPE_STORE: state_next = `STATE_MEM;
-                `INST_TYPE_LOAD:  state_next = `STATE_MEM;
-                default: state_next = `STATE_FETCH;
+                inst_type_store: state_next = state_mem;
+                inst_type_load:  state_next = state_mem;
+                default: state_next = state_fetch;
             endcase
         end
-        `STATE_MEM: begin
+        state_mem: begin
             if (data_valid)
-                state_next = `STATE_FETCH;
+                state_next = state_fetch;
             else
-                state_next = `STATE_MEM;
+                state_next = state_mem;
         end
     endcase
 end
@@ -84,152 +83,152 @@ always @(*) begin
     rd_din_sel = 0;
     alu_din1_sel = 0;
     alu_din2_sel = 0;
-    pc_next_sel = `PC_NEXT_SEL_STALL;
-    alu_op = `ALU_OP_NOP;
+    pc_next_sel = pc_next_sel_stall;
+    alu_op = alu_op_nop;
     load_data = 0;
     take_branch = 0;
     store_data = 0;
     case (state)
-        `STATE_FETCH: begin
+        state_fetch: begin
             inst_fetch = state_change;
         end
-        `STATE_DECODE: begin
+        state_decode: begin
             case (inst_type)
-                `INST_TYPE_IMM: begin
+                inst_type_imm: begin
                     rd_en = 1;
-                    rd_din_sel = `RD_DIN_SEL_IMM;
-                    pc_next_sel = `PC_NEXT_SEL_INCR;
+                    rd_din_sel = rd_din_sel_imm;
+                    pc_next_sel = pc_next_sel_incr;
                 end
-                `INST_TYPE_INT_IMM: begin
+                inst_type_int_imm: begin
                     rs1_en = 1;
                 end
-                `INST_TYPE_INT_REG: begin
-                    rs1_en = 1;
-                    rs2_en = 1;
-                end
-                `INST_TYPE_BRANCH: begin
+                inst_type_int_reg: begin
                     rs1_en = 1;
                     rs2_en = 1;
                 end
-                `INST_TYPE_STORE: begin
+                inst_type_branch: begin
                     rs1_en = 1;
                     rs2_en = 1;
                 end
-                `INST_TYPE_LOAD: begin
+                inst_type_store: begin
+                    rs1_en = 1;
+                    rs2_en = 1;
+                end
+                inst_type_load: begin
                     rs1_en = 1;
                 end
-                `INST_TYPE_JALR: begin
+                inst_type_jalr: begin
                     rs1_en = 1;
                 end
-                `INST_TYPE_FENCE: begin
-                    pc_next_sel = `PC_NEXT_SEL_INCR;
+                inst_type_fence: begin
+                    pc_next_sel = pc_next_sel_incr;
                 end
             endcase
         end
-        `STATE_EXEC: begin
+        state_exec: begin
             case (inst_type)
-                `INST_TYPE_INT_IMM: begin
+                inst_type_int_imm: begin
                     rd_en = 1;
-                    rd_din_sel = `RD_DIN_SEL_ALU;
-                    alu_din1_sel = `ALU_DIN1_SEL_RS1;
-                    alu_din2_sel = `ALU_DIN2_SEL_IMM;
-                    pc_next_sel = `PC_NEXT_SEL_INCR;
+                    rd_din_sel = rd_din_sel_alu;
+                    alu_din1_sel = alu_din1_sel_rs1;
+                    alu_din2_sel = alu_din2_sel_imm;
+                    pc_next_sel = pc_next_sel_incr;
                     alu_op = get_int_alu_op(funct);
                 end
-                `INST_TYPE_INT_REG: begin
+                inst_type_int_reg: begin
                     rd_en = 1;
-                    rd_din_sel = `RD_DIN_SEL_ALU;
-                    alu_din1_sel = `ALU_DIN1_SEL_RS1;
-                    alu_din2_sel = `ALU_DIN2_SEL_RS2;
-                    pc_next_sel = `PC_NEXT_SEL_INCR;
+                    rd_din_sel = rd_din_sel_alu;
+                    alu_din1_sel = alu_din1_sel_rs1;
+                    alu_din2_sel = alu_din2_sel_rs2;
+                    pc_next_sel = pc_next_sel_incr;
                     alu_op = get_int_alu_op(funct);
                 end
-                `INST_TYPE_BRANCH: begin
-                    alu_din1_sel = `ALU_DIN1_SEL_RS1;
-                    alu_din2_sel = `ALU_DIN2_SEL_RS2;
+                inst_type_branch: begin
+                    alu_din1_sel = alu_din1_sel_rs1;
+                    alu_din2_sel = alu_din2_sel_rs2;
                     case(funct)
-                        `FUNCT_EQ:
-                            take_branch =  alu_comp[`ALU_COMP_EQ];
-                        `FUNCT_NEQ:
-                            take_branch = !alu_comp[`ALU_COMP_EQ];
-                        `FUNCT_LT:
-                            take_branch =  alu_comp[`ALU_COMP_LT];
-                        `FUNCT_GTE:
-                            take_branch = !alu_comp[`ALU_COMP_LT];
-                        `FUNCT_LTU:
-                            take_branch =  alu_comp[`ALU_COMP_LTU];
-                        `FUNCT_GTEU:
-                            take_branch = !alu_comp[`ALU_COMP_LTU];
+                        funct_eq:
+                            take_branch =  alu_comp[alu_comp_eq];
+                        funct_neq:
+                            take_branch = !alu_comp[alu_comp_eq];
+                        funct_lt:
+                            take_branch =  alu_comp[alu_comp_lt];
+                        funct_gte:
+                            take_branch = !alu_comp[alu_comp_lt];
+                        funct_ltu:
+                            take_branch =  alu_comp[alu_comp_ltu];
+                        funct_gteu:
+                            take_branch = !alu_comp[alu_comp_ltu];
                     endcase
                     if(take_branch)
-                        pc_next_sel = `PC_NEXT_SEL_ADD_IMM;
+                        pc_next_sel = pc_next_sel_add_imm;
                     else
-                        pc_next_sel = `PC_NEXT_SEL_INCR;
+                        pc_next_sel = pc_next_sel_incr;
                 end
-                `INST_TYPE_STORE: begin
-                    alu_din1_sel = `ALU_DIN1_SEL_RS1;
-                    alu_din2_sel = `ALU_DIN2_SEL_IMM;
-                    alu_op = `ALU_OP_ADD;
+                inst_type_store: begin
+                    alu_din1_sel = alu_din1_sel_rs1;
+                    alu_din2_sel = alu_din2_sel_imm;
+                    alu_op = alu_op_add;
                     store_data = state_change;
                 end
-                `INST_TYPE_LOAD: begin
-                    alu_din1_sel = `ALU_DIN1_SEL_RS1;
-                    alu_din2_sel = `ALU_DIN2_SEL_IMM;
-                    alu_op = `ALU_OP_ADD;
+                inst_type_load: begin
+                    alu_din1_sel = alu_din1_sel_rs1;
+                    alu_din2_sel = alu_din2_sel_imm;
+                    alu_op = alu_op_add;
                     load_data = state_change;
                 end
-                `INST_TYPE_JAL: begin
+                inst_type_jal: begin
                     rd_en = 1;
-                    rd_din_sel = `RD_DIN_SEL_ALU;
-                    alu_din1_sel = `ALU_DIN1_SEL_PC;
-                    alu_din2_sel = `ALU_DIN2_SEL_CONST_4;
-                    pc_next_sel = `PC_NEXT_SEL_ADD_IMM;
-                    alu_op = `ALU_OP_ADD;
+                    rd_din_sel = rd_din_sel_alu;
+                    alu_din1_sel = alu_din1_sel_pc;
+                    alu_din2_sel = alu_din2_sel_const_4;
+                    pc_next_sel = pc_next_sel_add_imm;
+                    alu_op = alu_op_add;
                 end
-                `INST_TYPE_AUIPC: begin
+                inst_type_auipc: begin
                     rd_en = 1;
-                    rd_din_sel = `RD_DIN_SEL_ALU;
-                    alu_din1_sel = `ALU_DIN1_SEL_PC;
-                    alu_din2_sel = `ALU_DIN2_SEL_IMM;
-                    pc_next_sel = `PC_NEXT_SEL_INCR;
-                    alu_op = `ALU_OP_ADD;
+                    rd_din_sel = rd_din_sel_alu;
+                    alu_din1_sel = alu_din1_sel_pc;
+                    alu_din2_sel = alu_din2_sel_imm;
+                    pc_next_sel = pc_next_sel_incr;
+                    alu_op = alu_op_add;
                 end
-                `INST_TYPE_JALR: begin
+                inst_type_jalr: begin
                     rd_en = 1;
-                    rd_din_sel = `RD_DIN_SEL_ALU;
-                    alu_din1_sel = `ALU_DIN1_SEL_PC;
-                    alu_din2_sel = `ALU_DIN2_SEL_CONST_4;
-                    pc_next_sel = `PC_NEXT_SEL_ADD_RS1_IMM;
-                    alu_op = `ALU_OP_ADD;
+                    rd_din_sel = rd_din_sel_alu;
+                    alu_din1_sel = alu_din1_sel_pc;
+                    alu_din2_sel = alu_din2_sel_const_4;
+                    pc_next_sel = pc_next_sel_add_rs1_imm;
+                    alu_op = alu_op_add;
                 end
             endcase
         end
-        `STATE_MEM: begin
-            alu_op = `ALU_OP_ADD;
-            if(inst_type == `INST_TYPE_LOAD) begin
+        state_mem: begin
+            alu_op = alu_op_add;
+            if(inst_type == inst_type_load) begin
                 rd_en = state_change_next;
-                rd_din_sel = `RD_DIN_SEL_MEM;
+                rd_din_sel = rd_din_sel_mem;
             end
             if(state_change_next)
-                pc_next_sel = `PC_NEXT_SEL_INCR;
+                pc_next_sel = pc_next_sel_incr;
         end
     endcase
 end
-function [`ALU_OP_WIDTH-1:0] get_int_alu_op;
-    input [`FUNCT_WIDTH-1:0] funct_t;
+function [alu_op_width-1:0] get_int_alu_op;
+    input [funct_width-1:0] funct_t;
     begin
         case(funct_t)
-            `FUNCT_ADD:  get_int_alu_op = `ALU_OP_ADD;
-            `FUNCT_SUB:  get_int_alu_op = `ALU_OP_SUB;
-            `FUNCT_SLL:  get_int_alu_op = `ALU_OP_SLL;
-            `FUNCT_SLT:  get_int_alu_op = `ALU_OP_SLT;
-            `FUNCT_SLTU: get_int_alu_op = `ALU_OP_SLTU;
-            `FUNCT_XOR:  get_int_alu_op = `ALU_OP_XOR;
-            `FUNCT_SRL:  get_int_alu_op = `ALU_OP_SRL;
-            `FUNCT_SRA:  get_int_alu_op = `ALU_OP_SRA;
-            `FUNCT_OR:   get_int_alu_op = `ALU_OP_OR;
-            `FUNCT_AND:  get_int_alu_op = `ALU_OP_AND;
-            default:     get_int_alu_op = `ALU_OP_NOP;
+            funct_add:  get_int_alu_op = alu_op_add;
+            funct_sub:  get_int_alu_op = alu_op_sub;
+            funct_sll:  get_int_alu_op = alu_op_sll;
+            funct_slt:  get_int_alu_op = alu_op_slt;
+            funct_sltu: get_int_alu_op = alu_op_sltu;
+            funct_xor:  get_int_alu_op = alu_op_xor;
+            funct_srl:  get_int_alu_op = alu_op_srl;
+            funct_sra:  get_int_alu_op = alu_op_sra;
+            funct_or:   get_int_alu_op = alu_op_or;
+            funct_and:  get_int_alu_op = alu_op_and;
+            default:     get_int_alu_op = alu_op_nop;
         endcase
     end
 endfunction

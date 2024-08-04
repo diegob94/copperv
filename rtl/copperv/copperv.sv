@@ -1,7 +1,8 @@
 `timescale 1ns/1ps
 `default_nettype none
 
-import wishbone_pkg::*;
+`define SIGNED(x,wlhs,high,low)   {{(wlhs-(high-low+1)){x[high]}},x[high:low]}
+`define UNSIGNED(x,wlhs,high,low) {{(wlhs-(high-low+1)){1'b0}},x[high:low]}
 
 module copperv (
   input clk,
