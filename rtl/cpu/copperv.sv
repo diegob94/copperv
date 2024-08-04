@@ -11,6 +11,7 @@ module copperv (
   wishbone_if.master inst_if
 );
 parameter pc_init = 0;
+
 // idecoder begin
 wire [imm_width-1:0] imm;
 wire [funct_width-1:0] funct;
