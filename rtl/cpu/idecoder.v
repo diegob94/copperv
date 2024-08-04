@@ -2,7 +2,16 @@
 
 `define UNSIGNED(x,wlhs,high,low) {{(wlhs-(high-low+1)){1'b0}},x[high:low]}
 
-module idecoder (
+module idecoder #(
+    parameter inst_width = 32,
+    parameter imm_width = 32,
+    parameter inst_type_width = 32,
+    parameter reg_width = 32,
+    parameter funct_width = 32,
+    parameter opcode_width = 32,
+    parameter funct3_width = 32,
+    parameter funct7_width = 32,
+  ) (
     input [inst_width-1:0] inst,
     output reg [imm_width-1:0] imm,
     output reg [inst_type_width-1:0] inst_type,
