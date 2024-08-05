@@ -2,6 +2,8 @@
 
 `define UNSIGNED(x,wlhs,high,low) {{(wlhs-(high-low+1)){1'b0}},x[high:low]}
 
+import copperv_pkg::*;
+
 module idecoder #(
     parameter inst_width = 32,
     parameter imm_width = 32,

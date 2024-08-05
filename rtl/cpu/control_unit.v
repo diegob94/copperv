@@ -1,12 +1,14 @@
 `timescale 1ns/1ps
 
+import copperv_pkg::*;
+
 module control_unit ( 
     input clk,
     input rst,
-    input [inst_type_width-1:0] inst_type,
+    input inst_type_e inst_type,
     input inst_valid,
-    input [alu_comp_width-1:0] alu_comp,
-    input [funct_width-1:0] funct,
+    input alu_comp_e alu_comp,
+    input funct_e funct,
     input data_valid,
     output reg inst_fetch,
     output reg load_data,
@@ -14,14 +16,15 @@ module control_unit (
     output reg rd_en,
     output reg rs1_en,
     output reg rs2_en,
-    output reg [rd_din_sel_width-1:0] rd_din_sel,
-    output reg [pc_next_sel_width-1:0] pc_next_sel,
-    output reg [alu_din1_sel_width-1:0] alu_din1_sel,
-    output reg [alu_din2_sel_width-1:0] alu_din2_sel,
-    output reg [alu_op_width-1:0] alu_op
+    output rd_din_sel_e rd_din_sel,
+    output pc_next_sel_e pc_next_sel,
+    output alu_din1_sel_e alu_din1_sel,
+    output alu_din2_sel_e alu_din2_sel,
+    output alu_op_e alu_op,
+    output reg alu_shift_din2
 );
-reg [state_width-1:0] state;
-reg [state_width-1:0] state_next;
+state_e state;
+state_e state_next;
 reg state_change;
 reg take_branch;
 wire state_change_next;
@@ -80,11 +83,12 @@ always @(*) begin
     rd_en = 0;
     rs1_en = 0;
     rs2_en = 0;
-    rd_din_sel = 0;
-    alu_din1_sel = 0;
-    alu_din2_sel = 0;
+    rd_din_sel = rd_din_sel_imm;
+    alu_din1_sel = alu_din1_sel_rs1;
+    alu_din2_sel = alu_din2_sel_imm;
     pc_next_sel = pc_next_sel_stall;
     alu_op = alu_op_nop;
+    alu_shift_din2 = 0;
     load_data = 0;
     take_branch = 0;
     store_data = 0;
@@ -213,9 +217,11 @@ always @(*) begin
                 pc_next_sel = pc_next_sel_incr;
         end
     endcase
+    if (alu_op == alu_op_sll || alu_op == alu_op_slt || alu_op == alu_op_sltu)
+      alu_shift_din2 = 1;
 end
-function [alu_op_width-1:0] get_int_alu_op;
-    input [funct_width-1:0] funct_t;
+function alu_op_e get_int_alu_op;
+    input funct_e funct_t;
     begin
         case(funct_t)
             funct_add:  get_int_alu_op = alu_op_add;

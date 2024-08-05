@@ -8,10 +8,10 @@ module testbench();
   copperv dut(clk,rst,data_if,inst_if);
 
   initial begin
-    clk <= 0;
-    rst <= 1;
+    clk = 0;
+    rst = 1;
     repeat (5) @(posedge clk);
-    rst <= 0;
+    rst = 0;
     repeat (2) @(posedge clk);
     $finish;
   end
