@@ -11,6 +11,17 @@ module copperv (
   wishbone_if.master inst_if
 );
 parameter pc_init = 0;
+parameter data_width     = 32;
+parameter pc_width       = 32;
+parameter bus_width      = 32;
+parameter bus_resp_width = 1;
+parameter funct3_width   = 3;
+parameter funct7_width   = 7;
+parameter reg_width         = 5;
+parameter reg_t3            = 28;
+parameter alu_shift_din2_width = 5;
+parameter inst_width        = 32;
+parameter imm_width         = 32;
 
 // idecoder begin
 wire [imm_width-1:0] imm;

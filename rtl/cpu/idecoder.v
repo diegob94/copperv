@@ -10,7 +10,7 @@ module idecoder #(
     parameter funct_width = 32,
     parameter opcode_width = 32,
     parameter funct3_width = 32,
-    parameter funct7_width = 32,
+    parameter funct7_width = 32
   ) (
     input [inst_width-1:0] inst,
     output reg [imm_width-1:0] imm,
