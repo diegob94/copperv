@@ -4,6 +4,41 @@
 `define SIGNED(x,wlhs,high,low)   {{(wlhs-(high-low+1)){x[high]}},x[high:low]}
 `define UNSIGNED(x,wlhs,high,low) {{(wlhs-(high-low+1)){1'b0}},x[high:low]}
 
+module inst_fetcher(
+  input clk,
+  input rst,
+  input adr,
+  input inst_fetch,
+  wishbone_if.master wb_if
+);
+  parameter inst_width = 32;
+  assign wb_if.stb = inst_fetch;
+  assign wb_if.we = 0;
+  assign wb_if.adr = adr;
+  assign wb_if.sel = 4'b1111;
+  logic inst_valid;
+  logic [inst_width-1:0] inst;
+  always @(posedge clk) begin
+      if(rst) begin
+          wb_if.cyc <= 0;
+      end else if(inst_fetch) begin
+          wb_if.cyc <= 1;
+      end else if(wb_if.ack) begin
+          wb_if.cyc <= 0;
+      end
+  end
+  always @(posedge clk) begin
+      if(rst) begin
+          inst_valid <= 0;
+      end else if(wb_if.ack) begin
+          inst <= wb_if.datrd;
+          inst_valid <= 1;
+      end else begin
+          inst_valid <= 0;
+      end
+  end
+endmodule : inst_fetcher
+
 module copperv (
   input clk,
   input rst,
@@ -22,7 +57,6 @@ parameter reg_t3            = 28;
 parameter alu_shift_din2_width = 5;
 parameter inst_width        = 32;
 parameter imm_width         = 32;
-
 // idecoder begin
 wire [imm_width-1:0] imm;
 funct_e funct;
@@ -47,12 +81,12 @@ wire [data_width-1:0] alu_dout;
 alu_comp_e alu_comp;
 // arith_logic_unit end
 // datapath begin
+logic inst_valid;
+logic [inst_width-1:0] inst;
 wire inst_fetch;
 reg pc_en;
 reg [pc_width-1:0] pc;
 reg [pc_width-1:0] pc_next;
-reg [inst_width-1:0] inst;
-reg inst_valid;
 wire i_rdata_tran;
 rd_din_sel_e rd_din_sel;
 pc_next_sel_e pc_next_sel;
@@ -80,29 +114,11 @@ always @(posedge clk) begin
         pc <= pc_next;
     end
 end
-assign inst_if.stb = inst_fetch;
-assign inst_if.we = 0;
-assign inst_if.adr = pc;
-assign inst_if.sel = 4'b1111;
-always @(posedge clk) begin
-    if(rst) begin
-        inst_if.cyc <= 0;
-    end else if(inst_fetch) begin
-        inst_if.cyc <= 1;
-    end else if(inst_if.ack) begin
-        inst_if.cyc <= 0;
-    end
-end
-always @(posedge clk) begin
-    if(rst) begin
-        inst_valid <= 0;
-    end else if(inst_if.ack) begin
-        inst <= inst_if.datrd;
-        inst_valid <= 1;
-    end else begin
-        inst_valid <= 0;
-    end
-end
+inst_fetcher ifetcher(
+  .adr(pc),
+  .wb_if(inst_if),
+  .*
+);
 // Data bus:
 assign read_addr = alu_dout;
 assign write_addr = alu_dout;
