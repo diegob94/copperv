@@ -9,6 +9,9 @@ create_env:
 create_explicit_env:
 	micromamba create -n coppervenv -f explicit_env.txt
 
-.PHONY: sim_cpu
+.PHONY: sim_cpu sim_cpu_compile
 sim_cpu:
 	$(MAKE) -C ./sim/cpu
+
+sim_cpu_compile:
+	$(MAKE) -C ./sim/cpu ./obj_dir/Vtestbench

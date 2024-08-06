@@ -4,7 +4,7 @@ RTL_SOURCES = ../../rtl/cpu/copperv_pkg.sv
 RTL_SOURCES += ../../rtl/bus/wishbone_if.sv
 RTL_SOURCES += ../../rtl/cpu/control_unit.sv
 RTL_SOURCES += ../../rtl/cpu/copperv.sv
-RTL_SOURCES += ../../rtl/cpu/execution.v
+RTL_SOURCES += ../../rtl/cpu/execution.sv
 RTL_SOURCES += ../../rtl/cpu/idecoder.sv
 RTL_SOURCES += ../../rtl/cpu/register_file.v
 
