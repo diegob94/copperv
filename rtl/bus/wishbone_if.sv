@@ -1,7 +1,7 @@
 interface wishbone_if;
   parameter adr_width = 8;
   parameter dat_width = 8;
-  parameter stb_width = 8;
+  parameter sel_width = 8;
 
   logic [adr_width-1:0] adr;
   logic [dat_width-1:0] datwr;
@@ -10,27 +10,15 @@ interface wishbone_if;
   logic                 stb;
   logic                 ack;
   logic                 cyc;
-  logic [stb_width-1:0] sel;
+  logic [sel_width-1:0] sel;
   
   modport master (
-    output adr,
-    output datwr,
-    input  datrd,
-    output we,
-    output stb,
-    input  ack,
-    output cyc,
-    output sel
+    input  datrd, ack,
+    output adr, datwr, we, stb, cyc, sel
   );
 
   modport slave (
-    input  adr,
-    input  datwr,
-    output datrd,
-    input  we,
-    input  stb,
-    output ack,
-    input  cyc,
-    input  sel
+    output  datrd, ack,
+    input adr, datwr, we, stb, cyc, sel
   );
 endinterface : wishbone_if
