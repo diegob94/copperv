@@ -29,7 +29,7 @@ reg state_change;
 reg take_branch;
 wire state_change_next;
 always @(posedge clk) begin
-    if(!rst)
+    if(rst)
         state <= state_reset;
     else
         state <= state_next;
