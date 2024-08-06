@@ -20,7 +20,7 @@ module register_file #(
   reg [data_width-1:0] mem [reg_length-1:0];
   integer i;
   always @(posedge clk) begin
-      if(!rst) begin
+      if(rst) begin
           for(i = 0; i < reg_length; i = i + 1)
               mem[i] <= 0;
       end if(rd_en && rd != 0) begin

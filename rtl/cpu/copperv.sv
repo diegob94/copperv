@@ -74,7 +74,7 @@ reg [2-1:0] read_offset;
 reg [(bus_width/8)-1:0] write_strobe;
 // datapath end
 always @(posedge clk) begin
-    if (!rst) begin
+    if (rst) begin
         pc <= pc_init;
     end else if(pc_en) begin
         pc <= pc_next;
@@ -82,12 +82,19 @@ always @(posedge clk) begin
 end
 assign inst_if.stb = inst_fetch;
 assign inst_if.we = 0;
-assign inst_if.cyc = inst_fetch || inst_valid;
 assign inst_if.adr = pc;
 assign inst_if.sel = 4'b1111;
 always @(posedge clk) begin
-    if(!rst) begin
-        inst <= 0;
+    if(rst) begin
+        inst_if.cyc <= 0;
+    end else if(inst_fetch) begin
+        inst_if.cyc <= 1;
+    end else if(inst_if.ack) begin
+        inst_if.cyc <= 0;
+    end
+end
+always @(posedge clk) begin
+    if(rst) begin
         inst_valid <= 0;
     end else if(inst_if.ack) begin
         inst <= inst_if.datrd;
