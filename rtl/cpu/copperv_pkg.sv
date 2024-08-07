@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-package copperv_pkg;
+package copperv_params_pkg;
 
   parameter pc_init              = 0;
   parameter data_width           = 32;
@@ -14,8 +14,11 @@ package copperv_pkg;
   parameter alu_shift_din2_width = 5;
   parameter inst_width           = 32;
   parameter imm_width            = 32;
+  parameter opcode_width         = 7;
 
-  typedef logic [inst_width-1:0] inst_td;
+endpackage : copperv_params_pkg
+
+package copperv_enums_pkg;
 
   typedef enum {
     rd_din_sel_imm,
@@ -104,7 +107,7 @@ package copperv_pkg;
     funct_or
   } funct_e;
 
-  typedef enum {
+  typedef enum logic [6:0] {
     opcode_load    = {5'h00, 2'b11},
     opcode_fence   = {5'h03, 2'b11},
     opcode_int_imm = {5'h04, 2'b11},
@@ -117,7 +120,6 @@ package copperv_pkg;
     opcode_jal     = {5'h1b, 2'b11}
   } opcode_e;
 
-  // control_unit
   typedef enum {
     state_reset,
     state_idle,
@@ -127,4 +129,20 @@ package copperv_pkg;
     state_mem
   } state_e;
 
+endpackage : copperv_enums_pkg
+
+package copperv_pkg;
+
+  import copperv_params_pkg::*;
+  export copperv_params_pkg::*;
+
+  import copperv_enums_pkg::*;
+  export copperv_enums_pkg::*;
+
+  typedef logic [inst_width-1:0] inst_td;
+  typedef logic [reg_width-1:0] reg_adr_td;
+  typedef logic [data_width-1:0] data_td;
+  typedef logic [pc_width-1:0] addr_td;
+
 endpackage : copperv_pkg
+

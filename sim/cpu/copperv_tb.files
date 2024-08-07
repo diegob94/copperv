@@ -1,0 +1,3 @@
+-F ../../rtl/cpu/copperv.files
+../bus/wishbone_bfm.sv
+testbench.sv
