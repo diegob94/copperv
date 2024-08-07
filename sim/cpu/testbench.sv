@@ -1,12 +1,30 @@
 module testbench();
+  import copperv_params_pkg::*;
+
   reg clk;
   always #10 clk = ~clk;
   reg rst;
 
-  wishbone_if data_if();
-  wishbone_if inst_if();
-  wishbone_bfm data_bfm(.*);
-  wishbone_bfm inst_bfm(.*);
+  wishbone_if #(
+    .dat_width(data_width),
+    .adr_width(bus_width),
+    .sel_width(4)
+  ) data_if();
+  wishbone_if #(
+    .dat_width(inst_width),
+    .adr_width(pc_width),
+    .sel_width(4)
+  ) inst_if();
+  wishbone_bfm #(
+    .dat_width(data_width),
+    .adr_width(bus_width),
+    .sel_width(4)
+  ) data_bfm(.*);
+  wishbone_bfm #(
+    .dat_width(inst_width),
+    .adr_width(pc_width),
+    .sel_width(4)
+  ) inst_bfm(.*);
   copperv dut(.*);
 
   assign data_if.ack = data_bfm.ack;

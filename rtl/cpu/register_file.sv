@@ -1,23 +1,21 @@
 `timescale 1ns/1ps
 
-module register_file #(
-    parameter reg_width = 32,
-    parameter data_width = 32,
-    parameter reg_length = 2**reg_width
-  ) (
+module register_file import copperv_pkg::*;
+  (
     input clk,
     input rst,
     input rd_en,
     input rs1_en,
     input rs2_en,
-    input [reg_width-1:0] rd,
-    input [reg_width-1:0] rs1,
-    input [reg_width-1:0] rs2,
-    input [data_width-1:0] rd_din,
-    output reg [data_width-1:0] rs1_dout,
-    output reg [data_width-1:0] rs2_dout
+    input reg_adr_td rd,
+    input reg_adr_td rs1,
+    input reg_adr_td rs2,
+    input data_td rd_din,
+    output data_td rs1_dout,
+    output data_td rs2_dout
   );
-  reg [data_width-1:0] mem [reg_length-1:0];
+  parameter reg_length = 2**$bits(reg_adr_td);
+  data_td mem [reg_length-1:0];
   integer i;
   always @(posedge clk) begin
       if(rst) begin

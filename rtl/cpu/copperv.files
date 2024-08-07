@@ -1,0 +1,7 @@
+copperv_pkg.sv
+../bus/wishbone_if.sv
+copperv.sv
+control_unit.sv
+execution.sv
+idecoder.sv
+register_file.sv

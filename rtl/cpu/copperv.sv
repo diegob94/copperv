@@ -8,7 +8,7 @@ module inst_fetcher import copperv_pkg::*;
   (
     input clk,
     input rst,
-    input adr,
+    input addr_td adr,
     input inst_fetch,
     output logic inst_valid,
     output inst_td inst,
@@ -46,51 +46,38 @@ module copperv import copperv_pkg::*;
     wishbone_if.master data_if, 
     wishbone_if.master inst_if
   );
-  // idecoder begin
   wire [imm_width-1:0] imm;
   funct_e funct;
   alu_op_e alu_op;
-  wire [reg_width-1:0] rd;
-  wire [reg_width-1:0] rs1;
-  wire [reg_width-1:0] rs2;
+  reg_adr_td rd;
+  reg_adr_td rs1;
+  reg_adr_td rs2;
   inst_type_e inst_type;
-  // idecoder end
-  // register_file begin
-  wire rd_en;
-  wire rs1_en;
-  wire rs2_en;
-  reg [data_width-1:0] rd_din;
-  wire [data_width-1:0] rs1_dout;
-  wire [data_width-1:0] rs2_dout;
-  // register_file end
-  // arith_logic_unit begin
-  reg [data_width-1:0] alu_din1;
-  reg [data_width-1:0] alu_din2;
-  wire [data_width-1:0] alu_dout;
+  logic rd_en, rs1_en, rs2_en;
+  data_td rd_din, rs1_dout, rs2_dout;
+  data_td alu_din1, alu_din2, alu_dout;
   alu_comp_e alu_comp;
-  // arith_logic_unit end
-  // datapath begin
   logic inst_valid;
   inst_td inst;
-  wire inst_fetch;
-  reg pc_en;
-  reg [pc_width-1:0] pc;
-  reg [pc_width-1:0] pc_next;
-  wire i_rdata_tran;
+  logic inst_fetch;
+  logic pc_en;
+  addr_td pc;
+  addr_td pc_next;
+  logic i_rdata_tran;
   rd_din_sel_e rd_din_sel;
   pc_next_sel_e pc_next_sel;
   alu_din1_sel_e alu_din1_sel;
   alu_din2_sel_e alu_din2_sel;
-  wire store_data;
-  wire load_data;
-  wire [data_width-1:0] write_addr;
-  reg [data_width-1:0] write_data;
-  reg [data_width-1:0] read_data;
-  reg [data_width-1:0] ext_read_data;
-  reg [data_width-1:0] read_data_t;
-  reg write_valid;
-  reg alu_shift_din2;
-  reg read_valid;
+  logic store_data;
+  logic load_data;
+  data_td write_addr;
+  data_td write_data;
+  data_td read_data;
+  data_td ext_read_data;
+  data_td read_data_t;
+  logic write_valid;
+  logic alu_shift_din2;
+  logic read_valid;
   wire [bus_width-1:0] read_addr;
   reg [2-1:0] write_offset;
   reg [2-1:0] read_offset;
@@ -104,9 +91,13 @@ module copperv import copperv_pkg::*;
       end
   end
   inst_fetcher ifetcher(
+    .clk(clk),
+    .rst(rst),
     .adr(pc),
-    .wb_if(inst_if),
-    .*
+    .inst_fetch(inst_fetch),
+    .inst_valid(inst_valid),
+    .inst(inst),
+    .wb_if(inst_if)
   );
   // Data bus:
   assign read_addr = alu_dout;
@@ -211,7 +202,7 @@ module copperv import copperv_pkg::*;
           alu_din2_sel_const_4: alu_din2 = 4;
       endcase
       if (alu_shift_din2)
-        alu_din2 = alu_din2[alu_shift_din2_width-1:0];
+        alu_din2 = data_td'(alu_din2[alu_shift_din2_width-1:0]);
   end
   always @(*) begin
       pc_next = 0;
@@ -224,37 +215,54 @@ module copperv import copperv_pkg::*;
       endcase
   end
   idecoder idec (
-      .inst(inst),
-      .imm(imm),
-      .inst_type(inst_type),
-      .rd(rd),
-      .rs1(rs1),
-      .rs2(rs2),
-      .funct(funct)
+    .inst(inst),
+    .imm(imm),
+    .inst_type(inst_type),
+    .rd(rd),
+    .rs1(rs1),
+    .rs2(rs2),
+    .funct(funct)
   );
   register_file regfile (
-      .clk(clk),
-      .rst(rst),
-      .rd_en(rd_en),
-      .rs1_en(rs1_en),
-      .rs2_en(rs2_en),
-      .rd(rd),
-      .rs1(rs1),
-      .rs2(rs2),
-      .rd_din(rd_din),
-      .rs1_dout(rs1_dout),
-      .rs2_dout(rs2_dout)
+    .clk(clk),
+    .rst(rst),
+    .rd_en(rd_en),
+    .rs1_en(rs1_en),
+    .rs2_en(rs2_en),
+    .rd(rd),
+    .rs1(rs1),
+    .rs2(rs2),
+    .rd_din(rd_din),
+    .rs1_dout(rs1_dout),
+    .rs2_dout(rs2_dout)
   );
   arith_logic_unit alu (
-      .alu_din1(alu_din1),
-      .alu_din2(alu_din2),
-      .alu_op(alu_op),
-      .alu_dout(alu_dout),
-      .alu_comp(alu_comp)
+    .alu_din1(alu_din1),
+    .alu_din2(alu_din2),
+    .alu_op(alu_op),
+    .alu_dout(alu_dout),
+    .alu_comp(alu_comp)
   );
   control_unit control (
-      .data_valid(write_valid || read_valid),
-      .*
+    .clk(clk),
+    .rst(rst),
+    .data_valid(write_valid || read_valid),
+    .inst_valid(inst_valid),
+    .alu_comp(alu_comp),
+    .funct(funct),
+    .inst_type(inst_type),
+    .inst_fetch(inst_fetch),
+    .rd_en(rd_en),
+    .rs1_en(rs1_en),
+    .rs2_en(rs2_en),
+    .rd_din_sel(rd_din_sel),
+    .pc_next_sel(pc_next_sel),
+    .alu_din1_sel(alu_din1_sel),
+    .alu_din2_sel(alu_din2_sel),
+    .alu_op(alu_op),
+    .store_data(store_data),
+    .load_data(load_data),
+    .alu_shift_din2(alu_shift_din2)
   );
 endmodule : copperv
 
