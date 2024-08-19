@@ -14,17 +14,19 @@ module inst_fetcher import copperv_pkg::*;
     output inst_td inst,
     wishbone_if.master wb_if
   );
+  logic active_cycle;
   assign wb_if.stb = inst_fetch;
+  assign wb_if.cyc = inst_fetch || active_cycle;
   assign wb_if.we = 0;
   assign wb_if.adr = adr;
   assign wb_if.sel = 4'b1111;
   always @(posedge clk) begin
       if(rst) begin
-          wb_if.cyc <= 0;
+          active_cycle <= 0;
       end else if(inst_fetch) begin
-          wb_if.cyc <= 1;
+          active_cycle <= 1;
       end else if(wb_if.ack) begin
-          wb_if.cyc <= 0;
+          active_cycle <= 0;
       end
   end
   always @(posedge clk) begin

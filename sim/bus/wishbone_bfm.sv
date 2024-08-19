@@ -6,6 +6,7 @@ interface wishbone_bfm(
   parameter adr_width = 8;
   parameter dat_width = 8;
   parameter sel_width = 8;
+  parameter name = "UNKNOWN";
   
   typedef bit [adr_width-1:0] adr_t;
   typedef bit [dat_width-1:0] dat_t;
@@ -22,15 +23,15 @@ interface wishbone_bfm(
 
   task wait_read_adr(output adr_t read_adr);
     do begin
-      $display("wishbone_bfm.wait_read_adr: waiting for address");
       @(negedge clk);
     end while (!stb);
-    $display("wishbone_bfm.wait_read_adr: received address 0x%X",adr);
+    $display("%t: %s: receive addr 0x%X",$time,name,adr);
     read_adr = adr;
   endtask : wait_read_adr
 
   task send_read_dat(input dat_t read_dat);
     @(negedge clk)
+    $display("%t: %s: sending data 0x%X",$time,name,read_dat);
     datrd = read_dat;
     ack = 1;
     @(negedge clk)

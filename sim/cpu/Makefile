@@ -5,10 +5,11 @@ WA = -CFLAGS "-I$(CONDA_PREFIX)/include"
 .PHONY: all
 all: testbench.fst
 
-./obj_dir/Vtestbench:
+.PHONY: verilate
+verilate:
 	verilator -F copperv_tb.files --binary --top testbench --trace-fst $(WA)
 
-testbench.fst: ./obj_dir/Vtestbench
+testbench.fst: verilate
 	./obj_dir/Vtestbench
 	mv testbench.vcd testbench.fst
 
