@@ -18,12 +18,14 @@ module testbench();
   wishbone_bfm #(
     .dat_width(data_width),
     .adr_width(bus_width),
-    .sel_width(4)
+    .sel_width(4),
+    .name("data_bfm")
   ) data_bfm(.*);
   wishbone_bfm #(
     .dat_width(inst_width),
     .adr_width(pc_width),
-    .sel_width(4)
+    .sel_width(4),
+    .name("inst_bfm")
   ) inst_bfm(.*);
   copperv dut(.*);
 
