@@ -9,18 +9,18 @@ module control_unit import copperv_pkg::*;
     input alu_comp_e alu_comp,
     input funct_e funct,
     input data_valid,
-    output reg inst_fetch,
-    output reg load_data,
-    output reg store_data,
-    output reg rd_en,
-    output reg rs1_en,
-    output reg rs2_en,
+    output logic inst_fetch,
+    output logic load_data,
+    output logic store_data,
+    output logic rd_en,
+    output logic rs1_en,
+    output logic rs2_en,
     output rd_din_sel_e rd_din_sel,
     output pc_next_sel_e pc_next_sel,
     output alu_din1_sel_e alu_din1_sel,
     output alu_din2_sel_e alu_din2_sel,
     output alu_op_e alu_op,
-    output reg alu_shift_din2
+    output logic alu_shift_din2
   );
   state_e state;
   state_e state_next;

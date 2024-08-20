@@ -48,6 +48,7 @@ module copperv import copperv_pkg::*;
     wishbone_if.master data_if, 
     wishbone_if.master inst_if
   );
+  decoded_inst_s decoded_inst;
   wire [imm_width-1:0] imm;
   funct_e funct;
   alu_op_e alu_op;
@@ -218,13 +219,14 @@ module copperv import copperv_pkg::*;
   end
   idecoder idec (
     .inst(inst),
-    .imm(imm),
-    .inst_type(inst_type),
-    .rd(rd),
-    .rs1(rs1),
-    .rs2(rs2),
-    .funct(funct)
+    .decoded_inst(decoded_inst)
   );
+  assign imm = decoded_inst.imm;
+  assign inst_type = decoded_inst.itype;
+  assign rd = decoded_inst.rd;
+  assign rs1 = decoded_inst.rs1;
+  assign rs2 = decoded_inst.rs2;
+  assign funct = decoded_inst.funct;
   register_file regfile (
     .clk(clk),
     .rst(rst),

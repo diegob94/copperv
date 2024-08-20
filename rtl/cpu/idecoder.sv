@@ -5,13 +5,20 @@
 module idecoder import copperv_pkg::*;
   (
     input [inst_width-1:0] inst,
-    output reg [imm_width-1:0] imm,
-    output inst_type_e inst_type,
-    output reg_adr_td rd,
-    output reg_adr_td rs1,
-    output reg_adr_td rs2,
-    output funct_e funct
+    output decoded_inst_s decoded_inst
   );
+  imm_td imm;
+  inst_type_e inst_type;
+  reg_adr_td rd;
+  reg_adr_td rs1;
+  reg_adr_td rs2;
+  funct_e funct;
+  assign decoded_inst.imm = imm;
+  assign decoded_inst.itype = inst_type;
+  assign decoded_inst.rd = rd;
+  assign decoded_inst.rs1 = rs1;
+  assign decoded_inst.rs2 = rs2;
+  assign decoded_inst.funct = funct;
   opcode_e opcode;
   reg [funct3_width-1:0] funct3;
   reg [funct7_width-1:0] funct7;

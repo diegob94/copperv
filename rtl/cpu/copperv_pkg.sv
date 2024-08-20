@@ -143,6 +143,15 @@ package copperv_pkg;
   typedef logic [reg_width-1:0] reg_adr_td;
   typedef logic [data_width-1:0] data_td;
   typedef logic [pc_width-1:0] addr_td;
+  typedef logic [imm_width-1:0] imm_td;
+  typedef struct {
+    imm_td imm;
+    inst_type_e itype;
+    reg_adr_td rd;
+    reg_adr_td rs1;
+    reg_adr_td rs2;
+    funct_e funct;
+  } decoded_inst_s;
 
 endpackage : copperv_pkg
 

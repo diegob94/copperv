@@ -15,45 +15,26 @@ module testbench();
     .adr_width(pc_width),
     .sel_width(4)
   ) inst_if();
-  wishbone_bfm #(
-    .dat_width(data_width),
-    .adr_width(bus_width),
-    .sel_width(4),
-    .name("data_bfm")
-  ) data_bfm(.*);
-  wishbone_bfm #(
-    .dat_width(inst_width),
-    .adr_width(pc_width),
-    .sel_width(4),
-    .name("inst_bfm")
-  ) inst_bfm(.*);
+  wishbone_bfm data_bfm(
+    .clk(clk),
+    .rst(rst),
+    .vif(data_if.master)
+  );
+  wishbone_bfm inst_bfm(
+    .clk(clk),
+    .rst(rst),
+    .vif(inst_if.master)
+  );
   copperv dut(.*);
-
-  assign data_if.ack = data_bfm.ack;
-  assign data_if.datrd = data_bfm.datrd;
-  assign data_bfm.adr = data_if.adr;
-  assign data_bfm.datwr = data_if.datwr;
-  assign data_bfm.we = data_if.we;
-  assign data_bfm.stb = data_if.stb;
-  assign data_bfm.cyc = data_if.cyc;
-  assign data_bfm.sel = data_if.sel;
-  assign inst_if.ack = inst_bfm.ack;
-  assign inst_if.datrd = inst_bfm.datrd;
-  assign inst_bfm.adr = inst_if.adr;
-  assign inst_bfm.datwr = inst_if.datwr;
-  assign inst_bfm.we = inst_if.we;
-  assign inst_bfm.stb = inst_if.stb;
-  assign inst_bfm.cyc = inst_if.cyc;
-  assign inst_bfm.sel = inst_if.sel;
+  idecoder_bfm idec_bfm();
+  assign idec_bfm.inst = dut.idec.inst;
+  assign idec_bfm.decoded_inst = dut.idec.decoded_inst;
 
   int read_adr = 0;
 
   initial begin
     $dumpfile("testbench.vcd");
     $dumpvars;
-  end
-
-  initial begin
     clk = 0;
     rst = 1;
     repeat (5) @(posedge clk);
@@ -63,6 +44,10 @@ module testbench();
     repeat (100) @(posedge clk);
     $finish;
   end
+
+  always @(posedge clk)
+    if (dut.inst_valid)
+      idec_bfm.display();
 
   initial begin
     repeat (1000) @(posedge clk);
