@@ -6,7 +6,7 @@ module control_unit import copperv_pkg::*;
     input rst,
     input inst_type_e inst_type,
     input inst_valid,
-    input alu_comp_e alu_comp,
+    input alu_comp_s alu_comp,
     input funct_e funct,
     input data_valid,
     output logic inst_fetch,
@@ -151,17 +151,17 @@ module control_unit import copperv_pkg::*;
                       alu_din2_sel = alu_din2_sel_rs2;
                       case(funct)
                           funct_eq:
-                              take_branch =  alu_comp[alu_comp_eq];
+                              take_branch =  alu_comp.eq;
                           funct_neq:
-                              take_branch = !alu_comp[alu_comp_eq];
+                              take_branch = !alu_comp.eq;
                           funct_lt:
-                              take_branch =  alu_comp[alu_comp_lt];
+                              take_branch =  alu_comp.lt;
                           funct_gte:
-                              take_branch = !alu_comp[alu_comp_lt];
+                              take_branch = !alu_comp.lt;
                           funct_ltu:
-                              take_branch =  alu_comp[alu_comp_ltu];
+                              take_branch =  alu_comp.ltu;
                           funct_gteu:
-                              take_branch = !alu_comp[alu_comp_ltu];
+                              take_branch = !alu_comp.ltu;
                       endcase
                       if(take_branch)
                           pc_next_sel = pc_next_sel_add_imm;

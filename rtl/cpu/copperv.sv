@@ -59,7 +59,7 @@ module copperv import copperv_pkg::*;
   logic rd_en, rs1_en, rs2_en;
   data_td rd_din, rs1_dout, rs2_dout;
   data_td alu_din1, alu_din2, alu_dout;
-  alu_comp_e alu_comp;
+  alu_comp_s alu_comp;
   logic inst_valid;
   inst_td inst;
   logic inst_fetch;

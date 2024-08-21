@@ -64,12 +64,6 @@ package copperv_enums_pkg;
   } alu_op_e;
 
   typedef enum {
-    alu_comp_eq,
-    alu_comp_lt,
-    alu_comp_ltu
-  } alu_comp_e;
-
-  typedef enum {
     inst_type_imm,
     inst_type_int_imm,
     inst_type_int_reg,
@@ -152,6 +146,11 @@ package copperv_pkg;
     reg_adr_td rs2;
     funct_e funct;
   } decoded_inst_s;
+  typedef struct {
+    logic eq;
+    logic lt;
+    logic ltu;
+  } alu_comp_s;
 
 endpackage : copperv_pkg
 
